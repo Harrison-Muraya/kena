@@ -4,4 +4,5 @@ from django.template import loader
 
 
 def home(request):
+    print('hellow')
     return render(request, 'coin/home.html')
