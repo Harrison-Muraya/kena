@@ -22,4 +22,4 @@ def create(request):
             return HttpResponse(f"List '{name}' created with checkbox {'checked' if check_box else 'not checked'}")
     else:
         form = forms.CreateNewlist()
-    return render(request, 'coin/create.html', {'form': forms.CreateNewlist()})
+    return render(request, 'coin/create.html', {'form': form})
