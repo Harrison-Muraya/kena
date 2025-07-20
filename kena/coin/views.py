@@ -16,7 +16,7 @@ def create(request):
             # Process the form data
             name = form.cleaned_data['name']
             check_box = form.cleaned_data['check_box']
-            t = Todolist(name=name, flag=1)
+            t = Todolist(name=name, check_box=check_box)
             t.save()
             # Here you can save the data to the database or perform other actions
             return HttpResponse(f"List '{name}' created with checkbox {'checked' if check_box else 'not checked'}")
