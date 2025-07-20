@@ -1,5 +1,5 @@
 from django.shortcuts import render
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpResponseRedirect
 from django.template import loader
 from . models import Todolist, Item
 from . import forms
@@ -19,7 +19,20 @@ def create(request):
             t = Todolist(name=name, check_box=check_box)
             t.save()
             # Here you can save the data to the database or perform other actions
-            return HttpResponse(f"List '{name}' created with checkbox {'checked' if check_box else 'not checked'}")
+            return HttpResponseRedirect('/coin/home/')
+            # return HttpResponse(f"List '{name}' created with checkbox {'checked' if check_box else 'not checked'}")
     else:
         form = forms.CreateNewlist()
     return render(request, 'coin/create.html', {'form': form})
+
+def list(request):
+    todolists = Todolist.objects.all()
+    items = Item.objects.all()  # Assuming you want to list all items
+    return render(request, 'coin/list.html', {'todolists': todolists, 'items': items})
+
+def show(request, id):
+    todolist = Todolist.objects.get(id=id)
+    items = todolist.item_set.all()
+    # return HttpResponse(f"List: {todolist.name} - Checkbox: {'Checked' if todolist.check_box else 'Not Checked'}<br>Items: {', '.join([item.name for item in items])}")
+
+    return render(request, 'coin/show.html', {'todolist': todolist, 'items': items})
