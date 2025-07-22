@@ -1,0 +1,17 @@
+{% extends 'coin/base.html' %}
+
+{% block title %}
+  Login to your Account
+{% endblock %}
+
+{% block content %}
+  <h2>My list </h2>
+  <form method="POST">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <p>
+      <a href="{% url 'register' %}">Don't have an account? Register here</a>
+    </p>
+    <button type="submit">login</button>
+  </form>
+{% endblock %}

@@ -2,7 +2,7 @@ from django.shortcuts import render
 from django.http import HttpResponse, HttpResponseRedirect
 from django.template import loader
 from . models import Todolist, Item
-from . import forms
+from . import forms 
 
 
 def home(request):
@@ -36,3 +36,17 @@ def show(request, id):
     # return HttpResponse(f"List: {todolist.name} - Checkbox: {'Checked' if todolist.check_box else 'Not Checked'}<br>Items: {', '.join([item.name for item in items])}")
 
     return render(request, 'coin/show.html', {'todolist': todolist, 'items': items})
+
+
+def register(request):
+    if request.method == 'POST':
+        # Handle form submission
+        form = forms.RegisterForm(request.POST)
+        if form.is_valid():
+            # Save the user or perform other actions
+            form.save()
+            return render(request, 'coin/success.html')
+    else:
+        # Display registration form
+        form = forms.RegisterForm()
+    return render(request, 'registration/register.html', {'form': form})
