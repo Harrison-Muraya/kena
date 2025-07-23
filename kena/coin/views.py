@@ -1,4 +1,6 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
+from django.contrib.auth import authenticate, login
+from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse, HttpResponseRedirect
 from django.template import loader
 from . models import Todolist, Item
@@ -45,8 +47,15 @@ def register(request):
         if form.is_valid():
             # Save the user or perform other actions
             form.save()
-            return render(request, 'coin/success.html')
+            login(request, form.save())
+            return redirect(request, '/')
     else:
         # Display registration form
         form = forms.RegisterForm()
     return render(request, 'registration/register.html', {'form': form})
+
+def dashboard(request):
+    if request.user.is_authenticated:
+        return render(request, 'coin/dashboard.html', {'user': request.user})
+    else:
+        return redirect('login')
