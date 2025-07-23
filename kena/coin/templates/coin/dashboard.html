@@ -1,0 +1,32 @@
+{% extends 'coin/base.html' %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1>Welcome to the Dashboard, {{ user.username }}! your id is {{ user.id }}</h1>
+    <p>This is your personal dashboard where you can manage your activities.</p>
+    <ul>
+        <li><a href="{% url 'list' %}">View Lists</a></li>
+        <li><a href="{% url 'register' %}">Register New Item</a></li>
+    </ul>
+    <p><a href="{% url 'logout' %}">Logout</a></p>
+</div>
+
+<div class="card ">
+    <div class="card-body">
+        <h5 class="card-title">create your wallet</h5>
+
+        <form action="" method="post">
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="wallet_name">Wallet Name</label>
+                <input type="text" class="form-control" id="wallet_name" name="wallet_name" required>
+            </div>
+        </form>
+               
+             
+    </div>
+
+</div>
+{% endblock %}
