@@ -3,30 +3,61 @@
 {% block title %}Dashboard{% endblock %}
 
 {% block content %}
-<div class="container">
-    <h1>Welcome to the Dashboard, {{ user.username }}! your id is {{ user.id }}</h1>
+    <div class="container">
+    <h1>Welcome to the Dashboard, {{ user.username }}! Your ID is {{ user.id }}</h1>
     <p>This is your personal dashboard where you can manage your activities.</p>
     <ul>
         <li><a href="{% url 'list' %}">View Lists</a></li>
         <li><a href="{% url 'register' %}">Register New Item</a></li>
     </ul>
     <p><a href="{% url 'logout' %}">Logout</a></p>
-</div>
-
-<div class="card ">
-    <div class="card-body">
-        <h5 class="card-title">create your wallet</h5>
-
-        <form action="" method="post">
-            {% csrf_token %}
-            <div class="form-group">
-                <label for="wallet_name">Wallet Name</label>
-                <input type="text" class="form-control" id="wallet_name" name="wallet_name" required>
-            </div>
-        </form>
-               
-             
     </div>
 
-</div>
+    <div class="form-container">
+    <form action="/wallet/create" method="POST">
+        {% csrf_token %}
+        <div class="form-group">
+        <label for="walletName">Wallet Name</label>
+        <input type="text" id="walletName" name="walletName" placeholder="Enter your wallet name" required />
+        </div>
+        <div class="form-group">
+        <label for="email">Email Address</label>
+        <input type="email" id="email" name="email" placeholder="Enter your email" required />
+        </div>
+        <div class="form-group">
+        <label for="password">Create Password</label>
+        <input type="password" id="password" name="password" placeholder="Create a secure password" required />
+        </div>
+        <div class="form-group">
+        <label for="confirmPassword">Confirm Password</label>
+        <input type="password" id="confirmPassword" name="confirmPassword" placeholder="Confirm your password" required />
+        </div>
+        <div class="form-group">
+        <label for="walletType">Wallet Type</label>
+        <select id="walletType" name="walletType" required>
+            <option value="">Select type</option>
+            <option value="personal">Personal Wallet</option>
+            <option value="business">Business Wallet</option>
+            <option value="miner">Miner Wallet</option>
+        </select>
+        </div>
+        <button type="submit" class="btn">Create Wallet</button>
+    </form>
+    </div>
+
+    <!-- Credit Card Style Wallet -->
+    <div class="wallet-card">
+    <div class="logo">KENA COIN</div>
+    <div class="wallet-owner">Harrison Muraya</div>
+    <div class="wallet-balance">Ƀ 12,450.75 KENA</div>
+    <div class="wallet-details">
+        Wallet Type: Personal<br />
+        Created: July 22, 2025<br />
+        Status: ✔ Active
+    </div>
+    <div class="public-key">
+        Public Key:<br />
+        0x6af3cbA71cED349e9D1241B9aF8291eA23BD3941A9eA78c2B6c9123ED6E8aF51
+    </div>
+    </div>
 {% endblock %}
