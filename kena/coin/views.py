@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect
-from django.contrib.auth import authenticate, login
+from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse, HttpResponseRedirect
 from django.template import loader
@@ -48,7 +48,7 @@ def register(request):
             # Save the user or perform other actions
             form.save()
             login(request, form.save())
-            return redirect(request, '/')
+            return redirect(request, '/dashboard')
     else:
         # Display registration form
         form = forms.RegisterForm()
