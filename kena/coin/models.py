@@ -4,7 +4,7 @@ from django.conf import settings
 
 
 class CustomUser(AbstractUser):
-    primary_key = models.CharField(max_length=300, unique=True, null=True, blank=True)
+    private_key = models.CharField(max_length=300, unique=True, null=True, blank=True)
     public_key = models.CharField(max_length=300, unique=True, null=True, blank=True)
 
     def __str__(self):

@@ -5,6 +5,17 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.template import loader
 from . models import Todolist, Item
 from . import forms 
+from Crypto.PublicKey import RSA
+
+
+# generate private key and public key
+def generate_keys():
+    from Crypto.PublicKey import RSA
+    key = RSA.generate(2048)
+    private_key = key.export_key()
+    public_key = key.publickey().export_key()
+    return private_key, public_key
+
 
 
 def home(request):
@@ -45,7 +56,13 @@ def register(request):
         # Handle form submission
         form = forms.RegisterForm(request.POST)
         if form.is_valid():
-            # Save the user or perform other actions
+            # Generate keys
+            private_key, public_key = generate_keys()
+            # Save user with public key
+            user = form.save(commit=False)  
+            user.public_key = public_key.decode('utf-8')
+            user.private_key = private_key.decode('utf-8')
+            user.save()
             form.save()
             login(request, form.save())
             return redirect(request, '/dashboard')

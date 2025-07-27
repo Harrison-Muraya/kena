@@ -5,6 +5,13 @@
 {% block content %}
     <div class="container">
     <h1>Welcome to the Dashboard, {{ user.username }}! Your ID is {{ user.id }}</h1>
+    <div class="">
+        <p> your private key is: </p>
+            {{ user.private_key}}
+
+        <p> your public key is: </p>
+            {{ user.public_key}}
+    </div>
     <p>This is your personal dashboard where you can manage your activities.</p>
     <ul>
         <li><a href="{% url 'list' %}">View Lists</a></li>
