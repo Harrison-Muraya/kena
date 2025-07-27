@@ -126,3 +126,11 @@ class Transaction(object):
         hashString = self.sender  + self.receiver + str(self.time) + str(self.amt)
         hashEncoded = json.dumps(hashString, sort_keys=True).encode()
         return hashlib.sha256(hashEncoded).hexdigest()
+
+class CalculateHash(object):
+    def __init__(self, data):
+        self.data = data
+
+    def calculate(self):
+        hashEncoded = json.dumps(self.data, sort_keys=True).encode()
+        return hashlib.sha256(hashEncoded).hexdigest()
