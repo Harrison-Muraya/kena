@@ -10,7 +10,7 @@ class CustomUser(AbstractUser):
     status = models.BooleanField(default=1)
 
     def __str__(self):
-        return self.username
+        return f"{self.username} - {self.email} - {self.email} - {self.date_joined}"
 
 class Todolist(models.Model):
     name = models.CharField(max_length=200)
@@ -49,7 +49,7 @@ class Wallet(models.Model):
     name = models.CharField(max_length=200)
     amount = models.DecimalField(max_digits=20, decimal_places=8)
     value = models.DecimalField(max_digits=20, decimal_places=2)
-    passwword = models.CharField(max_length=200, null=True, blank=True)
+    password = models.CharField(max_length=200, null=True, blank=True)
     Wallettype = models.CharField(max_length=20, default='personal')
     hash = models.CharField(max_length=64, unique=True)
     flag = models.IntegerField(default=1)
@@ -57,4 +57,4 @@ class Wallet(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     
     def __str__(self):
-        return f"{self.user} - {self.name} ({self.hash})"
+        return f"{self.user}  -  {self.name}  -  {self.hash}  - {self.created_at}"

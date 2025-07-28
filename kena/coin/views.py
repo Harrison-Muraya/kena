@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.hashers import make_password
 from django.http import HttpResponse, HttpResponseRedirect
 from django.template import loader
 from . models import Todolist, Item, Coin, Wallet
@@ -76,15 +77,15 @@ def dashboard(request):
     if request.user.is_authenticated:       
         user = request.user
         # print("Private Key:", user.private_key)
-        print("Public Key:", user.public_key)
-        
+        # print("Public Key:", user.public_key)
+
         form = forms.WalletForm()
         if request.method == 'POST':
             form = forms.WalletForm(request.POST)
             if form.is_valid():
                 name = form.cleaned_data['name']
                 walletType = form.cleaned_data['walletType']
-                password = form.cleaned_data['password']  
+                password = make_password(form.cleaned_data['password']) 
 
                 data = {
                     "name": name,
@@ -95,7 +96,7 @@ def dashboard(request):
 
                 hasher = blockchain.CalculateHash(data)
                 hash_value = hasher.calculate()
-                print("Hash:", hash_value)
+
                 # Create a new wallet instance
                 wallet = Wallet(
                     user=request.user,
@@ -103,11 +104,8 @@ def dashboard(request):
                     amount= 0,  # Initial amount can be set to 0 or any other value
                     value= 0,  # Initial value can be set to 0 or any other value
                     hash=hash_value,
-                    passwword=password,
+                    password=password,
                     Wallettype=walletType,
-                    # Generate a unique hash for the wallet
-                    
-                    # hash=hashlib.sha256(f"{name}{coin}{amount}{value}".encode()).hexdigest()
                 )
                 wallet.save()
                 return redirect('dashboard')
