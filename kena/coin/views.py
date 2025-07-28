@@ -83,14 +83,13 @@ def dashboard(request):
             form = forms.WalletForm(request.POST)
             if form.is_valid():
                 name = form.cleaned_data['name']
-                coin = form.cleaned_data['coin']
-                amount = form.cleaned_data['amount']
-                value = form.cleaned_data['value']
+                walletType = form.cleaned_data['walletType']
                 password = form.cleaned_data['password']  
 
                 data = {
                     "name": name,
                     "password": password,
+                    "walletType": walletType,
                     "private_key": user.private_key,
                 }
 
@@ -101,11 +100,11 @@ def dashboard(request):
                 wallet = Wallet(
                     user=request.user,
                     name=name,
-                    coin=Coin.objects.get(name=coin),  # Assuming Coin model has a name field
-                    amount=amount,
-                    value=value,
+                    amount= 0,  # Initial amount can be set to 0 or any other value
+                    value= 0,  # Initial value can be set to 0 or any other value
+                    hash=hash_value,
                     passwword=password,
-                    Wallettype=form.cleaned_data['Wallettype'],
+                    Wallettype=walletType,
                     # Generate a unique hash for the wallet
                     
                     # hash=hashlib.sha256(f"{name}{coin}{amount}{value}".encode()).hexdigest()
@@ -114,6 +113,7 @@ def dashboard(request):
                 return redirect('dashboard')
         else:
             form = forms.WalletForm()
+            
         return render(request, 'coin/dashboard.html', {'user': request.user, 'form': form})
     else:
         return redirect('login')

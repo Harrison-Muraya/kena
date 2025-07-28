@@ -24,8 +24,8 @@
         <form action="" method="POST">
             {% csrf_token %}
             <div class="form-group">
-                {{ form.walletName.label_tag }}
-                {{ form.walletName }}
+                {{ form.name.label_tag }}
+                {{ form.name }}
             </div>
             <div class="form-group">
                 {{ form.password.label_tag }}

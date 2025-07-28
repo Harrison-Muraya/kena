@@ -2,11 +2,6 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.conf import settings
 
-WALLET_CHOICES = [
-    ('personal', 'Personal Wallet'),
-    ('business', 'Business Wallet'),
-    ('miner', 'Miner Wallet'),
-]
 
 class CustomUser(AbstractUser):
     private_key = models.CharField(max_length=300, unique=True, null=True, blank=True)
@@ -50,16 +45,16 @@ class Coin(models.Model):
 
 class Wallet(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    coin = models.ForeignKey(Coin, on_delete=models.CASCADE)
+    coin = models.ForeignKey(Coin, null=True, on_delete=models.CASCADE)
     name = models.CharField(max_length=200)
     amount = models.DecimalField(max_digits=20, decimal_places=8)
     value = models.DecimalField(max_digits=20, decimal_places=2)
     passwword = models.CharField(max_length=200, null=True, blank=True)
-    Wallettype = models.CharField(max_length=20, choices=WALLET_CHOICES, default='personal')
+    Wallettype = models.CharField(max_length=20, default='personal')
     hash = models.CharField(max_length=64, unique=True)
     flag = models.IntegerField(default=1)
     status = models.BooleanField(default=1)
     created_at = models.DateTimeField(auto_now_add=True)
     
     def __str__(self):
-        return f"{self.user} - {self.coin.name} ({self.amount})"
+        return f"{self.user} - {self.name} ({self.hash})"
