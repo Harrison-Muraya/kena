@@ -115,17 +115,22 @@ class Block(object):
     
 
 class Transaction(object):
-    def __init__(self, sender, receiver, amt, time):
+    def __init__(self,billing, sender, receiver, amt, time):
+        self.billing = billing
         self.time = time
         self.sender = sender
         self.receiver = receiver
         self.amt = amt
-        self.hash = self.calculateHash()
 
-    def calculateHash(self):
-        hashString = self.sender  + self.receiver + str(self.time) + str(self.amt)
-        hashEncoded = json.dumps(hashString, sort_keys=True).encode()
-        return hashlib.sha256(hashEncoded).hexdigest()
+        data = {
+            "billing": self.billing,
+            "sender": self.sender,
+            "receiver": self.receiver,
+            "amt": str(self.amt),
+            "time": str(self.time)
+        }
+        self.hash = CalculateHash(data).calculate()
+        return self.hash
 
 class CalculateHash(object):
     def __init__(self, data):
