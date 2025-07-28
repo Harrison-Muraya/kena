@@ -10,7 +10,7 @@ class CustomUser(AbstractUser):
     status = models.BooleanField(default=1)
 
     def __str__(self):
-        return f"{self.username} - {self.email} - {self.email} - {self.date_joined}"
+        return f"{self.username} - {self.email} - {self.date_joined}"
 
 class Todolist(models.Model):
     name = models.CharField(max_length=200)
