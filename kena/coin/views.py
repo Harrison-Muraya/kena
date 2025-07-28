@@ -3,9 +3,10 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse, HttpResponseRedirect
 from django.template import loader
-from . models import Todolist, Item
+from . models import Todolist, Item, Coin, Wallet
 from . import forms 
-from Crypto.PublicKey import RSA
+from . import blockchain
+# from Crypto.PublicKey import RSA
 
 
 # generate private key and public key
@@ -72,7 +73,47 @@ def register(request):
     return render(request, 'registration/register.html', {'form': form})
 
 def dashboard(request):
-    if request.user.is_authenticated:
-        return render(request, 'coin/dashboard.html', {'user': request.user})
+    if request.user.is_authenticated:       
+        user = request.user
+        # print("Private Key:", user.private_key)
+        print("Public Key:", user.public_key)
+
+        form = forms.WalletForm()
+        if request.method == 'POST':
+            form = forms.WalletForm(request.POST)
+            if form.is_valid():
+                name = form.cleaned_data['name']
+                coin = form.cleaned_data['coin']
+                amount = form.cleaned_data['amount']
+                value = form.cleaned_data['value']
+                password = form.cleaned_data['password']  
+
+                data = {
+                    "name": name,
+                    "password": password,
+                    "private_key": user.private_key,
+                }
+
+                hasher = blockchain.CalculateHash(data)
+                hash_value = hasher.calculate()
+                print("Hash:", hash_value)
+                # Create a new wallet instance
+                wallet = Wallet(
+                    user=request.user,
+                    name=name,
+                    coin=Coin.objects.get(name=coin),  # Assuming Coin model has a name field
+                    amount=amount,
+                    value=value,
+                    passwword=password,
+                    Wallettype=form.cleaned_data['Wallettype'],
+                    # Generate a unique hash for the wallet
+                    
+                    # hash=hashlib.sha256(f"{name}{coin}{amount}{value}".encode()).hexdigest()
+                )
+                wallet.save()
+                return redirect('dashboard')
+        else:
+            form = forms.WalletForm()
+        return render(request, 'coin/dashboard.html', {'user': request.user, 'form': form})
     else:
         return redirect('login')

@@ -2,10 +2,17 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.conf import settings
 
+WALLET_CHOICES = [
+    ('personal', 'Personal Wallet'),
+    ('business', 'Business Wallet'),
+    ('miner', 'Miner Wallet'),
+]
 
 class CustomUser(AbstractUser):
     private_key = models.CharField(max_length=300, unique=True, null=True, blank=True)
     public_key = models.CharField(max_length=300, unique=True, null=True, blank=True)
+    flag = models.IntegerField(default=1)
+    status = models.BooleanField(default=1)
 
     def __str__(self):
         return self.username
@@ -22,6 +29,7 @@ class Item (models.Model):
     text = models.CharField(max_length=200)
     complete = models.BooleanField()
     flag = models.IntegerField(default=1)
+    status = models.BooleanField(default=1)
     def __str__(self):
         return self.text
 
@@ -32,6 +40,9 @@ class Coin(models.Model):
     market_cap = models.DecimalField(max_digits=20, decimal_places=2)
     volume_24h = models.DecimalField(max_digits=20, decimal_places=2)
     change_24h = models.DecimalField(max_digits=5, decimal_places=2)
+    flag = models.IntegerField(default=1)
+    status = models.BooleanField(default=1)
+    created_at = models.DateTimeField(auto_now_add=True)
     
     def __str__(self):
         return f"{self.name} ({self.symbol})"
@@ -43,6 +54,11 @@ class Wallet(models.Model):
     name = models.CharField(max_length=200)
     amount = models.DecimalField(max_digits=20, decimal_places=8)
     value = models.DecimalField(max_digits=20, decimal_places=2)
+    passwword = models.CharField(max_length=200, null=True, blank=True)
+    Wallettype = models.CharField(max_length=20, choices=WALLET_CHOICES, default='personal')
+    hash = models.CharField(max_length=64, unique=True)
+    flag = models.IntegerField(default=1)
+    status = models.BooleanField(default=1)
     created_at = models.DateTimeField(auto_now_add=True)
     
     def __str__(self):

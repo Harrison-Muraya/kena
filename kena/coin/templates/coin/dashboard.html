@@ -21,35 +21,26 @@
     </div>
 
     <div class="form-container">
-    <form action="/wallet/create" method="POST">
-        {% csrf_token %}
-        <div class="form-group">
-        <label for="walletName">Wallet Name</label>
-        <input type="text" id="walletName" name="walletName" placeholder="Enter your wallet name" required />
-        </div>
-        <div class="form-group">
-        <label for="email">Email Address</label>
-        <input type="email" id="email" name="email" placeholder="Enter your email" required />
-        </div>
-        <div class="form-group">
-        <label for="password">Create Password</label>
-        <input type="password" id="password" name="password" placeholder="Create a secure password" required />
-        </div>
-        <div class="form-group">
-        <label for="confirmPassword">Confirm Password</label>
-        <input type="password" id="confirmPassword" name="confirmPassword" placeholder="Confirm your password" required />
-        </div>
-        <div class="form-group">
-        <label for="walletType">Wallet Type</label>
-        <select id="walletType" name="walletType" required>
-            <option value="">Select type</option>
-            <option value="personal">Personal Wallet</option>
-            <option value="business">Business Wallet</option>
-            <option value="miner">Miner Wallet</option>
-        </select>
-        </div>
-        <button type="submit" class="btn">Create Wallet</button>
-    </form>
+        <form action="" method="POST">
+            {% csrf_token %}
+            <div class="form-group">
+                {{ form.walletName.label_tag }}
+                {{ form.walletName }}
+            </div>
+            <div class="form-group">
+                {{ form.password.label_tag }}
+                {{ form.password }}
+            </div>
+            <div class="form-group">
+                {{ form.confirmPassword.label_tag }}
+                {{ form.confirmPassword }}
+            </div>
+            <div class="form-group">
+                {{ form.walletType.label_tag }}
+                {{ form.walletType }}
+            </div>
+            <button type="submit" class="btn">Create Wallet</button>
+        </form>
     </div>
 
     <!-- Credit Card Style Wallet -->
@@ -66,5 +57,6 @@
         Public Key:<br />
         0x6af3cbA71cED349e9D1241B9aF8291eA23BD3941A9eA78c2B6c9123ED6E8aF51
     </div>
-    </div>
+    </div>    
 {% endblock %}
+
