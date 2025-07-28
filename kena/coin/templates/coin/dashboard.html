@@ -5,13 +5,13 @@
 {% block content %}
     <div class="container">
     <h1>Welcome to the Dashboard, {{ user.username }}! Your ID is {{ user.id }}</h1>
-    <div class="">
+    <!-- <div class="">
         <p> your private key is: </p>
             {{ user.private_key}}
 
         <p> your public key is: </p>
             {{ user.public_key}}
-    </div>
+    </div> -->
     <p>This is your personal dashboard where you can manage your activities.</p>
     <ul>
         <li><a href="{% url 'list' %}">View Lists</a></li>
@@ -44,19 +44,35 @@
     </div>
 
     <!-- Credit Card Style Wallet -->
-    <div class="wallet-card">
-    <div class="logo">KENA COIN</div>
-    <div class="wallet-owner">Harrison Muraya</div>
-    <div class="wallet-balance">Ƀ 12,450.75 KENA</div>
-    <div class="wallet-details">
-        Wallet Type: Personal<br />
-        Created: July 22, 2025<br />
-        Status: ✔ Active
-    </div>
-    <div class="public-key">
-        Public Key:<br />
-        0x6af3cbA71cED349e9D1241B9aF8291eA23BD3941A9eA78c2B6c9123ED6E8aF51
-    </div>
-    </div>    
+
+    {% if wallets %}
+        <h2>Your Wallets</h2>
+        <div class="wallets-container">
+            {% for wallet in wallets %}
+                <div class="wallet-card">
+                    <div class="logo">KENA COIN</div>
+                    <div class="wallet-owner">{{ wallet.user.username|title }} - {{ wallet.name}}</div>
+                    <div class="wallet-balance">Ƀ {{ wallet.amount }} KENA</div>
+                    <div class="wallet-details">
+                        Wallet Type: {{ wallet.Wallettype }}<br />
+                        Created: {{ wallet.created_at|date:"F j, Y" }}<br />
+                        {% if wallet.status == 1 %}
+                            Status: ✔ Active
+                        {% else %}
+                            Status: ✘ Inactive
+                        {% endif %}
+                        
+                    </div>
+                    <div class="public-key">
+                        Hash:<br />
+                        {{ wallet.hash }}
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}        
+        <p>No wallets found. Create a new wallet to get started!</p>
+    {% endif %}
+
 {% endblock %}
 

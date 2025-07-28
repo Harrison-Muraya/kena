@@ -53,7 +53,7 @@ class Wallet(models.Model):
     Wallettype = models.CharField(max_length=20, default='personal')
     hash = models.CharField(max_length=64, unique=True)
     flag = models.IntegerField(default=1)
-    status = models.BooleanField(default=1)
+    status = models.IntegerField(default=1)
     created_at = models.DateTimeField(auto_now_add=True)
     
     def __str__(self):

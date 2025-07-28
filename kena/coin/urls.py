@@ -9,4 +9,5 @@ urlpatterns = [
     path('listdata/<int:id>/', views.show, name='view_list'),
     path('register/', views.register, name='register'),
     path('dashboard/', views.dashboard, name='dashboard'),
+    path('logout/', views.logout_view, name='logout'),
 ]

@@ -66,7 +66,7 @@ def register(request):
             user.save()
             form.save()
             login(request, form.save())
-            return redirect(request, '/dashboard')
+            return redirect('dashboard')
     else:
         # Display registration form
         form = forms.RegisterForm()
@@ -77,7 +77,7 @@ def dashboard(request):
         user = request.user
         # print("Private Key:", user.private_key)
         print("Public Key:", user.public_key)
-
+        
         form = forms.WalletForm()
         if request.method == 'POST':
             form = forms.WalletForm(request.POST)
@@ -113,7 +113,11 @@ def dashboard(request):
                 return redirect('dashboard')
         else:
             form = forms.WalletForm()
-            
-        return render(request, 'coin/dashboard.html', {'user': request.user, 'form': form})
+            wallets = Wallet.objects.filter(user=request.user)
+        return render(request, 'coin/dashboard.html', {'user': request.user, 'form': form, 'wallets': wallets})
     else:
         return redirect('login')
+    
+def logout_view(request):
+    logout(request)
+    return redirect('home')
