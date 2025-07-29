@@ -7,6 +7,7 @@ from django.template import loader
 from . models import Todolist, Item, Coin, Wallet
 from . import forms 
 from . import blockchain
+from datetime import timezone
 # from Crypto.PublicKey import RSA
 
 
@@ -73,6 +74,7 @@ def register(request):
         form = forms.RegisterForm()
     return render(request, 'registration/register.html', {'form': form})
 
+#Dashboard view
 def dashboard(request):
     if request.user.is_authenticated:       
         user = request.user
@@ -115,7 +117,35 @@ def dashboard(request):
         return render(request, 'coin/dashboard.html', {'user': request.user, 'form': form, 'wallets': wallets})
     else:
         return redirect('login')
-    
+
+#send kena
+def send_kena(request):
+    if request.user.is_authenticated:
+        if request.method == 'POST':
+            form = forms.SendKenaForm(request.POST)
+            if form.is_valid():
+                sender = request.user
+                receiver = form.cleaned_data['receiver']
+                amount = form.cleaned_data['amount']
+                billing = form.cleaned_data['billing']
+
+                # Create a new transaction
+                transaction = blockchain.Transaction(
+                    billing=billing,
+                    sender=sender.username,
+                    receiver=receiver,
+                    amt=amount,
+                    time=timezone.now()
+                )
+                transaction.save()
+
+                # Update wallet balances, etc. as needed
+                return redirect('dashboard')
+        else:
+            form = forms.SendKenaForm()
+        return render(request, 'coin/send_kena.html', {'form': form})
+
+ # Logout view   
 def logout_view(request):
     logout(request)
     return redirect('home')

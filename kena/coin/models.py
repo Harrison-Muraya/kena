@@ -101,3 +101,24 @@ class Transaction(models.Model):
         }
         self.hash = blockchain.CalculateHash(data).calculate()
         super().save(*args, **kwargs)  # Call the "real" save() method
+
+class Block(models.Model):
+    height = models.IntegerField()
+    nonce = models.IntegerField()
+    timestamp = models.FloatField()
+    previous_hash = models.CharField(max_length=64)
+    hash = models.CharField(max_length=64, unique=True)
+    transactions = models.TextField()  # JSON serialized transactions
+
+    def __str__(self):
+        return f"Block {self.height} - {self.hash[:10]}..."
+
+class PendingTransaction(models.Model):
+    sender = models.CharField(max_length=100)
+    receiver = models.CharField(max_length=100)
+    amount = models.DecimalField(max_digits=20, decimal_places=2)
+    timestamp = models.DateTimeField(auto_now_add=True)
+    hash = models.CharField(max_length=64, unique=True)
+
+    def __str__(self):
+        return f"{self.sender} -> {self.receiver}: {self.amount}"

@@ -44,6 +44,27 @@ class WalletForm(forms.Form):
         'id': 'walletType'
     }))
 
+class SendKenaForm(forms.Form):
+    name = forms.CharField(label="Username", max_length=100, widget=forms.TextInput(attrs={
+        'placeholder': 'Enter your Username',
+        'required': True,
+        'id': 'username'
+    }))
+    password = forms.CharField(label="Create Password", widget=forms.PasswordInput(attrs={
+        'placeholder': 'Create a secure password',
+        'required': True,
+        'id': 'password'
+    }))
+    confirmPassword = forms.CharField(label="Confirm Password", widget=forms.PasswordInput(attrs={
+        'placeholder': 'Confirm your password',
+        'required': True,
+        'id': 'confirmPassword'
+    }))
+    walletType = forms.ChoiceField(label="Wallet Type", choices=WALLET_CHOICES, widget=forms.Select(attrs={
+        'required': True,
+        'id': 'walletType'
+    }))
+
 # class createWallet(forms.Form):
 #     name = forms.CharField(label='Wallet Name', max_length=200)
 #     coin = forms.CharField(label='Coin', max_length=200)
