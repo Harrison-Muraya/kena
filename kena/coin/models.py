@@ -29,7 +29,10 @@ class Item (models.Model):
     status = models.BooleanField(default=1)
     def __str__(self):
         return self.text
-
+    
+# This model is used to store information about different cryptocurrencies
+# It includes fields for name, symbol, price, market cap, volume in the last 24 hours, change in the last 24 hours, flag, status, and creation timestamp
+# The __str__ method returns a string representation of the coin including its name and symbol
 class Coin(models.Model):
     name = models.CharField(max_length=200)
     symbol = models.CharField(max_length=10)
@@ -44,7 +47,9 @@ class Coin(models.Model):
     def __str__(self):
         return f"{self.name} ({self.symbol})"
     
-
+# This model is used to store wallet information for users
+# It includes fields for user, coin, name, amount, value, password, wallet type, hash, flag, status, and creation timestamp
+# The __str__ method returns a string representation of the wallet including its name and balance
 class Wallet(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     coin = models.ForeignKey(Coin, null=True, on_delete=models.CASCADE)
