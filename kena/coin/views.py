@@ -4,7 +4,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.hashers import make_password
 from django.http import HttpResponse, HttpResponseRedirect
 from django.template import loader
-from . models import Todolist, Item, Coin, Wallet,CustomUser
+from . models import Todolist, Item, Coin, Wallet,CustomUser, Billing
 from . import forms 
 from . import blockchain
 from . import uidgenerator
@@ -174,7 +174,7 @@ def send_kena(request):
                 
             
                 # creating a new billing instance
-                billing = blockchain.Billing(
+                billing = Billing(
                     user=sender,
                     wallet=form.cleaned_data['wallet'],
                     amount=amount,
