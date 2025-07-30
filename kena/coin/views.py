@@ -4,7 +4,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.hashers import make_password
 from django.http import HttpResponse, HttpResponseRedirect
 from django.template import loader
-from . models import Todolist, Item, Coin, Wallet
+from . models import Todolist, Item, Coin, Wallet,CustomUser
 from . import forms 
 from . import blockchain
 from . import uidgenerator
@@ -89,7 +89,7 @@ def dashboard(request):
 
                 data = {
                     "name": name,
-                    "password": password,
+                    "password": form.cleaned_data['password'],
                     "walletType": walletType,
                     "private_key": user.private_key,
                 }
@@ -105,7 +105,7 @@ def dashboard(request):
                     value= 0,  # Initial value can be set to 0 or any other value
                     hash=hash_value,
                     password=password,
-                    Wallettype=walletType,
+                    wallettype=walletType,
                 )
                 wallet.save()
                 return redirect('dashboard')
@@ -120,13 +120,59 @@ def dashboard(request):
 def send_kena(request):
     if request.user.is_authenticated:
         if request.method == 'POST':
-            form = forms.SendKenaForm(request.POST)
+            form = forms.SendKenaForm(request.POST or None, user=request.user)
+
             if form.is_valid():
                 sender = request.user
                 receiver = form.cleaned_data['receiver']
                 amount = form.cleaned_data['amount']
-                billing = form.cleaned_data['billing']
+                wallet = form.cleaned_data['wallet']
+                selected_wallet = form.cleaned_data['wallet']
+                password = form.cleaned_data['password'] 
 
+                # sender_wallet = Wallet.objects.filter(user=sender)
+                # print("Sender wallet:", sender_wallet)
+
+                # print("Sender primary key:", sender.private_key)
+                # Generate to cheack if the wallet belongs to the user
+                data = {
+                    "name": selected_wallet.name,
+                    "password": password,
+                    "walletType": selected_wallet.wallettype,
+                    "private_key": sender.private_key,
+                }
+                hasher = blockchain.CalculateHash(data) 
+                genrated_hash = hasher.calculate()
+                 # Validate wallet ownership
+                if selected_wallet.hash != genrated_hash:
+                    form.add_error('wallet', 'This wallet does not belong to you.')
+                    return render(request, 'coin/send_kena.html', {'form': form})
+                
+
+                #  check if the sender wallet exists
+                try:
+                    sender_wallet = Wallet.objects.filter(user=sender)
+                    print("Sender wallet:", sender_wallet)
+                except Wallet.DoesNotExist:
+                    form.add_error(None, "Sender wallet not found.")
+                    return render(request, 'coin/send_kena.html', {'form': form})
+                
+                # check if the receiver exists
+                try:
+                    recepient= CustomUser.objects.filter(username=receiver)
+                    if not recepient.exists():
+                        form.add_error('receiver', 'Receiver does not exist')
+                        return render(request, 'coin/send_kena.html', {'form': form})
+                    receiver_wallet = Wallet.objects.filter(user=recepient.first())
+                    if not receiver_wallet.exists():
+                        form.add_error('receiver', 'Receiver has no wallet associated with their account')
+                        return render(request, 'coin/send_kena.html', {'form': form})
+                   
+                except Wallet.DoesNotExist:
+                    form.add_error('receiver', 'Receiver wallet does not exist')
+                    return render(request, 'coin/send_kena.html', {'form': form})
+                
+            
                 # creating a new billing instance
                 billing = blockchain.Billing(
                     user=sender,
@@ -136,16 +182,6 @@ def send_kena(request):
                     type='send',
                 )
                 billing.save()
-
-                # Create a new transaction
-                transaction = blockchain.Transaction(
-                    billing=billing,
-                    sender=sender.username,
-                    receiver=receiver,
-                    amt=amount,
-                    time=timezone.now()
-                )
-                transaction.save()
 
                 # Update wallet balances, etc. as needed
                 return redirect('dashboard')

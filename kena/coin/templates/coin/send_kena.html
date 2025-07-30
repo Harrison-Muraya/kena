@@ -18,19 +18,38 @@
             {% if form.errors %}
                 <div class="alert alert-danger">
                     <strong>Error!</strong> Please correct the errors below.
+                    <ul>
+                        {% for field in form %}
+                            {% for error in field.errors %}
+                                <li>{{ error }}</li>
+                            {% endfor %}
+                        {% endfor %}
+                        {% for error in form.non_field_errors %}
+                            <li>{{ error }}</li>
+                        {% endfor %}
+                    </ul>
                 </div>
             {% endif %}
             <div class="form-group">
-                {{ form.name.label_tag }}
-                {{ form.name }}
+                {{ form.receiver.label_tag }}
+                {{ form.receiver }}
+                {% for error in form.receiver.errors %}
+                    <div class="text-danger">{{ error }}</div>
+                {% endfor %}
             </div>
             <div class="form-group">
                 {{ form.wallet.label_tag }}
                 {{ form.wallet }}
+                {% for error in form.wallet.errors %}
+                    <div class="text-danger">{{ error }}</div>
+                {% endfor %}
             </div>
             <div class="form-group">
                 {{ form.amount.label_tag }}
                 {{ form.amount }}
+                {% for error in form.amount.errors %}
+                    <div class="text-danger">{{ error }}</div>
+                {% endfor %}
             <div class="form-group">
                 {{ form.password.label_tag }}
                 {{ form.password }}

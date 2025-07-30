@@ -59,7 +59,7 @@ class SendKenaForm(forms.Form):
             'id': 'walletName'
         })
     )
-    name = forms.CharField(label="Receiver Username", max_length=100, widget=forms.TextInput(attrs={
+    receiver = forms.CharField(label="Receiver Username", max_length=100, widget=forms.TextInput(attrs={
         'placeholder': 'Enter your recepient Username',
         'required': True,
         'id': 'receiverUsername'

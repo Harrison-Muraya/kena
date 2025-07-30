@@ -57,7 +57,7 @@ class Wallet(models.Model):
     amount = models.DecimalField(max_digits=20, decimal_places=5)
     value = models.DecimalField(max_digits=20, decimal_places=2)
     password = models.CharField(max_length=200, null=True, blank=True)
-    Wallettype = models.CharField(max_length=20, default='personal')
+    wallettype = models.CharField(max_length=20, default='personal')
     hash = models.CharField(max_length=64, unique=True)
     flag = models.IntegerField(default=1)
     status = models.IntegerField(default=1)
