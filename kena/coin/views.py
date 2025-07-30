@@ -4,12 +4,16 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.hashers import make_password
 from django.http import HttpResponse, HttpResponseRedirect
 from django.template import loader
-from . models import Todolist, Item, Coin, Wallet,CustomUser, Billing
+from . models import Todolist, Item, Coin, Wallet,CustomUser, Billing, Transaction, Block, PendingTransaction
 from . import forms 
 from . import blockchain
 from . import uidgenerator
 from datetime import timezone
 # from Crypto.PublicKey import RSA
+
+# constant variables
+DIFFICULTY = 4  # Difficulty level for mining blocks
+FEE = 10  # Transaction fee for sending coins
 
 
 # generate private key and public key
@@ -177,11 +181,56 @@ def send_kena(request):
                 billing = Billing(
                     user=sender,
                     wallet=form.cleaned_data['wallet'],
-                    amount=amount,
+                    amount=amount + FEE,  # Total amount including fee
                     uid=uidgenerator.generate_code(),  # Generate a unique identifier
                     type='send',
                 )
                 billing.save()
+
+                # Get the billing ID
+                # billing_id = billing.id
+                # print("Billing ID:", billing_id)  # or use it however you want
+
+                # Create a new debit PendingTransaction instance
+                pending_transaction = PendingTransaction(
+                    billing=billing,
+                    sender=sender,
+                    receiver=recepient.first(),
+                    amount=amount - FEE,  # Amount minus the fee
+                    type='send',
+                    gateway='kena',
+                    credit=0,  # Assuming credit is 0 for debit transactions for the sender
+                    debit=amount,
+                )
+                pending_transaction.save()
+
+                # Create a new credit PendingTransaction instance for the receiver
+                pending_transaction_receiver = PendingTransaction(
+                    billing=billing,
+                    sender=sender,
+                    receiver=recepient.first(),
+                    amount=amount - FEE,  # Amount minus the fee
+                    type='receive',
+                    gateway='kena',
+                    credit=amount,  # Assuming credit is the amount for the receiver
+                    debit=0,  # Assuming debit is 0 for credit transactions for the receiver
+                )
+                pending_transaction_receiver.save()
+
+                # Create a new credit PendingTransaction instance for the fee
+                pending_transaction_fee = PendingTransaction(
+                    billing=billing,
+                    sender=sender,
+                    receiver=recepient.first(),
+                    amount= FEE,  # Fee amount
+                    type='fee', 
+                    gateway='kena',
+                    credit=FEE,  # Assuming credit is the fee amount
+                    debit=0,  # Assuming debit is 0 for fee transactions
+                )
+                pending_transaction_fee.save()
+
+
 
                 # Update wallet balances, etc. as needed
                 return redirect('dashboard')

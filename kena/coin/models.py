@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.conf import settings
 from . import blockchain
+from django.utils.timezone import now
 
 # This model is used to create a custom user model that extends the default Django user model
 # It includes additional fields for private key, public key, flag, and status
@@ -72,6 +73,8 @@ class Billing(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     wallet = models.ForeignKey(Wallet, on_delete=models.CASCADE)
     amount = models.DecimalField(max_digits=20, decimal_places=5)
+    fee = models.DecimalField(max_digits=20, decimal_places=5, default=0)
+    total = models.DecimalField(max_digits=20, decimal_places=5, default=0)
     uid = models.CharField(max_length=100, unique=True)
     type = models.CharField(max_length=20, default='gift')
     flag = models.IntegerField(default=1)
@@ -88,10 +91,12 @@ class Billing(models.Model):
 class Transaction(models.Model):
     billing = models.ForeignKey(Billing, on_delete=models.CASCADE, null=False, blank=False)
     gateway = models.CharField(max_length=100, default='kena')
+    type = models.CharField(max_length=20, default='send')
+    debit = models.DecimalField(max_digits=20, decimal_places=5, default=0)
+    credit = models.DecimalField(max_digits=20, decimal_places=5, default=0)
     sender = models.CharField(max_length=100)
     receiver = models.CharField(max_length=100)
     amount = models.DecimalField(max_digits=20, decimal_places=5)
-    fee = models.DecimalField(max_digits=20, decimal_places=2)
     time = models.DateTimeField(auto_now_add=True)
     hash = models.CharField(max_length=64, unique=True)
     
@@ -127,11 +132,49 @@ class Block(models.Model):
 # This model is used to store pending transactions
 # It includes fields for sender, receiver, amount, timestamp, and a unique hash
 class PendingTransaction(models.Model):
-    sender = models.CharField(max_length=100)
-    receiver = models.CharField(max_length=100)
-    amount = models.DecimalField(max_digits=20, decimal_places=2)
-    timestamp = models.DateTimeField(auto_now_add=True)
-    hash = models.CharField(max_length=64, unique=True)
+    billing = models.ForeignKey(Billing, on_delete=models.CASCADE)
+    gateway = models.CharField(max_length=100, default='kena')
+    type = models.CharField(max_length=20, default='send')
+    debit = models.DecimalField(max_digits=20, decimal_places=5, default=0)
+    credit = models.DecimalField(max_digits=20, decimal_places=5, default=0)
+    sender = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    receiver = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='receiver', on_delete=models.CASCADE)
+    amount = models.DecimalField(max_digits=20, decimal_places=5)
+    timestamp = models.DateTimeField(default=now)  # Manually set timestamp
+    hash = models.CharField(max_length=64, unique=True, blank=True)
+
+    def save(self, *args, **kwargs):
+        # Only calculate hash if not already set
+        if not self.hash:
+            data = {
+                "sender": str(self.sender),
+                "receiver": str(self.receiver),
+                "amount": str(self.amount),
+                "timestamp": str(self.timestamp),
+            }
+            self.hash = blockchain.CalculateHash(data).calculate()
+
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return f"{self.sender} -> {self.receiver}: {self.amount}"
+    
+# class PendingTransaction(models.Model):
+#     billing = models.ForeignKey(Billing, on_delete=models.CASCADE, null=False, blank=False)
+#     sender = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+#     receiver = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='receiver', on_delete=models.CASCADE)
+#     amount = models.DecimalField(max_digits=20, decimal_places=5)
+#     timestamp = models.DateTimeField(auto_now_add=True)
+#     hash = models.CharField(max_length=64, unique=True)
+#     def save(self, *args, **kwargs):
+#         data = {
+#             "sender": self.sender,
+#             "receiver": self.receiver,
+#             "amount": str(self.amount),
+#             "timestamp": str(self.timestamp)
+#         }
+#         self.hash = blockchain.CalculateHash(data).calculate()
+#         super().save(*args, **kwargs)  # Call the "real" save() method
+
+#     def __str__(self):
+#         return f"{self.sender} -> {self.receiver}: {self.amount}"
