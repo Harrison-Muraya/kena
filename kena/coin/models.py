@@ -138,7 +138,7 @@ class PendingTransaction(models.Model):
     debit = models.DecimalField(max_digits=20, decimal_places=5, default=0)
     credit = models.DecimalField(max_digits=20, decimal_places=5, default=0)
     sender = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    receiver = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='receiver', on_delete=models.CASCADE)
+    receiver = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='receiver', null=True, on_delete=models.CASCADE)
     amount = models.DecimalField(max_digits=20, decimal_places=5)
     timestamp = models.DateTimeField(default=now)  # Manually set timestamp
     hash = models.CharField(max_length=64, unique=True, blank=True)

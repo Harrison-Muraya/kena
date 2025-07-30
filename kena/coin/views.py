@@ -220,10 +220,11 @@ def send_kena(request):
                 pending_transaction_receiver.save()
 
                 # Create a new credit PendingTransaction instance for the fee
+                transactionc= CustomUser.objects.filter(username='harris').first()
                 pending_transaction_fee = PendingTransaction(
                     billing=billing,
                     sender=sender,
-                    receiver=recepient.first(),
+                    receiver= transactionc,  # Assuming receiver is a system account or fee collector
                     amount= FEE,  # Fee amount
                     type='fee', 
                     gateway='kena',
@@ -231,8 +232,6 @@ def send_kena(request):
                     debit=0,  # Assuming debit is 0 for fee transactions
                 )
                 pending_transaction_fee.save()
-
-
 
                 # Update wallet balances, etc. as needed
                 return redirect('dashboard')
