@@ -11,6 +11,7 @@
       {% if wallets %}
         <p>You have {{ wallets|length }} wallet(s) created.</p>
         <h3> <a href="{% url 'send_kena' %}"> send kena</a></h3>
+        <h3> <a href="{% url 'mine_kena' %}"> Mine kena</a></h3>
         <h3> <a href="#">buy kena</a></h3>
       {% else %}
         <p>You have no wallets yet. Create one to start managing your KENA!</p>

@@ -240,6 +240,44 @@ def send_kena(request):
         return render(request, 'coin/send_kena.html', {'form': form})
 
  # Logout view   
+
+# mine kena
+def mine_kena(request):
+    if request.user.is_authenticated:
+        if request.method == 'POST':
+            form = forms.MineKenaForm(request.POST or None, user=request.user)
+
+            if form.is_valid():
+                # Get the wallet to mine from
+                wallet = form.cleaned_data['wallet']
+                difficulty = form.cleaned_data['difficulty']
+
+                # Create a new block with the transactions
+                transactions = PendingTransaction.objects.filter(receiver=request.user)
+                if not transactions.exists():
+                    form.add_error(None, "No pending transactions to mine.")
+                    return render(request, 'coin/mine_kena.html', {'form': form})
+
+                block = Block(
+                    transactions=transactions,
+                    time=timezone.now(),
+                    height=Block.objects.count() + 1  # Increment block height
+                )
+                # Mine the block
+                block.mineBlock(difficulty)
+                # Save the block to the database
+                block.save()
+                # Clear the pending transactions after mining
+                transactions.delete()
+                return redirect('dashboard')
+        else:
+            form = forms.MineKenaForm(user=request.user)
+        return render(request, 'coin/mine_kena.html', {'form': form})
+    else:
+        return redirect('login')
+
+        
+
 def logout_view(request):
     logout(request)
     return redirect('home')

@@ -10,7 +10,7 @@ urlpatterns = [
     path('dashboard/', views.dashboard, name='dashboard'),
 
     path('send_kena/', views.send_kena, name='send_kena'),
-    path('send_kena/<int:id>/', views.send_kena, name='send_kena_with_id'),
+    path('mine_kena/', views.mine_kena, name='mine_kena'),
 
     path('register/', views.register, name='register'),    
     path('logout/', views.logout_view, name='logout'),
