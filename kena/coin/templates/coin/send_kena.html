@@ -13,15 +13,20 @@
     <div class="form-container">
         <form action="" method="POST">
             {% csrf_token %}
-            <h2>Send KENA Coins</h2>
-            <p>Enter the details below to send KENA coins.</p>
-             <div class="form-group">
-                {{ form.wallet.label_tag }}
-                {{ form.wallet }}
-            </div>
+            <h2>Send KENA</h2>
+            <p>Enter the details below to send KENA.</p>
+            {% if form.errors %}
+                <div class="alert alert-danger">
+                    <strong>Error!</strong> Please correct the errors below.
+                </div>
+            {% endif %}
             <div class="form-group">
                 {{ form.name.label_tag }}
                 {{ form.name }}
+            </div>
+            <div class="form-group">
+                {{ form.wallet.label_tag }}
+                {{ form.wallet }}
             </div>
             <div class="form-group">
                 {{ form.amount.label_tag }}
@@ -33,37 +38,6 @@
             <button type="submit" class="btn">Send</button>
         </form>
     </div>
-
-    <!-- Credit Card Style Wallet -->
-
-    {% if wallets %}
-        <h2>Your Wallets</h2>
-        <div class="wallets-container">
-            {% for wallet in wallets %}
-                <div class="wallet-card">
-                    <div class="logo">KENA COIN</div>
-                    <div class="wallet-owner">{{ wallet.user.username|title }} - {{ wallet.name}}</div>
-                    <div class="wallet-balance">Ƀ {{ wallet.amount }} KENA</div>
-                    <div class="wallet-details">
-                        Wallet Type: {{ wallet.Wallettype }}<br />
-                        Created: {{ wallet.created_at|date:"F j, Y" }}<br />
-                        {% if wallet.status == 1 %}
-                            Status: ✔ Active
-                        {% else %}
-                            Status: ✘ Inactive
-                        {% endif %}
-                        
-                    </div>
-                    <div class="public-key">
-                        Hash:<br />
-                        {{ wallet.hash }}
-                    </div>
-                </div>
-            {% endfor %}
-        </div>
-    {% else %}        
-        <p>No wallets found. Create a new wallet to get started!</p>
-    {% endif %}
-
+    
 {% endblock %}
 

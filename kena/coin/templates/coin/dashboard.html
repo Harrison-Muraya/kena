@@ -13,7 +13,7 @@
         <h3> <a href="{% url 'send_kena' %}"> send kena</a></h3>
         <h3> <a href="#">buy kena</a></h3>
       {% else %}
-        <p>You have no wallets yet. Create one to start managing your KENA coins!</p>
+        <p>You have no wallets yet. Create one to start managing your KENA!</p>
       {% endif %}
     
     <p><a href="/logout">Logout</a></p>
@@ -49,7 +49,7 @@
         <div class="wallets-container">
             {% for wallet in wallets %}
                 <div class="wallet-card">
-                    <div class="logo">KENA COIN</div>
+                    <div class="logo">KENA</div>
                     <div class="wallet-owner">{{ wallet.user.username|title }} - {{ wallet.name}}</div>
                     <div class="wallet-balance">Ƀ {{ wallet.amount }} KENA</div>
                     <div class="wallet-details">

@@ -59,15 +59,10 @@ class SendKenaForm(forms.Form):
             'id': 'walletName'
         })
     )
-    # wallet = forms.CharField(label="Wallet Name", max_length=100, widget=forms.TextInput(attrs={
-    #     'placeholder': 'Enter the wallet name',
-    #     'required': True,
-    #     'id': 'walletName'
-    # }))
-    name = forms.CharField(label="Username", max_length=100, widget=forms.TextInput(attrs={
-        'placeholder': 'Enter your Username',
+    name = forms.CharField(label="Receiver Username", max_length=100, widget=forms.TextInput(attrs={
+        'placeholder': 'Enter your recepient Username',
         'required': True,
-        'id': 'username'
+        'id': 'receiverUsername'
     }))
     amount = forms.DecimalField(label="Amount", max_digits=20, decimal_places=8, widget=forms.NumberInput(attrs={
         'placeholder': 'Enter the amount to send',

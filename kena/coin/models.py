@@ -3,7 +3,8 @@ from django.contrib.auth.models import AbstractUser
 from django.conf import settings
 from . import blockchain
 
-
+# This model is used to create a custom user model that extends the default Django user model
+# It includes additional fields for private key, public key, flag, and status
 class CustomUser(AbstractUser):
     private_key = models.CharField(max_length=300, unique=True, null=True, blank=True)
     public_key = models.CharField(max_length=300, unique=True, null=True, blank=True)
