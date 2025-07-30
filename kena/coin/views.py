@@ -7,6 +7,7 @@ from django.template import loader
 from . models import Todolist, Item, Coin, Wallet
 from . import forms 
 from . import blockchain
+from . import uidgenerator
 from datetime import timezone
 # from Crypto.PublicKey import RSA
 
@@ -18,8 +19,6 @@ def generate_keys():
     private_key = key.export_key()
     public_key = key.publickey().export_key()
     return private_key, public_key
-
-
 
 def home(request):
     print('hellow')
@@ -52,7 +51,6 @@ def show(request, id):
     # return HttpResponse(f"List: {todolist.name} - Checkbox: {'Checked' if todolist.check_box else 'Not Checked'}<br>Items: {', '.join([item.name for item in items])}")
 
     return render(request, 'coin/show.html', {'todolist': todolist, 'items': items})
-
 
 def register(request):
     if request.method == 'POST':
@@ -122,12 +120,22 @@ def dashboard(request):
 def send_kena(request):
     if request.user.is_authenticated:
         if request.method == 'POST':
-            form = forms.SendKenaForm(request.POST or None, user=request.user)
+            form = forms.SendKenaForm(request.POST)
             if form.is_valid():
                 sender = request.user
                 receiver = form.cleaned_data['receiver']
                 amount = form.cleaned_data['amount']
                 billing = form.cleaned_data['billing']
+
+                # creating a new billing instance
+                billing = blockchain.Billing(
+                    user=sender,
+                    wallet=form.cleaned_data['wallet'],
+                    amount=amount,
+                    uid=uidgenerator.generate_code(),  # Generate a unique identifier
+                    type='send',
+                )
+                billing.save()
 
                 # Create a new transaction
                 transaction = blockchain.Transaction(
