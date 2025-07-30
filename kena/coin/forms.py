@@ -1,7 +1,7 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
-from .models import CustomUser
+from .models import CustomUser, Wallet
 
 class CreateNewlist(forms.Form):
     name = forms.CharField(label='Name', max_length=200)
@@ -45,25 +45,43 @@ class WalletForm(forms.Form):
     }))
 
 class SendKenaForm(forms.Form):
+    def __init__(self, *args, user=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        if user:
+            self.fields['wallet'].queryset = Wallet.objects.filter(user=user)
+
+    wallet = forms.ModelChoiceField(
+        queryset=Wallet.objects.none(),  # Placeholder
+        empty_label="Select your wallet",
+        label="Wallet",
+        widget=forms.Select(attrs={
+            'required': True,
+            'id': 'walletName'
+        })
+    )
+    # wallet = forms.CharField(label="Wallet Name", max_length=100, widget=forms.TextInput(attrs={
+    #     'placeholder': 'Enter the wallet name',
+    #     'required': True,
+    #     'id': 'walletName'
+    # }))
     name = forms.CharField(label="Username", max_length=100, widget=forms.TextInput(attrs={
         'placeholder': 'Enter your Username',
         'required': True,
         'id': 'username'
     }))
-    password = forms.CharField(label="Create Password", widget=forms.PasswordInput(attrs={
-        'placeholder': 'Create a secure password',
+    amount = forms.DecimalField(label="Amount", max_digits=20, decimal_places=8, widget=forms.NumberInput(attrs={
+        'placeholder': 'Enter the amount to send',
+        'required': True,
+        'id': 'amount'
+    }))
+    password = forms.CharField(label="Password", widget=forms.PasswordInput(attrs={
+        'placeholder': 'Enter your password',
         'required': True,
         'id': 'password'
     }))
-    confirmPassword = forms.CharField(label="Confirm Password", widget=forms.PasswordInput(attrs={
-        'placeholder': 'Confirm your password',
-        'required': True,
-        'id': 'confirmPassword'
-    }))
-    walletType = forms.ChoiceField(label="Wallet Type", choices=WALLET_CHOICES, widget=forms.Select(attrs={
-        'required': True,
-        'id': 'walletType'
-    }))
+
+   
+   
 
 # class createWallet(forms.Form):
 #     name = forms.CharField(label='Wallet Name', max_length=200)

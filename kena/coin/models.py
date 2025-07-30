@@ -48,7 +48,7 @@ class Wallet(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     coin = models.ForeignKey(Coin, null=True, on_delete=models.CASCADE)
     name = models.CharField(max_length=200)
-    amount = models.DecimalField(max_digits=20, decimal_places=8)
+    amount = models.DecimalField(max_digits=20, decimal_places=5)
     value = models.DecimalField(max_digits=20, decimal_places=2)
     password = models.CharField(max_length=200, null=True, blank=True)
     Wallettype = models.CharField(max_length=20, default='personal')
@@ -58,13 +58,14 @@ class Wallet(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     
     def __str__(self):
-        return f"{self.user}  -  {self.name}  -  {self.hash}  - {self.created_at}"
+        return f"{self.name} - Balance: {self.amount}K"
 
-
+# This model is used to store billing information for users
+# It includes fields for user, wallet, amount, unique identifier (uid), type, flag, status, and timestamps
 class Billing(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     wallet = models.ForeignKey(Wallet, on_delete=models.CASCADE)
-    amount = models.DecimalField(max_digits=20, decimal_places=2)
+    amount = models.DecimalField(max_digits=20, decimal_places=5)
     uid = models.CharField(max_length=100, unique=True)
     type = models.CharField(max_length=20, default='gift')
     flag = models.IntegerField(default=1)
@@ -75,13 +76,15 @@ class Billing(models.Model):
     def __str__(self):
         return f"{self.user} - {self.wallet.name} - {self.amount} - {self.type} - {self.status} - {self.created_at}"
     
-    
+# This model is used to store transaction details
+# It includes fields for billing, gateway, sender, receiver, amount, fee, time, and a unique hash
+# The save method calculates the hash for the transaction based on the provided data   
 class Transaction(models.Model):
     billing = models.ForeignKey(Billing, on_delete=models.CASCADE, null=False, blank=False)
     gateway = models.CharField(max_length=100, default='kena')
     sender = models.CharField(max_length=100)
     receiver = models.CharField(max_length=100)
-    amount = models.DecimalField(max_digits=20, decimal_places=2)
+    amount = models.DecimalField(max_digits=20, decimal_places=5)
     fee = models.DecimalField(max_digits=20, decimal_places=2)
     time = models.DateTimeField(auto_now_add=True)
     hash = models.CharField(max_length=64, unique=True)
@@ -102,6 +105,8 @@ class Transaction(models.Model):
         self.hash = blockchain.CalculateHash(data).calculate()
         super().save(*args, **kwargs)  # Call the "real" save() method
 
+# This model is used to store blocks in the blockchain
+# It includes fields for height, nonce, timestamp, previous hash, hash, and transactions    
 class Block(models.Model):
     height = models.IntegerField()
     nonce = models.IntegerField()
@@ -113,6 +118,8 @@ class Block(models.Model):
     def __str__(self):
         return f"Block {self.height} - {self.hash[:10]}..."
 
+# This model is used to store pending transactions
+# It includes fields for sender, receiver, amount, timestamp, and a unique hash
 class PendingTransaction(models.Model):
     sender = models.CharField(max_length=100)
     receiver = models.CharField(max_length=100)

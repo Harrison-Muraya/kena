@@ -122,7 +122,7 @@ def dashboard(request):
 def send_kena(request):
     if request.user.is_authenticated:
         if request.method == 'POST':
-            form = forms.SendKenaForm(request.POST)
+            form = forms.SendKenaForm(request.POST or None, user=request.user)
             if form.is_valid():
                 sender = request.user
                 receiver = form.cleaned_data['receiver']
@@ -142,7 +142,7 @@ def send_kena(request):
                 # Update wallet balances, etc. as needed
                 return redirect('dashboard')
         else:
-            form = forms.SendKenaForm()
+            form = forms.SendKenaForm(user=request.user)
         return render(request, 'coin/send_kena.html', {'form': form})
 
  # Logout view   
