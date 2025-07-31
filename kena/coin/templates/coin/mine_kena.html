@@ -24,15 +24,17 @@
                 </thead>
                 <tbody>
                     {% for transaction in transactions %}
-                        <tr>
-                            <td class="highlight">{{ transaction.hash|slice:":6" }}...{{ transaction.hash|slice:"-4:" }}</td>
-                            <td class="highlight">{{ transaction.gateway }}</td>
-                            <td class="highlight">{{ transaction.type }}</td>
-                            <td class="highlight">Ƀ {{ transaction.amount }} KENA</td>
-                            <!-- <td class="highlight">{{ transaction.status }}</td> -->
-                            <td class="highlight">{{ 'pending' }}</td>
-                            <td class="highlight">{{ transaction.timestamp|date:"j F, Y,  H:i:s" }}</td>
-                        </tr>
+                        {% if transaction.type != 'fee' %}                                                  
+                            <tr>
+                                <td class="highlight">{{ transaction.hash|slice:":6" }}...{{ transaction.hash|slice:"-4:" }}</td>
+                                <td class="highlight">{{ transaction.gateway }}</td>
+                                <td class="highlight">{{ transaction.type }}</td>
+                                <td class="highlight">Ƀ {{ transaction.amount }} KENA</td>
+                                <!-- <td class="highlight">{{ transaction.status }}</td> -->
+                                <td class="highlight">{{ 'pending' }}</td>
+                                <td class="highlight">{{ transaction.timestamp|date:"j F, Y,  H:i:s" }}</td>
+                            </tr>
+                        {% endif %}
                     {% endfor %}
                 </tbody>
             </table>
