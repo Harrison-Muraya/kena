@@ -1,0 +1,157 @@
+{% extends 'coin/base.html' %}
+
+{% block title %}Mine Kena{% endblock %}
+
+{% block content %}
+    <div class="container">
+        <h1>Mine Kena</h1>
+        <p>Welcome to the Kena mining page, {{ user.username }}!</p>
+        <p>Here you can mine Kena coins.</p>
+        <p><a href="{% url 'dashboard' %}">Back to Dashboard</a></p>
+
+        {% if transactions %}
+            <h2>Your Mining Transactions</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Gateway</th>
+                        <th>Type</th>
+                        <th>Balance</th>
+                        <th>Status</th>
+                        <th>Date Created</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for transaction in transactions %}
+                        <tr>
+                            <td class="highlight">{{ transaction.hash|slice:":6" }}...{{ transaction.hash|slice:"-4:" }}</td>
+                            <td class="highlight">{{ transaction.gateway }}</td>
+                            <td class="highlight">{{ transaction.type }}</td>
+                            <td class="highlight">Ƀ {{ transaction.amount }} KENA</td>
+                            <!-- <td class="highlight">{{ transaction.status }}</td> -->
+                            <td class="highlight">{{ 'pending' }}</td>
+                            <td class="highlight">{{ transaction.timestamp|date:"j F, Y,  H:i:s" }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <p>No mining transactions found.</p>
+        {% endif %}
+        <!-- <table>
+            <caption class="caption">Wallet Transactions</caption>
+            <thead>
+            <tr>
+                <th>ID</th>
+                <th>Wallet Name</th>
+                <th>Type</th>
+                <th>Balance</th>
+                <th>Status</th>
+                <th>Date Created</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr>
+                <td class="highlight">001</td>
+                <td class="highlight">AlphaWallet</td>
+                <td class="highlight">Personal</td>
+                <td class="highlight">$1,200.00</td>
+                <td class="highlight">Active</td>
+                <td class="highlight">2025-07-28</td>
+            </tr>
+            
+            </tbody>
+        </table> -->
+
+    </div>
+{% endblock %}
+
+{% block extra_css %}
+    <style>
+        div.container {
+            background-color: #121212;
+            font-family: Arial, sans-serif;
+            color: #242020;
+            display: flex;
+            justify-content: center;
+            padding: 50px;
+        }
+
+        table {
+            width: 100%;
+            max-width: 900px;
+            border-collapse: collapse;
+            background-color: #1e1e1e;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 0 10px rgba(0, 255, 170, 0.2);
+        }
+
+        th, td {
+            padding: 15px 20px;
+            text-align: left;
+        }
+
+         th {
+            background-color: #2a2a2a;
+            color: #00ffae;
+            text-transform: uppercase;
+            font-size: 14px;
+        }
+
+        /* th {
+            background-color: #2a2a2a;
+            color: #ffffff;
+            text-transform: uppercase;
+            font-size: 14px;
+        } */
+
+        tr:nth-child(even) {
+             background-color: #262626;
+        }
+
+        tr:hover {
+            background-color: #333333;
+        }
+
+        .highlight {
+            color: #ffffff;            
+            font-weight: bold;
+        }
+
+        /* .highlight {
+            color: #00ffae;
+            font-weight: bold;
+        } */
+
+        .txtcolor {
+            /* color: #ffffff; */
+            color: #00ffae;
+        }
+
+        caption {
+            caption-side: top;
+            color: #00ffae;
+            font-size: 18px;
+            padding: 10px;
+        }
+        .btn {
+            margin-top: 1rem;
+            padding: 0.7rem 1.5rem;
+            background: #00ffa1;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            color: #111;
+        }
+
+        .caption {
+            color: #169069;
+            font-size: 18px;
+            padding: 10px;
+        }
+
+    </style>
+{% endblock %}

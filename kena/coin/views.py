@@ -9,7 +9,10 @@ from . import forms
 from . import blockchain
 from . import uidgenerator
 from datetime import timezone
-# from Crypto.PublicKey import RSA
+import json
+from Crypto.PublicKey import RSA
+from cryptography.hazmat.primitives import hashes, serialization
+from cryptography.hazmat.primitives.asymmetric import padding
 
 # constant variables
 DIFFICULTY = 4  # Difficulty level for mining blocks
@@ -23,6 +26,45 @@ def generate_keys():
     private_key = key.export_key()
     public_key = key.publickey().export_key()
     return private_key, public_key
+
+# check key validity
+def checkKey(data):
+    try:
+       key = RSA.import_key(data)
+       return key
+    except ValueError:
+       return print("Invalid private key")
+
+# Generate signature for transaction
+def generate_signature(key, transaction_obj):
+    try:
+        # Extract and structure data
+        data_to_sign = {
+            "billing": transaction_obj.billing.id,
+            "sender": transaction_obj.sender.username,
+            "receiver": transaction_obj.receiver.username if transaction_obj.receiver else "",
+            "amount": float(transaction_obj.amount),
+        }
+
+        transaction_bytes = json.dumps(data_to_sign, sort_keys=True).encode('utf-8')
+
+        # Sign using the sender's private key (make sure it's deserialized if stored in PEM)
+        # signature = transaction_obj.sender.private_key.sign(
+        signature = key.sign(
+            transaction_bytes,
+            padding.PSS(
+                mgf=padding.MGF1(hashes.SHA256()),
+                salt_length=padding.PSS.MAX_LENGTH
+            ),
+            hashes.SHA256()
+        )
+
+        return signature
+
+    except Exception as e:
+        print(f"Error generating signature: {str(e)}")
+        return None
+    
 
 def home(request):
     print('hellow')
@@ -91,11 +133,16 @@ def dashboard(request):
                 walletType = form.cleaned_data['walletType']
                 password = make_password(form.cleaned_data['password']) 
 
+                # try:
+                    # key = RSA.import_key(user.private_key)
+                # except ValueError:
+                #     print("Invalid private key")
+
                 data = {
                     "name": name,
                     "password": form.cleaned_data['password'],
                     "walletType": walletType,
-                    "private_key": user.private_key,
+                    "private_key": checkKey(user.private_key)
                 }
 
                 hasher = blockchain.CalculateHash(data)
@@ -143,7 +190,7 @@ def send_kena(request):
                     "name": selected_wallet.name,
                     "password": password,
                     "walletType": selected_wallet.wallettype,
-                    "private_key": sender.private_key,
+                    "private_key":  checkKey(sender.private_key),
                 }
                 hasher = blockchain.CalculateHash(data) 
                 genrated_hash = hasher.calculate()
@@ -189,9 +236,20 @@ def send_kena(request):
                 )
                 billing.save()
 
-                # Get the billing ID
-                # billing_id = billing.id
-                # print("Billing ID:", billing_id)  # or use it however you want
+               
+               # Prepare transaction data for signing
+                transaction_data = {
+                    "billing": billing.id,
+                    "gateway": 'kena',
+                    "sender": sender.username,
+                    "receiver": recepient.first().username,
+                    "amount": amount,
+                }
+                signature = generate_signature(checkKey(sender.private_key), transaction_data)
+               
+                
+
+
 
                 # Create a new debit PendingTransaction instance
                 pending_transaction = PendingTransaction(
@@ -203,6 +261,7 @@ def send_kena(request):
                     gateway='kena',
                     credit=0,  # Assuming credit is 0 for debit transactions for the sender
                     debit=amount,
+                    signature=signature.hex() if signature else None  # Store the signature as hex string
                 )
                 pending_transaction.save()
 
@@ -271,12 +330,12 @@ def mine_kena(request):
                 transactions.delete()
                 return redirect('dashboard')
         else:
-            form = forms.MineKenaForm(user=request.user)
-        return render(request, 'coin/mine_kena.html', {'form': form})
+            transactions = PendingTransaction.objects.all()
+        return render(request, 'coin/mine_kena.html',{'transactions': transactions})
     else:
         return redirect('login')
 
-        
+
 
 def logout_view(request):
     logout(request)

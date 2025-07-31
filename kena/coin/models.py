@@ -7,8 +7,8 @@ from django.utils.timezone import now
 # This model is used to create a custom user model that extends the default Django user model
 # It includes additional fields for private key, public key, flag, and status
 class CustomUser(AbstractUser):
-    private_key = models.CharField(max_length=300, unique=True, null=True, blank=True)
-    public_key = models.CharField(max_length=300, unique=True, null=True, blank=True)
+    private_key = models.TextField(unique=True, null=True, blank=True)
+    public_key = models.TextField(unique=True, null=True, blank=True)
     flag = models.IntegerField(default=1)
     status = models.BooleanField(default=1)
 
@@ -142,6 +142,7 @@ class PendingTransaction(models.Model):
     amount = models.DecimalField(max_digits=20, decimal_places=5)
     timestamp = models.DateTimeField(default=now)  # Manually set timestamp
     hash = models.CharField(max_length=64, unique=True, blank=True)
+    signature = models.TextField(null=True, blank=True)
 
     def save(self, *args, **kwargs):
         # Only calculate hash if not already set
@@ -159,22 +160,49 @@ class PendingTransaction(models.Model):
     def __str__(self):
         return f"{self.sender} -> {self.receiver}: {self.amount}"
     
-# class PendingTransaction(models.Model):
-#     billing = models.ForeignKey(Billing, on_delete=models.CASCADE, null=False, blank=False)
-#     sender = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-#     receiver = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='receiver', on_delete=models.CASCADE)
-#     amount = models.DecimalField(max_digits=20, decimal_places=5)
-#     timestamp = models.DateTimeField(auto_now_add=True)
-#     hash = models.CharField(max_length=64, unique=True)
-#     def save(self, *args, **kwargs):
+# 
+
+# class PendingTransaction(models.Model, object):
+#     def __init__(self, billing, sender, receiver, amt, time):
+#         self.billing = billing
+#         self.sender = sender
+#         self.receiver = receiver
+#         self.amt = amt
+#         self.time = time
+
 #         data = {
+#             "billing": self.billing,
 #             "sender": self.sender,
 #             "receiver": self.receiver,
-#             "amount": str(self.amount),
-#             "timestamp": str(self.timestamp)
+#             "amt": str(self.amt),
+#             "time": str(self.time)
 #         }
 #         self.hash = blockchain.CalculateHash(data).calculate()
-#         super().save(*args, **kwargs)  # Call the "real" save() method
+#         print("Pending Transaction Hash: ", self.hash)
+#         super().__init__()
+#     billing = models.ForeignKey(Billing, on_delete=models.CASCADE)
+#     gateway = models.CharField(max_length=100, default='kena')
+#     type = models.CharField(max_length=20, default='send')
+#     debit = models.DecimalField(max_digits=20, decimal_places=5, default=0)
+#     credit = models.DecimalField(max_digits=20, decimal_places=5, default=0)
+#     sender = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+#     receiver = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='receiver', null=True, on_delete=models.CASCADE)
+#     amount = models.DecimalField(max_digits=20, decimal_places=5)
+#     timestamp = models.DateTimeField(default=now)  # Manually set timestamp
+#     hash = models.CharField(max_length=64, unique=True, blank=True)
+
+#     def save(self, *args, **kwargs):
+#         # Only calculate hash if not already set
+#         if not self.hash:
+#             data = {
+#                 "sender": str(self.sender),
+#                 "receiver": str(self.receiver),
+#                 "amount": str(self.amount),
+#                 "timestamp": str(self.timestamp),
+#             }
+#             self.hash = blockchain.CalculateHash(data).calculate()
+
+#         super().save(*args, **kwargs)
 
 #     def __str__(self):
 #         return f"{self.sender} -> {self.receiver}: {self.amount}"
