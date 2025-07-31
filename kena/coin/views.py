@@ -13,6 +13,8 @@ import json
 from Crypto.PublicKey import RSA
 from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import padding
+from Crypto.Signature import pkcs1_15
+from Crypto.Hash import SHA256
 
 # constant variables
 DIFFICULTY = 4  # Difficulty level for mining blocks
@@ -38,26 +40,31 @@ def checkKey(data):
 # Generate signature for transaction
 def generate_signature(key, transaction_obj):
     try:
-        # Extract and structure data
+    # Extract and structure data
         data_to_sign = {
-            "billing": transaction_obj.billing.id,
-            "sender": transaction_obj.sender.username,
-            "receiver": transaction_obj.receiver.username if transaction_obj.receiver else "",
-            "amount": float(transaction_obj.amount),
+            "billing": transaction_obj["billing"],
+            "sender": transaction_obj["sender"],
+            "amount": float(transaction_obj["amount"]),
         }
 
         transaction_bytes = json.dumps(data_to_sign, sort_keys=True).encode('utf-8')
+         # Hash the message first
+        h = SHA256.new(transaction_bytes)
+
+        # Sign using PKCS#1 v1.5
+        signature = pkcs1_15.new(key).sign(h)
+
 
         # Sign using the sender's private key (make sure it's deserialized if stored in PEM)
         # signature = transaction_obj.sender.private_key.sign(
-        signature = key.sign(
-            transaction_bytes,
-            padding.PSS(
-                mgf=padding.MGF1(hashes.SHA256()),
-                salt_length=padding.PSS.MAX_LENGTH
-            ),
-            hashes.SHA256()
-        )
+        # signature = key.sign(
+        #     transaction_bytes,
+        #     padding.PSS(
+        #         mgf=padding.MGF1(hashes.SHA256()),
+        #         salt_length=padding.PSS.MAX_LENGTH
+        #     ),
+        #     hashes.SHA256()
+        # )
 
         return signature
 
@@ -142,7 +149,7 @@ def dashboard(request):
                     "name": name,
                     "password": form.cleaned_data['password'],
                     "walletType": walletType,
-                    "private_key": checkKey(user.private_key)
+                    "private_key": checkKey(user.private_key).export_key().decode()
                 }
 
                 hasher = blockchain.CalculateHash(data)
@@ -190,7 +197,7 @@ def send_kena(request):
                     "name": selected_wallet.name,
                     "password": password,
                     "walletType": selected_wallet.wallettype,
-                    "private_key":  checkKey(sender.private_key),
+                    "private_key":  checkKey(sender.private_key).export_key().decode()
                 }
                 hasher = blockchain.CalculateHash(data) 
                 genrated_hash = hasher.calculate()
@@ -240,16 +247,10 @@ def send_kena(request):
                # Prepare transaction data for signing
                 transaction_data = {
                     "billing": billing.id,
-                    "gateway": 'kena',
                     "sender": sender.username,
-                    "receiver": recepient.first().username,
                     "amount": amount,
                 }
-                signature = generate_signature(checkKey(sender.private_key), transaction_data)
-               
-                
-
-
+                signature = generate_signature(checkKey(sender.private_key), transaction_data)          
 
                 # Create a new debit PendingTransaction instance
                 pending_transaction = PendingTransaction(
@@ -261,7 +262,7 @@ def send_kena(request):
                     gateway='kena',
                     credit=0,  # Assuming credit is 0 for debit transactions for the sender
                     debit=amount,
-                    signature=signature.hex() if signature else None  # Store the signature as hex string
+                    signature=signature.hex() # Store the signature as hex string
                 )
                 pending_transaction.save()
 
@@ -275,6 +276,7 @@ def send_kena(request):
                     gateway='kena',
                     credit=amount,  # Assuming credit is the amount for the receiver
                     debit=0,  # Assuming debit is 0 for credit transactions for the receiver
+                    signature=signature.hex() if signature else None  # Store the signature as hex string
                 )
                 pending_transaction_receiver.save()
 
@@ -289,6 +291,7 @@ def send_kena(request):
                     gateway='kena',
                     credit=FEE,  # Assuming credit is the fee amount
                     debit=0,  # Assuming debit is 0 for fee transactions
+                    signature=signature.hex() if signature else None  # Store the signature as hex string
                 )
                 pending_transaction_fee.save()
 
