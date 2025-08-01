@@ -58,7 +58,7 @@ def generate_signature(key, transaction_obj):
         # Sign using PKCS#1 v1.5
         signature = pkcs1_15.new(key).sign(h)
 
-        return signature
+        return signature.hex() 
 
     except Exception as e:
         print(f"Error generating signature: {str(e)}")
@@ -96,7 +96,6 @@ def verify_signature(key, transaction_obj, signature):
     except (ValueError, TypeError):
         return False
             
-    
 def home(request):
     print('hellow')
     return render(request, 'coin/home.html')
@@ -149,7 +148,7 @@ def register(request):
         form = forms.RegisterForm()
     return render(request, 'registration/register.html', {'form': form})
 
-#Dashboard view
+# Dashboard view
 def dashboard(request):
     if request.user.is_authenticated:       
         user = request.user
@@ -269,13 +268,13 @@ def send_kena(request):
 
                
                # Prepare transaction data for signing
-                transaction_data = {
-                    "billing": billing.id,
-                    "uid": billing.uid,
-                    "sender": sender.username,
-                    "amount": billing.amount,
-                }
-                signature = generate_signature(checkKey(sender.private_key), transaction_data)          
+                # transaction_data = {
+                #     "billing": billing.id,
+                #     "uid": billing.uid,
+                #     "sender": sender.username,
+                #     "amount": billing.amount,
+                # }
+                # signature = generate_signature(checkKey(sender.private_key), transaction_data)          
 
                 # Create a new debit PendingTransaction instance
                 pending_transaction = PendingTransaction(
@@ -287,7 +286,13 @@ def send_kena(request):
                     gateway='kena',
                     credit=0,  # Assuming credit is 0 for debit transactions for the sender
                     debit=billing.amount,
-                    signature=signature.hex() # Store the signature as hex string
+                    signature=generate_signature(checkKey(sender.private_key), {
+                            "billing": billing.id,
+                            "uid": billing.uid,
+                            "sender": sender.username,
+                            "amount": billing.amount,
+                        }) # Store the signature as hex string
+                    # signature=signature.hex() # Store the signature as hex string
                 )
                 pending_transaction.save()
 
@@ -301,7 +306,14 @@ def send_kena(request):
                     gateway='kena',
                     credit=amount,  # Assuming credit is the amount for the receiver
                     debit=0,  # Assuming debit is 0 for credit transactions for the receiver
-                    signature=signature.hex() if signature else None  # Store the signature as hex string
+                    signature=generate_signature(checkKey(sender.private_key), {
+                            "billing": billing.id,
+                            "uid": billing.uid,
+                            "sender": sender.username,
+                            "amount": billing.amount - FEE,
+                        }) # Store the signature as hex string
+
+                    # signature=signature.hex() if signature else None  # Store the signature as hex string
                 )
                 pending_transaction_receiver.save()
 
@@ -316,7 +328,13 @@ def send_kena(request):
                     gateway='kena',
                     credit=FEE,  # Assuming credit is the fee amount
                     debit=0,  # Assuming debit is 0 for fee transactions
-                    signature=signature.hex() if signature else None  # Store the signature as hex string
+                    signature=generate_signature(checkKey(sender.private_key), {
+                            "billing": billing.id,
+                            "uid": billing.uid,
+                            "sender": sender.username,
+                            "amount": FEE,
+                        }) # Store the signature as hex string
+                    # signature=signature.hex() if signature else None  # Store the signature as hex string
                 )
                 pending_transaction_fee.save()
 
@@ -348,25 +366,25 @@ def get_mine_data(request):
         # validate Pending transaction signature
         try:
             transaction_data = {
-                        "billing": tx.billing.id,
-                        "uid": tx.billing.uid,
-                        "sender": tx.sender.username,
-                        "amount": tx.amount,
-                    }
+                    "billing": tx.billing.id,
+                    "uid": tx.billing.uid,
+                    "sender": tx.sender.username,
+                    "amount": tx.amount,
+                }
             signature = tx.signature
-            # print(tx.signature,  tx.type)
+
             verifiedSignature = verify_signature(checkKey(tx.sender.public_key),transaction_data,signature)  
-            if(verify_signature == True):
-                    tx_data.append({
+            if(verifiedSignature):                    
+                print(f"Amount: { tx.amount} verified: {verifiedSignature}, data: {transaction_data}")
+                tx_data.append({
                     "sender": tx.sender.username,
                     "receiver": tx.receiver.username,
                     "amount": float(tx.amount),
                     "hash": tx.hash
                 })
-                    print(f"Amount: { tx.amount} verifiedsig: {verifiedSignature}, data: {transaction_data}")
+                   
             else:
-                pass
-                # print(f"Amount: { tx.amount} failed verification -- verifiedsig: {verifiedSignature}, data: {transaction_data}")
+                print(f"Amount: { tx.amount} failed verification -- verifiedsig: {verifiedSignature}, data: {transaction_data}")
              
                 
 
