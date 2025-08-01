@@ -12,7 +12,6 @@
         {% if transactions %}
             <h2>Your Mining Transactions</h2>
             <form action="" method="post">
-                {% csrf_token %}
                 <button type="submit" class="btn btn-primary">Mine Kena</button>
             </form>
             <table>
@@ -73,6 +72,25 @@
         </table> -->
 
     </div>
+{% endblock %}
+
+{$ block js %}
+<script>
+    function mineBlock(blockData, difficulty) {
+    let nonce = 0;
+    let hash;
+    const prefix = "0".repeat(difficulty);
+
+    while (true) {
+        const toHash = JSON.stringify({ ...blockData, nonce });
+        hash = sha256(toHash); // You can use crypto-js or a WASM hasher
+        if (hash.startsWith(prefix)) {
+            return { nonce, hash };
+        }
+        nonce++;
+    }
+}
+</script>
 {% endblock %}
 
 {% block extra_css %}
