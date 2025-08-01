@@ -11,6 +11,10 @@
 
         {% if transactions %}
             <h2>Your Mining Transactions</h2>
+            <form action="" method="post">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-primary">Mine Kena</button>
+            </form>
             <table>
                 <thead>
                     <tr>

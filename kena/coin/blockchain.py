@@ -113,51 +113,6 @@ class Block(object):
         hashEncoded = json.dumps(hashString, sort_keys=True).encode()
         return hashlib.sha256(hashEncoded).hexdigest()
 
-class PendingTransaction(object):
-    def __init__(self, billing, sender, receiver, amt, time):
-        self.billing = billing
-        self.sender = sender
-        self.receiver = receiver
-        self.amt = amt
-        self.time = time
-
-        data = {
-            "billing": self.billing,
-            "sender": self.sender,
-            "receiver": self.receiver,
-            "amt": str(self.amt),
-            "time": str(self.time)
-        }
-        self.hash = CalculateHash(data).calculate()
-        print("Pending Transaction Hash: ", self.hash)
-
-
-
-
-class Transaction(object):
-    def __init__(self,billing, sender, receiver, amt, time):
-        self.billing = billing
-        self.time = time
-        self.sender = sender
-        self.receiver = receiver
-        self.amt = amt
-
-        data = {
-            "billing": self.billing,
-            "sender": self.sender,
-            "receiver": self.receiver,
-            "amt": str(self.amt),
-            "time": str(self.time)
-        }
-        self.hash = CalculateHash(data).calculate()
-        print("Transaction Hash: ", self.hash)
-
-    def signTransaction(self, privateKey):
-        # This method would sign the transaction with the user's private key
-        # For simplicity, we are not implementing this in this example
-        pass
-
-
 class CalculateHash(object):
     def __init__(self, data):
         self.data = data
