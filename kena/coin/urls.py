@@ -11,7 +11,10 @@ urlpatterns = [
 
     path('send_kena/', views.send_kena, name='send_kena'),
     path('mine_kena/', views.mine_kena, name='mine_kena'),
-
+    
     path('register/', views.register, name='register'),    
     path('logout/', views.logout_view, name='logout'),
+
+    # API links
+    path('api/get_mine_data', views.get_mine_data, name='get_mine_data'),
 ]

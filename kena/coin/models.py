@@ -124,7 +124,7 @@ class Block(models.Model):
     timestamp = models.FloatField()
     previous_hash = models.CharField(max_length=64)
     hash = models.CharField(max_length=64, unique=True)
-    transactions = models.TextField()  # JSON serialized transactions
+    transactions = models.JSONField() # to strore transactions in a json format
 
     def __str__(self):
         return f"Block {self.height} - {self.hash[:10]}..."
@@ -142,7 +142,7 @@ class PendingTransaction(models.Model):
     amount = models.DecimalField(max_digits=20, decimal_places=5)
     timestamp = models.DateTimeField(default=now)  # Manually set timestamp
     hash = models.CharField(max_length=64, unique=True, blank=True)
-    signature = models.TextField(null=True, blank=True)
+    signature = models.CharField(null=True, blank=True)
 
     def save(self, *args, **kwargs):
         # Only calculate hash if not already set
@@ -158,7 +158,7 @@ class PendingTransaction(models.Model):
         super().save(*args, **kwargs)
 
     def __str__(self):
-        return f"{self.sender} -> {self.receiver}: {self.amount}"
+        return f"{self.sender} -> {self.receiver}: {self.amount}-> {self.signature}"
     
 # 
 

@@ -1,20 +1,23 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
+from django.views.decorators.csrf import csrf_exempt 
 from django.contrib.auth.hashers import make_password
-from django.http import HttpResponse, HttpResponseRedirect
+from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.template import loader
 from . models import Todolist, Item, Coin, Wallet,CustomUser, Billing, Transaction, Block, PendingTransaction
 from . import forms 
 from . import blockchain
 from . import uidgenerator
-from datetime import timezone
+# from datetime import timezone
+import time
 import json
 from Crypto.PublicKey import RSA
 from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import padding
 from Crypto.Signature import pkcs1_15
 from Crypto.Hash import SHA256
+
 
 # constant variables
 DIFFICULTY = 4  # Difficulty level for mining blocks
@@ -43,6 +46,7 @@ def generate_signature(key, transaction_obj):
     # Extract and structure data
         data_to_sign = {
             "billing": transaction_obj["billing"],
+            "uid": transaction_obj["uid"],
             "sender": transaction_obj["sender"],
             "amount": float(transaction_obj["amount"]),
         }
@@ -54,25 +58,45 @@ def generate_signature(key, transaction_obj):
         # Sign using PKCS#1 v1.5
         signature = pkcs1_15.new(key).sign(h)
 
-
-        # Sign using the sender's private key (make sure it's deserialized if stored in PEM)
-        # signature = transaction_obj.sender.private_key.sign(
-        # signature = key.sign(
-        #     transaction_bytes,
-        #     padding.PSS(
-        #         mgf=padding.MGF1(hashes.SHA256()),
-        #         salt_length=padding.PSS.MAX_LENGTH
-        #     ),
-        #     hashes.SHA256()
-        # )
-
         return signature
 
     except Exception as e:
         print(f"Error generating signature: {str(e)}")
         return None
     
+# Verify signature for transaction
+def verify_signature(key, transaction_obj, signature):
+    try:
+        # Extract and structure data
+        data_to_verify = {
+            "billing": transaction_obj["billing"],
+            "uid": transaction_obj["uid"],
+            "sender": transaction_obj["sender"],
+            "amount": float(transaction_obj["amount"]),
+        }
 
+        # Convert data to JSON bytes with sorted keys
+        transaction_bytes = json.dumps(data_to_verify, sort_keys=True).encode('utf-8')
+
+        # Create SHA-256 hash of the transaction
+        hash_obj = SHA256.new(transaction_bytes)
+
+        # Import public key if it's a string
+        if isinstance(key, str):
+            key = RSA.import_key(key)
+
+        # Decode the hex signature
+        signature_bytes = bytes.fromhex(signature)
+
+        # Verify the signature
+        pkcs1_15.new(key).verify(hash_obj, signature_bytes)
+
+        return True
+
+    except (ValueError, TypeError):
+        return False
+            
+    
 def home(request):
     print('hellow')
     return render(request, 'coin/home.html')
@@ -235,7 +259,7 @@ def send_kena(request):
                 billing = Billing(
                     user=sender,
                     wallet=form.cleaned_data['wallet'],
-                    amount=amount,  # Total amount including fee
+                    amount=amount + FEE,  # Total amount including fee
                     fee=FEE,  # Transaction fee
                     total=amount + FEE,  # Total amount including fee
                     uid=uidgenerator.generate_code(),  # Generate a unique identifier
@@ -247,8 +271,9 @@ def send_kena(request):
                # Prepare transaction data for signing
                 transaction_data = {
                     "billing": billing.id,
+                    "uid": billing.uid,
                     "sender": sender.username,
-                    "amount": amount,
+                    "amount": billing.amount,
                 }
                 signature = generate_signature(checkKey(sender.private_key), transaction_data)          
 
@@ -257,11 +282,11 @@ def send_kena(request):
                     billing=billing,
                     sender=sender,
                     receiver=recepient.first(),
-                    amount=amount - FEE,  # Amount minus the fee
+                    amount=billing.amount,  # Amount minus the fee
                     type='send',
                     gateway='kena',
                     credit=0,  # Assuming credit is 0 for debit transactions for the sender
-                    debit=amount,
+                    debit=billing.amount,
                     signature=signature.hex() # Store the signature as hex string
                 )
                 pending_transaction.save()
@@ -271,7 +296,7 @@ def send_kena(request):
                     billing=billing,
                     sender=sender,
                     receiver=recepient.first(),
-                    amount=amount - FEE,  # Amount minus the fee
+                    amount=billing.amount - FEE,  # Amount minus the fee
                     type='receive',
                     gateway='kena',
                     credit=amount,  # Assuming credit is the amount for the receiver
@@ -311,7 +336,101 @@ def mine_kena(request):
         return render(request, 'coin/mine_kena.html',{'transactions': transactions})
     else:
         return redirect('login')
+    
+# returns a json file with block data
+def get_mine_data(request):
+    # pending = PendingTransaction.objects.all()[:10]
+    pending = PendingTransaction.objects.all()
+    # print(pending)
+    tx_data = []
 
+    for tx in pending:
+        # validate Pending transaction signature
+        try:
+            transaction_data = {
+                        "billing": tx.billing.id,
+                        "uid": tx.billing.uid,
+                        "sender": tx.sender.username,
+                        "amount": tx.amount,
+                    }
+            signature = tx.signature
+            # print(tx.signature,  tx.type)
+            verifiedSignature = verify_signature(checkKey(tx.sender.public_key),transaction_data,signature)  
+            if(verify_signature == True):
+                    tx_data.append({
+                    "sender": tx.sender.username,
+                    "receiver": tx.receiver.username,
+                    "amount": float(tx.amount),
+                    "hash": tx.hash
+                })
+                    print(f"Amount: { tx.amount} verifiedsig: {verifiedSignature}, data: {transaction_data}")
+            else:
+                pass
+                # print(f"Amount: { tx.amount} failed verification -- verifiedsig: {verifiedSignature}, data: {transaction_data}")
+             
+                
+
+        except Exception as e:
+            print(e)
+
+    previous_block = Block.objects.order_by('-height').first()
+    previous_hash = previous_block.hash if previous_block else '0' * 64
+    height = previous_block.height + 1 if previous_block else 1
+
+    return JsonResponse({
+        "height": height,
+        "previous_hash": previous_hash,
+        "transactions": tx_data,
+        "timestamp": time.time(),
+    })
+
+
+@csrf_exempt
+def submit_block(request):
+    data = json.loads(request.body)
+
+    # Reconstruct block data
+    block_data = {
+        "height": data["height"],
+        "timestamp": data["timestamp"],
+        "transactions": data["transactions"],
+        "previous_hash": data["previous_hash"],
+        "nonce": data["nonce"],
+    }
+
+    calculated_hash = blockchain.CalculateHash(block_data).calculate()
+    if calculated_hash != data["hash"] or not calculated_hash.startswith("0000"):
+        return JsonResponse({"error": "Invalid hash or proof"}, status=400)
+
+    # Fetch and move transactions
+    confirmed = []
+    for tx_hash in data["transactions"]:
+        try:
+            pending = PendingTransaction.objects.get(hash=tx_hash)
+            tx = Transaction.objects.create(
+                billing=pending.billing,
+                gateway=pending.gateway,
+                type=pending.type,
+                debit=pending.debit,
+                credit=pending.credit,
+                sender=pending.sender.username,
+                receiver=pending.receiver.username,
+                amount=pending.amount
+            )
+            confirmed.append(tx)
+            pending.delete()
+        except PendingTransaction.DoesNotExist:
+            return JsonResponse({"error": f"Transaction {tx_hash} not found"}, status=400)
+
+    block = Block.objects.create(
+        height=data["height"],
+        timestamp=data["timestamp"],
+        nonce=data["nonce"],
+        previous_hash=data["previous_hash"],
+        hash=calculated_hash,
+    )
+    block.transactions.set(confirmed)
+    return JsonResponse({"success": True, "block": block.hash})
 
 
 
