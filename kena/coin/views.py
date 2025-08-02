@@ -398,7 +398,6 @@ def get_mine_data(request):
         "timestamp": time.time(),
     })
 
-
 @csrf_exempt
 def submit_block(request):
     data = json.loads(request.body)

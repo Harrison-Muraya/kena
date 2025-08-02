@@ -56,12 +56,12 @@ class Blockchain(object):
             block.prev = 'none'
         self.chain.append(block)
 
-    def addGenesisBlock(self):
-        tArry = []
-        tArry.append(Transaction('harrison', '12:00 am', 100,time()))
-        genesis = Block(tArry, time(), 0)
-        genesis.prev = 'none'
-        return genesis 
+    # def addGenesisBlock(self):
+    #     tArry = []
+    #     tArry.append(Transaction('harrison', '12:00 am', 100,time()))
+    #     genesis = Block(tArry, time(), 0)
+    #     genesis.prev = 'none'
+    #     return genesis 
 
     # def chainJSONencode(self):
     #     chain_data = []
@@ -120,3 +120,4 @@ class CalculateHash(object):
     def calculate(self):
         hashEncoded = json.dumps(self.data, sort_keys=True).encode()
         return hashlib.sha256(hashEncoded).hexdigest()
+    

@@ -53,7 +53,6 @@
         
      <script>
 
-
         document.getElementById('mine-btn').addEventListener('click', () => {
             const getUrl = document.getElementById('mine-btn').dataset.getUrl;
             const postUrl = document.getElementById('mine-btn').dataset.postUrl;
@@ -84,7 +83,7 @@
                     body: JSON.stringify({
                         height: data.height,
                         timestamp: data.timestamp,
-                        transactions: data.transactions.map(tx => tx.hash), // Send only hashes
+                        transactions: data.transactions, // Send only hashes
                         previous_hash: data.previous_hash,
                         nonce: result.nonce,
                         hash: result.hash
@@ -98,7 +97,7 @@
                 .catch(e => console.error("Submission error:", e));
             })
             .catch(e => console.error(e));
-        });
+        });       
 
         function mineBlock(blockData, difficulty) {
             let nonce = 0;
@@ -117,8 +116,15 @@
                     return { nonce, hash };
                 }
                 nonce++;
+
+                if (nonce % 10000 === 0) {
+                    console.log(`Mining... tried ${nonce} nonces`);
+                }
             }
+             
         }
+
+        // -----------------------------------
 
         // document.getElementById('mine-btn').addEventListener('click', () => {
         //     // const url = document.getElementById('mine-btn').dataset.url;
