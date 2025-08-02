@@ -381,7 +381,8 @@ def get_mine_data(request):
                     "hash": tx.hash
                 })                  
             else:
-                print(f"Amount: { tx.amount} failed verification -- verifiedsig: {verifiedSignature}, data: {transaction_data}")
+                pass
+                # print(f"Amount: { tx.amount} failed verification -- verifiedsig: {verifiedSignature}, data: {transaction_data}")
                            
         except Exception as e:
             print(e)
@@ -401,17 +402,23 @@ def get_mine_data(request):
 @csrf_exempt
 def submit_block(request):
     data = json.loads(request.body)
+    # print("data: ", data)
+
+    previous_block = Block.objects.order_by('-height').first()
+    previous_hash = previous_block.hash if previous_block else '0' * 64
+    height = previous_block.height + 1 if previous_block else 1
 
     # Reconstruct block data
     block_data = {
-        "height": data["height"],
+        "height": height,
         "timestamp": data["timestamp"],
         "transactions": data["transactions"],
-        "previous_hash": data["previous_hash"],
+        "previous_hash": previous_hash,
         "nonce": data["nonce"],
-    }
+    }   
 
     calculated_hash = blockchain.CalculateHash(block_data).calculate()
+    
     if calculated_hash != data["hash"] or not calculated_hash.startswith("0000"):
         return JsonResponse({"error": "Invalid hash or proof"}, status=400)
 

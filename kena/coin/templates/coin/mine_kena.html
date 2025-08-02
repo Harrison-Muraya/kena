@@ -12,7 +12,12 @@
         {% if transactions %}
             <h2>Your Mining Transactions</h2>            
                 <!-- <button onclick="mineKena()"  type="submit" class="btn btn-primary">Mine Kena</button> -->
-                 <button id="mine-btn" data-url="{% url 'get_mine_data' %}" class="btn btn-primary">Mine Kena</button>
+                 <button id="mine-btn" 
+                        data-get-url="{% url 'get_mine_data' %}" 
+                        data-post-url="{% url 'submt_hash' %}"
+                        class="btn btn-primary">
+                        Mine Kena
+                </button>
             <table>
                 <thead>
                     <tr>
@@ -49,13 +54,44 @@
      <script>
 
         document.getElementById('mine-btn').addEventListener('click', () => {
-            const url = document.getElementById('mine-btn').dataset.url;
-            fetch(url)
+            // const url = document.getElementById('mine-btn').dataset.url;
+            const getUrl = document.getElementById('mine-btn').dataset.getUrl;
+            const postUrl = document.getElementById('mine-btn').dataset.postUrl;
+            fetch(getUrl)
             .then(response => response.json())
             .then(data => {
-                console.log(data);
-                mineBlock(data, 4)
-            })
+                mineData = {
+                    "height": data["height"],
+                    "timestamp": data["timestamp"],
+                    "transactions": data["transactions"],
+                    "previous_hash": data["previous_hash"],
+                    "nonce": data["nonce"],
+                }
+                console.log("Data to mine", mineData);
+                result = mineBlock(mineData, 2)
+
+                fetch(postUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        // 'X-CSRFToken': getCookie('csrftoken')  // Include CSRF token for Django
+                    },
+                    body: JSON.stringify({
+                        height: data.height,
+                        timestamp: data.timestamp,
+                        transactions: data.transactions,
+                        previous_hash: data.previous_hash,
+                        nonce: result.nonce,
+                        hash: result.hash
+                    })
+                })
+                .then(response => response.json())
+                .then(confirmData => {
+                    console.log("Server response:", confirmData);
+                    alert("Block mined and submitted!");
+                })
+                .catch(e => console.error("Submission error:", e));
+                })
             .catch( e => console.error(e))
         });
 
@@ -64,14 +100,14 @@
         let hash;
         const basePrefix = "123456789";
         const prefix = basePrefix.slice(0, difficulty);
-            console.log(prefix)
+            // console.log(prefix)
         while (true) {
             const toHash = JSON.stringify({ ...blockData, nonce });
             hash = CryptoJS.SHA256(toHash).toString()
             // hash = sha256(toHash); // You can use crypto-js or a WASM hasher
-            console.log(nonce, hash);
+            // console.log(nonce, hash);
             if (hash.startsWith(prefix)) {
-                // console.log(hash);
+                console.log(hash);
                 return { nonce, hash };
             }
             nonce++;
