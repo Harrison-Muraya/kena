@@ -404,6 +404,36 @@ def submit_block(request):
     data = json.loads(request.body)
     # print("data: ", data)
 
+    pending = PendingTransaction.objects.all()
+    # print(pending)
+    tx_data = []
+
+    for tx in pending:
+        # validate Pending transaction signature
+        try:
+            transaction_data = {
+                    "billing": tx.billing.id,
+                    "uid": tx.billing.uid,
+                    "sender": tx.sender.username,
+                    "amount": tx.amount,
+                }
+            
+            verifiedSignature = verify_signature(checkKey(tx.sender.public_key),transaction_data,tx.signature)  
+            if(verifiedSignature):                    
+                # print(f"Amount: { tx.amount} verified: {verifiedSignature}, data: {transaction_data}")
+                tx_data.append({
+                    "sender": tx.sender.username,
+                    "receiver": tx.receiver.username,
+                    "amount": float(tx.amount),
+                    "hash": tx.hash
+                })                  
+            else:
+                pass
+                # print(f"Amount: { tx.amount} failed verification -- verifiedsig: {verifiedSignature}, data: {transaction_data}")
+                           
+        except Exception as e:
+            print(e)
+
     previous_block = Block.objects.order_by('-height').first()
     previous_hash = previous_block.hash if previous_block else '0' * 64
     height = previous_block.height + 1 if previous_block else 1
@@ -411,15 +441,24 @@ def submit_block(request):
     # Reconstruct block data
     block_data = {
         "height": height,
-        "timestamp": data["timestamp"],
-        "transactions": data["transactions"],
+        "timestamp": data["timestamp"],        
         "previous_hash": previous_hash,
         "nonce": data["nonce"],
+        "transactions": tx_data,
     }   
+    print("height: ", block_data['height'] )
+    print("timestamp: ", block_data['timestamp'] )
+    print("previous_hash: ", block_data['previous_hash'] )
+    print("nonce: ", block_data['nonce'] )
+    print(' ')
+    print("transactions: ", tx_data )
 
-    calculated_hash = blockchain.CalculateHash(block_data).calculate()
-    
-    if calculated_hash != data["hash"] or not calculated_hash.startswith("0000"):
+    print(' ')
+
+    calculated_hash = blockchain.CalculateHash(block_data).calculate()  
+    print("calculated_hash: ", calculated_hash)
+    print('received hash fron front: ', data["hash"], 'nonce: ', data["nonce"])
+    if calculated_hash != data["hash"] :
         return JsonResponse({"error": "Invalid hash or proof"}, status=400)
 
     # Fetch and move transactions
