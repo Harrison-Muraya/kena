@@ -486,9 +486,9 @@ def submit_block(request):
     # Fetch and move transactions
     confirmed = []
     for txn_hash in transactions:
-        print('matched pending txn hash: ', txn_hash)
+        # print('matched pending txn hash: ', txn_hash['hash'])
         try:
-            pending_txn = PendingTransaction.objects.get(hash=txn_hash)
+            pending_txn = PendingTransaction.objects.get(hash=txn_hash['hash'])
 
             print('matched pending transaction: ', pending_txn)
             tx = Transaction.objects.create(
