@@ -402,11 +402,47 @@ def get_mine_data(request):
 
 @csrf_exempt
 def submit_block(request):
+
+    pending = PendingTransaction.objects.all()
+    # print(pending)
+    tx_data = []
+
+    for tx in pending:
+        # validate Pending transaction signature
+        try:
+            transaction_data = {
+                    "billing": tx.billing.id,
+                    "uid": tx.billing.uid,
+                    "sender": tx.sender.username,
+                    "amount": tx.amount,
+                }
+            
+            verifiedSignature = verify_signature(checkKey(tx.sender.public_key),transaction_data,tx.signature)  
+            if(verifiedSignature):                    
+                print(f"Amount: { tx.amount} verified: {verifiedSignature}, data: {transaction_data}")
+                tx_data.append({
+                    "sender": tx.sender.username,
+                    "receiver": tx.receiver.username,
+                    "amount": float(tx.amount),
+                    "hash": tx.hash
+                })                  
+            else:
+                pass
+                print(f"Amount: { tx.amount} failed verification -- verifiedsig: {verifiedSignature}, data: {transaction_data}")
+                           
+        except Exception as e:
+            print(e)
+
+    previous_block = Block.objects.order_by('-height').first()
+    previous_hashh = previous_block.hash if previous_block else '0' * 64
+    height = previous_block.height + 1 if previous_block else 1
+
+
     data = json.loads(request.body)
 
-    height = data.get("height", 0)
+    # height = data.get("height", 0)
     timestamp = data.get("timestamp", "")
-    previous_hash = data.get("previous_hash", "")
+    # previous_hash = data.get("previous_hash", "")
     nonce = data.get("nonce", 0)
     transactions = data.get("transactions", [])   
 
@@ -414,7 +450,7 @@ def submit_block(request):
     block_data = {
         "height": height,
         "timestamp": timestamp,
-        "previous_hash": previous_hash,
+        "previous_hash": previous_hashh,
         "nonce": nonce,
         "transactions": transactions,
     }
@@ -443,29 +479,33 @@ def submit_block(request):
     calculated_hash = blockchain.CalculateHash(block_data).calculate()  
     print("calculated_hash: ", calculated_hash)
     print('received hash fron front: ', data["hash"], 'nonce: ', data["nonce"])
-    if calculated_hash != data["hash"] :
+    if calculated_hash != data["hash"]:
         return JsonResponse({"error": "Invalid hash or proof"}, status=400)
     
    
     # Fetch and move transactions
     confirmed = []
-    for tx_hash in data["transactions"]:
+    for txn_hash in transactions:
+        print('matched pending txn hash: ', txn_hash)
         try:
-            pending = PendingTransaction.objects.get(hash=tx_hash)
+            pending_txn = PendingTransaction.objects.get(hash=txn_hash)
+
+            print('matched pending transaction: ', pending_txn)
             tx = Transaction.objects.create(
-                billing=pending.billing,
-                gateway=pending.gateway,
-                type=pending.type,
-                debit=pending.debit,
-                credit=pending.credit,
-                sender=pending.sender.username,
-                receiver=pending.receiver.username,
-                amount=pending.amount
+                billing=pending_txn.billing,
+                gateway=pending_txn.gateway,
+                type=pending_txn.type,
+                debit=pending_txn.debit,
+                credit=pending_txn.credit,
+                sender=pending_txn.sender.username,
+                receiver=pending_txn.receiver.username,
+                amount=pending_txn.amount
             )
             confirmed.append(tx)
-            pending.delete()
+            # pending.delete()
         except PendingTransaction.DoesNotExist:
-            return JsonResponse({"error": f"Transaction {tx_hash} not found"}, status=400)
+            print(f"error: Transaction not found : {txn_hash}")
+            return JsonResponse({"error": f"Transaction {txn_hash} not found"}, status=400)
 
     block = Block.objects.create(
         height=data["height"],

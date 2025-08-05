@@ -122,23 +122,4 @@ class CalculateHash(object):
         hashEncoded = json.dumps(self.data,sort_keys=True, separators=(',', ':'))
         return hashlib.sha256(hashEncoded.encode()).hexdigest()
     
-
-       
-
-def calculate_hash(data):
-    json_str = json.dumps(data, sort_keys=True, separators=(',', ':'))
-    return hashlib.sha256(json_str.encode()).hexdigest()
-
-def mine_block(data, difficulty=4):
-    nonce = 0
-    prefix = "123456789"[:difficulty]
-
-    while True:
-        data['nonce'] = nonce
-        hash_val = calculate_hash(data)
-        if hash_val.startswith(prefix):
-            return {"nonce": nonce, "hash": hash_val}
-        nonce += 1
-        if nonce % 10000 == 0:
-            print(f"Mining... tried {nonce} nonces")
     
