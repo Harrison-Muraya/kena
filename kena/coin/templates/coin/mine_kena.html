@@ -18,6 +18,9 @@
                         class="btn btn-primary">
                         Mine Kena
                 </button>
+                <a href="{% url 'download_miner' %}" class="btn btn-primary">
+                    Download Miner (Python)
+                </a>
             <table>
                 <thead>
                     <tr>
@@ -53,10 +56,84 @@
         
      <script>
 
+        // document.getElementById('mine-btn').addEventListener('click', () => {
+        //     const getUrl = document.getElementById('mine-btn').dataset.getUrl;
+        //     const postUrl = document.getElementById('mine-btn').dataset.postUrl;
+           
+        //     fetch(getUrl)
+        //     .then(response => response.json())
+        //     .then(data => {
+        //         mineData = {
+        //             "height": data["height"],
+        //             "timestamp": data["timestamp"].toString(),
+        //             "previous_hash": data["previous_hash"],
+        //             "nonce" : parseInt(data["nonce"]) || 0,
+        //             "nonce": data["nonce"],
+        //             "transactions": Object.values(data["transactions"]),
+
+        //         }
+
+        //         // Use "1234" prefix to match backend expectation
+        //         result = mineBlock(mineData, 4); // 4 zeros difficulty
+        //         console.log("Result", result);
+        //         console.log(result);
+                
+        //         fetch(postUrl, {
+        //             method: 'POST',
+        //             headers: {
+        //                 'Content-Type': 'application/json',
+        //             },
+        //             body: JSON.stringify({
+        //                 height: data.height,
+        //                 timestamp: data.timestamp,
+        //                 transactions: data.transactions, // Send only hashes
+        //                 previous_hash: data.previous_hash,
+        //                 nonce: result.nonce,
+        //                 hash: result.hash
+        //             })
+        //         })
+        //         .then(response => response.json())
+        //         .then(confirmData => {
+        //              calculateHash(1234).then(console.log);
+        //             console.log("Server response:", confirmData);
+        //             // alert("Block mined and submitted!");
+        //         })
+        //         .catch(e => console.error("Submission error:", e));
+        //     })
+        //     .catch(e => console.error(e));
+        // });       
+
+        // function mineBlock(blockData, difficulty) {
+        //     let nonce = 0;
+        //     let hash;
+        //     const basePrefix = "123456789";
+        //     const prefix = basePrefix.slice(0, difficulty);
+        //     // const prefix = "0".repeat(difficulty); // Use zeros like backend
+
+        //     while (true) {
+        //         const toHash = { ...blockData, nonce };
+        //         // Use JSON.stringify with sorted keys to match backend
+        //         const jsonStr = JSON.stringify(toHash, Object.keys(toHash).sort());
+        //         hash = CryptoJS.SHA256(jsonStr).toString();
+        //         // console.log(nonce, hash);
+        //         if (hash.startsWith(prefix)) {
+        //             return { nonce, hash };
+        //         }
+        //         nonce++;
+
+        //         if (nonce % 10000 === 0) {
+        //             console.log(`Mining... tried ${nonce} nonces`);
+        //         }
+        //     }
+             
+        // }
+
+        // -----------------------------------
+
         document.getElementById('mine-btn').addEventListener('click', () => {
+            // const url = document.getElementById('mine-btn').dataset.url;
             const getUrl = document.getElementById('mine-btn').dataset.getUrl;
             const postUrl = document.getElementById('mine-btn').dataset.postUrl;
-            
             fetch(getUrl)
             .then(response => response.json())
             .then(data => {
@@ -67,23 +144,19 @@
                     "previous_hash": data["previous_hash"],
                     "nonce": data["nonce"],
                 }
-                console.log('transaction data: ', mineData['transactions']);
                 console.log("Data to mine", mineData);
-                
-                // Use "0000" prefix to match backend expectation
-                result = mineBlock(mineData, 4); // 4 zeros difficulty
-                console.log("Result", result);
-                console.log(result);
-                
+                result = mineBlock(mineData, 4)
+                console.log(result)
                 fetch(postUrl, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
+                        // 'X-CSRFToken': getCookie('csrftoken')  // Include CSRF token for Django
                     },
                     body: JSON.stringify({
                         height: data.height,
                         timestamp: data.timestamp,
-                        transactions: data.transactions, // Send only hashes
+                        transactions: data.transactions,
                         previous_hash: data.previous_hash,
                         nonce: result.nonce,
                         hash: result.hash
@@ -92,26 +165,24 @@
                 .then(response => response.json())
                 .then(confirmData => {
                     console.log("Server response:", confirmData);
-                    // alert("Block mined and submitted!");
+                    alert("Block mined and submitted!");
                 })
                 .catch(e => console.error("Submission error:", e));
-            })
-            .catch(e => console.error(e));
-        });       
+                })
+            .catch( e => console.error(e))
+        });
 
-        function mineBlock(blockData, difficulty) {
+         function mineBlock(blockData, difficulty) {
             let nonce = 0;
             let hash;
             const basePrefix = "123456789";
             const prefix = basePrefix.slice(0, difficulty);
-            // const prefix = "0".repeat(difficulty); // Use zeros like backend
 
             while (true) {
-                const toHash = { ...blockData, nonce };
-                // Use JSON.stringify with sorted keys to match backend
-                const jsonStr = JSON.stringify(toHash, Object.keys(toHash).sort());
+                const toHash = { ...blockData, nonce };  // nonce must be part of hash
+                const jsonStr = stableStringify(toHash);
                 hash = CryptoJS.SHA256(jsonStr).toString();
-                // console.log(nonce, hash);
+
                 if (hash.startsWith(prefix)) {
                     return { nonce, hash };
                 }
@@ -121,103 +192,40 @@
                     console.log(`Mining... tried ${nonce} nonces`);
                 }
             }
-             
         }
 
-        // -----------------------------------
+        function stableStringify(obj) {
+            if (Array.isArray(obj)) {
+                return '[' + obj.map(stableStringify).join(',') + ']';
+            } else if (obj && typeof obj === 'object') {
+                const keys = Object.keys(obj).sort();
+                return '{' + keys.map(key =>
+                    JSON.stringify(key) + ':' + stableStringify(obj[key])
+                ).join(',') + '}';
+            } else {
+                return JSON.stringify(obj);
+            }
+        }
 
-        // document.getElementById('mine-btn').addEventListener('click', () => {
-        //     // const url = document.getElementById('mine-btn').dataset.url;
-        //     const getUrl = document.getElementById('mine-btn').dataset.getUrl;
-        //     const postUrl = document.getElementById('mine-btn').dataset.postUrl;
-        //     fetch(getUrl)
-        //     .then(response => response.json())
-        //     .then(data => {
-        //         mineData = {
-        //             "height": data["height"],
-        //             "timestamp": data["timestamp"],
-        //             "transactions": data["transactions"],
-        //             "previous_hash": data["previous_hash"],
-        //             "nonce": data["nonce"],
-        //         }
-        //         console.log("Data to mine", mineData);
-        //         result = mineBlock(mineData, 2)
-        //         console.log(result)
-        //         fetch(postUrl, {
-        //             method: 'POST',
-        //             headers: {
-        //                 'Content-Type': 'application/json',
-        //                 // 'X-CSRFToken': getCookie('csrftoken')  // Include CSRF token for Django
-        //             },
-        //             body: JSON.stringify({
-        //                 height: data.height,
-        //                 timestamp: data.timestamp,
-        //                 transactions: data.transactions,
-        //                 previous_hash: data.previous_hash,
-        //                 nonce: result.nonce,
-        //                 hash: result.hash
-        //             })
-        //         })
-        //         .then(response => response.json())
-        //         .then(confirmData => {
-        //             console.log("Server response:", confirmData);
-        //             alert("Block mined and submitted!");
-        //         })
-        //         .catch(e => console.error("Submission error:", e));
-        //         })
-        //     .catch( e => console.error(e))
-        // });
-
-        //  function mineBlock(blockData, difficulty) {
+       
+        // function mineBlock(blockData, difficulty) {
         //     let nonce = 0;
         //     let hash;
         //     const basePrefix = "123456789";
         //     const prefix = basePrefix.slice(0, difficulty);
-
+        //         // console.log(prefix)
         //     while (true) {
-        //         const toHash = { ...blockData, nonce };  // nonce must be part of hash
-        //         const jsonStr = stableStringify(toHash);
-        //         hash = CryptoJS.SHA256(jsonStr).toString();
-
+        //         const toHash = JSON.stringify({ ...blockData, nonce });
+        //         hash = CryptoJS.SHA256(toHash).toString()
+        //         // hash = sha256(toHash); // You can use crypto-js or a WASM hasher
+        //         // console.log(nonce, hash);
         //         if (hash.startsWith(prefix)) {
+        //             console.log(hash);
         //             return { nonce, hash };
         //         }
         //         nonce++;
         //     }
         // }
-
-        // function stableStringify(obj) {
-        //     if (Array.isArray(obj)) {
-        //         return '[' + obj.map(stableStringify).join(',') + ']';
-        //     } else if (obj && typeof obj === 'object') {
-        //         const keys = Object.keys(obj).sort();
-        //         return '{' + keys.map(key =>
-        //             JSON.stringify(key) + ':' + stableStringify(obj[key])
-        //         ).join(',') + '}';
-        //     } else {
-        //         return JSON.stringify(obj);
-        //     }
-        // }
-
-       
-        // function mineBlock(blockData, difficulty) {
-        // let nonce = 0;
-        // let hash;
-        // const basePrefix = "123456789";
-        // const prefix = basePrefix.slice(0, difficulty);
-        //     // console.log(prefix)
-        // while (true) {
-        //     const toHash = JSON.stringify({ ...blockData, nonce });
-        //     hash = CryptoJS.SHA256(toHash).toString()
-        //     // hash = sha256(toHash); // You can use crypto-js or a WASM hasher
-        //     // console.log(nonce, hash);
-        //     if (hash.startsWith(prefix)) {
-        //         console.log(hash);
-        //         return { nonce, hash };
-        //     }
-        //     nonce++;
-        // }
-    // }
     </script>
 
 

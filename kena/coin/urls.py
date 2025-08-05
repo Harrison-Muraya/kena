@@ -17,5 +17,7 @@ urlpatterns = [
 
     # API links
     path('api/get_mine_data', views.get_mine_data, name='get_mine_data'),
-    path('api/submit_hash', views.submit_block, name='submt_hash')
+    path('api/submit_hash', views.submit_block, name='submt_hash'),
+    path('api/download-miner/', views.download_miner_script, name='download_miner'),
+
 ]

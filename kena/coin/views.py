@@ -18,6 +18,8 @@ from cryptography.hazmat.primitives.asymmetric import padding
 from Crypto.Signature import pkcs1_15
 from Crypto.Hash import SHA256
 
+from django.urls import reverse
+
 
 # constant variables
 DIFFICULTY = 4  # Difficulty level for mining blocks
@@ -401,56 +403,40 @@ def get_mine_data(request):
 @csrf_exempt
 def submit_block(request):
     data = json.loads(request.body)
-    # print("data: ", data)
 
-    pending = PendingTransaction.objects.all()
-    # print(pending)
-    tx_data = []
+    height = data.get("height", 0)
+    timestamp = data.get("timestamp", "")
+    previous_hash = data.get("previous_hash", "")
+    nonce = data.get("nonce", 0)
+    transactions = data.get("transactions", [])   
 
-    for tx in pending:
-        # validate Pending transaction signature
-        try:
-            transaction_data = {
-                    "billing": tx.billing.id,
-                    "uid": tx.billing.uid,
-                    "sender": tx.sender.username,
-                    "amount": tx.amount,
-                }
-            
-            verifiedSignature = verify_signature(checkKey(tx.sender.public_key),transaction_data,tx.signature)  
-            if(verifiedSignature):                    
-                # print(f"Amount: { tx.amount} verified: {verifiedSignature}, data: {transaction_data}")
-                tx_data.append({
-                    "sender": tx.sender.username,
-                    "receiver": tx.receiver.username,
-                    "amount": float(tx.amount),
-                    "hash": tx.hash
-                })                  
-            else:
-                pass
-                # print(f"Amount: { tx.amount} failed verification -- verifiedsig: {verifiedSignature}, data: {transaction_data}")
-                           
-        except Exception as e:
-            print(e)
-
-    previous_block = Block.objects.order_by('-height').first()
-    previous_hash = previous_block.hash if previous_block else '0' * 64
-    height = previous_block.height + 1 if previous_block else 1
-
-    # Reconstruct block data
+    # Reconstruct block
     block_data = {
         "height": height,
-        "timestamp": data["timestamp"],        
+        "timestamp": timestamp,
         "previous_hash": previous_hash,
-        "nonce": data["nonce"],
-        "transactions": tx_data,
-    }   
-    print("height: ", block_data['height'] )
-    print("timestamp: ", block_data['timestamp'] )
-    print("previous_hash: ", block_data['previous_hash'] )
-    print("nonce: ", block_data['nonce'] )
+        "nonce": nonce,
+        "transactions": transactions,
+    }
+    # return JsonResponse({"message": "Block received", "block": block_data})
+
+
+    # return JsonResponse({"error": f"Invalid data format: {str(e)}"}, status=400)
+
     print(' ')
-    print("transactions: ", tx_data )
+    # print('height ', type(height))
+    # print('timestamp ', type(timestamp))
+    # print(' previous_hash ', type(previous_hash))
+    print(' nonce ', type(nonce))
+    # print(' transactions ', type(transactions))
+
+    print(' ')
+
+    print("height: ", height )
+    # print("timestamp: ", timestamp )
+    # print("previous_hash: ", previous_hash )
+    print("nonce: ", nonce )
+    # print("transactions: ", transactions) 
 
     print(' ')
 
@@ -459,7 +445,8 @@ def submit_block(request):
     print('received hash fron front: ', data["hash"], 'nonce: ', data["nonce"])
     if calculated_hash != data["hash"] :
         return JsonResponse({"error": "Invalid hash or proof"}, status=400)
-
+    
+   
     # Fetch and move transactions
     confirmed = []
     for tx_hash in data["transactions"]:
@@ -490,7 +477,81 @@ def submit_block(request):
     block.transactions.set(confirmed)
     return JsonResponse({"success": True, "block": block.hash})
 
+@csrf_exempt
+def download_miner_script(request):
+    get_url = request.build_absolute_uri(reverse("get_mine_data"))
+    post_url = request.build_absolute_uri(reverse("submt_hash"))
 
+    script = f"""
+    import requests
+    import json
+    import hashlib
+
+    GET_URL = "{get_url}"
+    POST_URL = "{post_url}"
+    DIFFICULTY = 4
+    PREFIX = "123456789"[:DIFFICULTY]
+
+    def calculate_hash(data):
+        json_str = json.dumps(data, sort_keys=True, separators=(',', ':'))
+        return hashlib.sha256(json_str.encode()).hexdigest()
+
+    def mine_block(data, difficulty=4):
+        nonce = 0
+        prefix = "123456789"[:difficulty]
+
+        while True:
+            data['nonce'] = nonce
+            hash_val = calculate_hash(data)
+            if hash_val.startswith(prefix):
+                return {{"nonce": nonce, "hash": hash_val}}
+            nonce += 1
+            if nonce % 10000 == 0:
+                print(f"Mining... tried {{nonce}} nonces")
+
+    def main():
+        print("Fetching block data...")
+        response = requests.get(GET_URL)
+        if response.status_code != 200:
+            print("Failed to fetch data")
+            return
+
+        data = response.json()
+
+        block_data = {{
+            "height": data["height"],
+            "timestamp": data["timestamp"],
+            "transactions": data["transactions"],
+            "previous_hash": data["previous_hash"]
+        }}
+
+        print("Mining block...")
+        result = mine_block(block_data, DIFFICULTY)
+        print("Block mined!")
+        print("Nonce:", result['nonce'])
+        print("Hash:", result['hash'])
+
+        submission = {{
+            "height": data["height"],
+            "timestamp": data["timestamp"],
+            "transactions": data["transactions"],
+            "previous_hash": data["previous_hash"],
+            "nonce": result['nonce'],
+            "hash": result['hash']
+        }}
+
+        print("Submitting block...")
+        post_response = requests.post(POST_URL, json=submission)
+        print("Status code:", post_response.status_code)
+        print("Response:", post_response.text)
+
+    if __name__ == "__main__":
+        main()
+    """
+
+    response = HttpResponse(script, content_type='text/x-python')
+    response['Content-Disposition'] = 'attachment; filename="miner.py"'
+    return response
 
 def logout_view(request):
     logout(request)
