@@ -145,7 +145,7 @@
                     "nonce": data["nonce"],
                 }
                 console.log("Data to mine", mineData);
-                result = mineBlock(mineData, 2)
+                result = mineBlock(mineData, 4)
                 console.log(result)
                 fetch(postUrl, {
                     method: 'POST',

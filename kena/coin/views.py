@@ -491,18 +491,26 @@ def submit_block(request):
             pending_txn = PendingTransaction.objects.get(hash=txn_hash['hash'])
 
             print(f"matched pending transaction:  {pending_txn} id : {pending_txn.id}")
-            # tx = Transaction.objects.create(
-            #     billing=pending_txn.billing,
-            #     gateway=pending_txn.gateway,
-            #     type=pending_txn.type,
-            #     debit=pending_txn.debit,
-            #     credit=pending_txn.credit,
-            #     sender=pending_txn.sender.username,
-            #     receiver=pending_txn.receiver.username,
-            #     amount=pending_txn.amount
-            # )
-            confirmed.append(tx)
-            # pending.delete()
+            tx = Transaction.objects.create(
+                billing=pending_txn.billing,
+                gateway=pending_txn.gateway,
+                type=pending_txn.type,
+                debit=pending_txn.debit,
+                credit=pending_txn.credit,
+                sender=pending_txn.sender.username,
+                receiver=pending_txn.receiver.username,
+                amount=pending_txn.amount
+            )
+
+            # Store the serialized transaction data for JSONField
+            confirmed.append({
+                "sender": tx.sender,
+                "receiver": tx.receiver,
+                "amount": float(tx.amount),
+                "hash": tx.hash,  # if you have this
+            })
+            # confirmed.append(tx)
+            pending_txn.delete()
         except PendingTransaction.DoesNotExist:
             print(f"error: Transaction not found : {txn_hash}")
             return JsonResponse({"error": f"Transaction {txn_hash} not found"}, status=400)
@@ -521,8 +529,8 @@ def submit_block(request):
         timestamp=timestamp,       
         previous_hash=previous_hashh,
         hash=calculated_hash,
+        transactions=confirmed
     )
-    block.transactions.set(confirmed)
     return JsonResponse({"success": True, "block": block.hash})
 
 @csrf_exempt
