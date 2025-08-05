@@ -498,7 +498,7 @@ def submit_block(request):
     block_dat = Block.objects.all()
     if not block_dat.exists():
         # print('creating genesis block')
-        genesis_block = Block(height=0, timestamp=time.time(), previous_hash="kena h", nonce=0, hash=data["hash"])
+        genesis_block = Block(height=0, previous_hash="kena h", nonce=0, hash=data["hash"], transactions = [])
         genesis_block.save()                             
 
 
