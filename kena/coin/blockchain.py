@@ -122,4 +122,13 @@ class CalculateHash(object):
         hashEncoded = json.dumps(self.data,sort_keys=True, separators=(',', ':'))
         return hashlib.sha256(hashEncoded.encode()).hexdigest()
     
-    
+def calculate_genesis_hash():
+    data = {
+        "height": 0,
+        "nonce": 0,
+        "timestamp": 0,
+        "previous_hash": "0" * 64,
+        "transactions": []
+    }
+    hash_string = json.dumps(data, sort_keys=True).encode()
+    return hashlib.sha256(hash_string).hexdigest()   

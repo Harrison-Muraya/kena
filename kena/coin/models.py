@@ -126,7 +126,6 @@ class Block(models.Model):
     hash = models.CharField(max_length=64, unique=True)
     transactions = models.JSONField() # to strore transactions in a json format
 
-
     def __str__(self):
         return f"Block {self.height} - {self.hash[:10]}..."
 
