@@ -126,6 +126,10 @@ class Block(models.Model):
     hash = models.CharField(max_length=64, unique=True)
     transactions = models.JSONField() # to strore transactions in a json format
 
+    # Many-to-many relation to transactions
+    # transactions = models.ManyToManyField(Transaction, related_name="blocks")
+
+
     def __str__(self):
         return f"Block {self.height} - {self.hash[:10]}..."
 

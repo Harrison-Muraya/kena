@@ -490,28 +490,36 @@ def submit_block(request):
         try:
             pending_txn = PendingTransaction.objects.get(hash=txn_hash['hash'])
 
-            print('matched pending transaction: ', pending_txn)
-            tx = Transaction.objects.create(
-                billing=pending_txn.billing,
-                gateway=pending_txn.gateway,
-                type=pending_txn.type,
-                debit=pending_txn.debit,
-                credit=pending_txn.credit,
-                sender=pending_txn.sender.username,
-                receiver=pending_txn.receiver.username,
-                amount=pending_txn.amount
-            )
+            print(f"matched pending transaction:  {pending_txn} id : {pending_txn.id}")
+            # tx = Transaction.objects.create(
+            #     billing=pending_txn.billing,
+            #     gateway=pending_txn.gateway,
+            #     type=pending_txn.type,
+            #     debit=pending_txn.debit,
+            #     credit=pending_txn.credit,
+            #     sender=pending_txn.sender.username,
+            #     receiver=pending_txn.receiver.username,
+            #     amount=pending_txn.amount
+            # )
             confirmed.append(tx)
             # pending.delete()
         except PendingTransaction.DoesNotExist:
             print(f"error: Transaction not found : {txn_hash}")
             return JsonResponse({"error": f"Transaction {txn_hash} not found"}, status=400)
+        
+    # check if Block contain data if not create genesis block
+    block_dat = Block.objects.all()
+    if not block_dat.exists():
+        # print('creating genesis block')
+        genesis_block = Block(height=0, timestamp=time.time(), previous_hash="kena h", nonce=0, hash=data["hash"])
+        genesis_block.save()                             
+
 
     block = Block.objects.create(
-        height=data["height"],
-        timestamp=data["timestamp"],
-        nonce=data["nonce"],
-        previous_hash=data["previous_hash"],
+        height=height,
+        nonce=nonce,
+        timestamp=timestamp,       
+        previous_hash=previous_hashh,
         hash=calculated_hash,
     )
     block.transactions.set(confirmed)
