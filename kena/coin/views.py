@@ -99,8 +99,9 @@ def verify_signature(key, transaction_obj, signature):
         return False
             
 def home(request):
+    blocks = Block.objects.all()
     print('hellow')
-    return render(request, 'coin/home.html')
+    return render(request, 'coin/home.html', {'blocks': blocks})
 
 def create(request):  
     if request.method == 'POST':
@@ -455,30 +456,8 @@ def submit_block(request):
         "transactions": transactions,
     }
     # return JsonResponse({"message": "Block received", "block": block_data})
-
-
     # return JsonResponse({"error": f"Invalid data format: {str(e)}"}, status=400)
-
-    print(' ')
-    # print('height ', type(height))
-    # print('timestamp ', type(timestamp))
-    # print(' previous_hash ', type(previous_hash))
-    print(' nonce ', type(nonce))
-    # print(' transactions ', type(transactions))
-
-    print(' ')
-
-    print("height: ", height )
-    # print("timestamp: ", timestamp )
-    # print("previous_hash: ", previous_hash )
-    print("nonce: ", nonce )
-    # print("transactions: ", transactions) 
-
-    print(' ')
-
     calculated_hash = blockchain.CalculateHash(block_data).calculate()  
-    print("calculated_hash: ", calculated_hash)
-    print('received hash fron front: ', data["hash"], 'nonce: ', data["nonce"])
     if calculated_hash != data["hash"]:
         return JsonResponse({"error": "Invalid hash or proof"}, status=400)
     
@@ -525,8 +504,7 @@ def submit_block(request):
 
     block = Block.objects.create(
         height=height,
-        nonce=nonce,
-        timestamp=timestamp,       
+        nonce=nonce,       
         previous_hash=previous_hashh,
         hash=calculated_hash,
         transactions=confirmed

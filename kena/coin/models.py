@@ -121,7 +121,7 @@ class Transaction(models.Model):
 class Block(models.Model):
     height = models.IntegerField()
     nonce = models.IntegerField()
-    timestamp = models.FloatField()
+    timestamp = models.DateTimeField(default=now)  
     previous_hash = models.CharField(max_length=64)
     hash = models.CharField(max_length=64, unique=True)
     transactions = models.JSONField() # to strore transactions in a json format
