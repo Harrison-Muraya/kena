@@ -10,7 +10,8 @@
         <p><a href="{% url 'dashboard' %}">Back to Dashboard</a></p>
 
         {% if transactions %}
-            <h2>Your Mining Transactions</h2>            
+            <h2>Your Mining Transactions</h2>    
+            <div class="resp-notify" id ="resp-notify"></div>        
                 <!-- <button onclick="mineKena()"  type="submit" class="btn btn-primary">Mine Kena</button> -->
                  <button id="mine-btn" 
                         data-get-url="{% url 'get_mine_data' %}" 
@@ -55,80 +56,6 @@
         {% endif %}
         
      <script>
-
-        // document.getElementById('mine-btn').addEventListener('click', () => {
-        //     const getUrl = document.getElementById('mine-btn').dataset.getUrl;
-        //     const postUrl = document.getElementById('mine-btn').dataset.postUrl;
-           
-        //     fetch(getUrl)
-        //     .then(response => response.json())
-        //     .then(data => {
-        //         mineData = {
-        //             "height": data["height"],
-        //             "timestamp": data["timestamp"].toString(),
-        //             "previous_hash": data["previous_hash"],
-        //             "nonce" : parseInt(data["nonce"]) || 0,
-        //             "nonce": data["nonce"],
-        //             "transactions": Object.values(data["transactions"]),
-
-        //         }
-
-        //         // Use "1234" prefix to match backend expectation
-        //         result = mineBlock(mineData, 4); // 4 zeros difficulty
-        //         console.log("Result", result);
-        //         console.log(result);
-                
-        //         fetch(postUrl, {
-        //             method: 'POST',
-        //             headers: {
-        //                 'Content-Type': 'application/json',
-        //             },
-        //             body: JSON.stringify({
-        //                 height: data.height,
-        //                 timestamp: data.timestamp,
-        //                 transactions: data.transactions, // Send only hashes
-        //                 previous_hash: data.previous_hash,
-        //                 nonce: result.nonce,
-        //                 hash: result.hash
-        //             })
-        //         })
-        //         .then(response => response.json())
-        //         .then(confirmData => {
-        //              calculateHash(1234).then(console.log);
-        //             console.log("Server response:", confirmData);
-        //             // alert("Block mined and submitted!");
-        //         })
-        //         .catch(e => console.error("Submission error:", e));
-        //     })
-        //     .catch(e => console.error(e));
-        // });       
-
-        // function mineBlock(blockData, difficulty) {
-        //     let nonce = 0;
-        //     let hash;
-        //     const basePrefix = "123456789";
-        //     const prefix = basePrefix.slice(0, difficulty);
-        //     // const prefix = "0".repeat(difficulty); // Use zeros like backend
-
-        //     while (true) {
-        //         const toHash = { ...blockData, nonce };
-        //         // Use JSON.stringify with sorted keys to match backend
-        //         const jsonStr = JSON.stringify(toHash, Object.keys(toHash).sort());
-        //         hash = CryptoJS.SHA256(jsonStr).toString();
-        //         // console.log(nonce, hash);
-        //         if (hash.startsWith(prefix)) {
-        //             return { nonce, hash };
-        //         }
-        //         nonce++;
-
-        //         if (nonce % 10000 === 0) {
-        //             console.log(`Mining... tried ${nonce} nonces`);
-        //         }
-        //     }
-             
-        // }
-
-        // -----------------------------------
 
         document.getElementById('mine-btn').addEventListener('click', () => {
             // const url = document.getElementById('mine-btn').dataset.url;
@@ -187,6 +114,9 @@
                     return { nonce, hash };
                 }
                 nonce++;
+                successNotifyState(
+                            "Success!", data.message,
+                        );
 
                 if (nonce % 10000 === 0) {
                     console.log(`Mining... tried ${nonce} nonces`);
@@ -207,25 +137,29 @@
             }
         }
 
-       
-        // function mineBlock(blockData, difficulty) {
-        //     let nonce = 0;
-        //     let hash;
-        //     const basePrefix = "123456789";
-        //     const prefix = basePrefix.slice(0, difficulty);
-        //         // console.log(prefix)
-        //     while (true) {
-        //         const toHash = JSON.stringify({ ...blockData, nonce });
-        //         hash = CryptoJS.SHA256(toHash).toString()
-        //         // hash = sha256(toHash); // You can use crypto-js or a WASM hasher
-        //         // console.log(nonce, hash);
-        //         if (hash.startsWith(prefix)) {
-        //             console.log(hash);
-        //             return { nonce, hash };
-        //         }
-        //         nonce++;
-        //     }
-        // }
+        /**
+         * Success Message
+         */
+        const successNotifyState = (
+            sms = "Success!",
+            this_resp = null
+        ) => {
+            let message = `
+				<div class="alert alert-success alert-dismissible fade show" role="alert">
+					<strong>${sms}</strong> <p>${this_resp}</p>
+				</div>`;
+
+            // response
+            let resp = document.querySelector("#resp-notify")
+
+            resp.innerHTML = "";
+            resp.innerHTML = message;
+
+            // Close the modal in 5 second
+
+        };
+
+
     </script>
 
 
