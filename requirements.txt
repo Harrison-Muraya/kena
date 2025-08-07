@@ -1,0 +1,2 @@
+django-tailwind
+django-tailwind[reload] # For live reloading during development
