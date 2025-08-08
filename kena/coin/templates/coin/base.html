@@ -9,29 +9,11 @@
     <title>{% block title %} Kena {% endblock %}</title>
 </head>
 <body>
-     <div class="">
-      
-        <header>
-            <h1 class="">Kena </h1>
-            <nav>
-                <ul>
-                    <li><a href="{% url 'home' %}">Home</a></li>
-                    <li><a href="{% url 'dashboard' %}">Dashboard</a></li>
-                    {% if user.is_authenticated %}
-                        <li>Welcome, {{ user.username }}!</li>
-                        <li><a href="">Profile</a></li>
-                        <li><a href="{% url 'logout' %}">Logout</a></li>
-                    {% else %}
-                        <li><a href="{% url 'login' %}">Login</a></li>
-                        <li><a href="{% url 'register' %}">Register</a></li>
-                    {% endif %}
-                </ul>
-            </nav>
-        </header>
-        {% block content %}
-        {% endblock %}
-     </div>
-
+    
+    <main class="bg-[#FEFCFF] text-[#A84B00] min-h-screen">
+        {% block content %}{% endblock %}          
+    </main>     
+   
      {% block script %}{% endblock %}
 
 </body>

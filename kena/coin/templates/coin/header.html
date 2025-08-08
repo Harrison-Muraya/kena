@@ -1,0 +1,14 @@
+{% extends 'coin/base.html' %}
+
+{% block header %}
+    <div class="">
+         <h1>list page  </h1>
+         <ul>
+            {% for list in todolists %}
+                <li><a href="{% url 'view_list' list.id %}">{{ list.name }}</a></li>
+            {% empty %}
+                <li>No data found.</li>
+            {% endfor %}
+         </ul>            
+    </div>
+{% endblock %}

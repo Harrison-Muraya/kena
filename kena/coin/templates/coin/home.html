@@ -1,7 +1,32 @@
 {% extends 'coin/base.html' %}
 
 {% block content %}
-    <div class="">
+
+    <div class="container mx-auto">
+        <!-- nav -->
+        <nav class="bg-gray-800 text-white p-4">
+            <h1 class="text-2xl font-bold mb-4">Kena.com</h1>
+            <ul class="space-y-2">
+                <li><a href="{% url 'home' %}" class="hover:text-gray-400">Home</a></li>
+                <li><a href="{% url 'dashboard' %}" class="hover:text-gray-400">Dashboard</a></li>
+                {% if user.is_authenticated %}
+                    <li>Welcome, {{ user.username }}!</li>
+                    <li><a href="{% url 'profile' %}" class="hover:text-gray-400">Profile</a></li>
+                    <li><a href="{% url 'logout' %}" class="hover:text-gray-400">Logout</a></li>
+                {% else %}
+                    <li><a href="{% url 'login' %}" class="hover:text-gray-400">Login</a></li>
+                    <li><a href="{% url 'register' %}" class="hover:text-gray-400">Register</a></li>
+                {% endif %}
+            </ul>
+
+        </nav>
+    </div>
+    
+
+{% endblock %}
+
+
+<!-- <div class="">
          <h1>home page welcome </h1>
         {% if block %}
             <table>
@@ -31,8 +56,43 @@
         {% else %}
             <p>no transactions</p>
         {% endif %}
-    </div>
+    </div> -->
 
-{% endblock %}
+
+     <!-- <div class="relative grid grid-cols-6">      
+        <header class="flex bg-gray-800 col-span-1 text-white p-4 border-r-[0.5px] border-gray-100/50">                     
+            <nav class="flex flex-col items-left h-screen  ">
+                <h1 class="text-2xl font-bold mb-4">Kena.com</h1>
+                <ul>
+                    <li><a href="{% url 'home' %}">Home</a></li>
+                    <li><a href="{% url 'dashboard' %}">Dashboard</a></li>
+                    {% if user.is_authenticated %}
+                        <li>Welcome, {{ user.username }}!</li>
+                        <li><a href="">Profile</a></li>
+                        <li><a href="{% url 'logout' %}">Logout</a></li>
+                    {% else %}
+                        <li><a href="{% url 'login' %}">Login</a></li>
+                        <li><a href="{% url 'register' %}">Register</a></li>
+                    {% endif %}
+                </ul>
+            </nav>
+        </header>  
+        <main class="grid grid-rows-12 bg-gray-800 col-span-5 ">
+            <div class="row-span-1 bg-gray-900 text-white">
+                <div class="flex justify-between items-center p-6 border-b-[0.5px] border-gray-100/50">
+                    <h1 class="text-2xl font-bold">Kena Dashboard</h1>
+                    {% if user.is_authenticated %}
+                        <p class="text-white">Welcome, {{ user.username }}!</p>
+                    {% else %}
+                        <p class="text-white">Please log in to access your dashboard.</p>
+                    {% endif %}
+                </div>
+            </div>  
+            <div class="row-span-11 p-4">
+                      
+            </div>
+            
+        </main>     
+     </div>  -->
 
  
