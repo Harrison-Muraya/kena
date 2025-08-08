@@ -1,26 +1,53 @@
 {% extends 'coin/base.html' %}
+{% load static %}
 
 {% block content %}
 
-    <div class="container mx-auto">
-        <!-- nav -->
-        <nav class="bg-gray-800 text-white p-4">
-            <h1 class="text-2xl font-bold mb-4">Kena.com</h1>
-            <ul class="space-y-2">
-                <li><a href="{% url 'home' %}" class="hover:text-gray-400">Home</a></li>
-                <li><a href="{% url 'dashboard' %}" class="hover:text-gray-400">Dashboard</a></li>
-                {% if user.is_authenticated %}
-                    <li>Welcome, {{ user.username }}!</li>
-                    <li><a href="{% url 'profile' %}" class="hover:text-gray-400">Profile</a></li>
-                    <li><a href="{% url 'logout' %}" class="hover:text-gray-400">Logout</a></li>
-                {% else %}
-                    <li><a href="{% url 'login' %}" class="hover:text-gray-400">Login</a></li>
-                    <li><a href="{% url 'register' %}" class="hover:text-gray-400">Register</a></li>
-                {% endif %}
-            </ul>
+    <div class="container mx-auto text-[#A84B00]">
+        <!-- nav -->         
+         <div class="fixed bg-white shadow-md z-10 w-full">
+            <nav class="flex p-6 justify-between mx-12 items-center">
+                <h1 class="text-2xl font-bold ">Kena.com</h1>
+                <div class="flex space-x-6">
+                    <a href="{% url 'home' %}" class="hover:text-gray-400">Home</a>
+                    <a href="{% url 'dashboard' %}" class="hover:text-gray-400">Dashboard</a>
+                    <a href="#" class="hover:text-gray-400">Transactions</a>
+                    {% if user.is_authenticated %}
+                        <div class="">Welcome, {{ user.username }}!</div>
+                        <a href="#" class="hover:text-gray-400">Profile</a>
+                        <a href="{% url 'logout' %}" class="hover:text-gray-400">Logout</a>
+                    {% else %}
+                        <a href="{% url 'login' %}" class="hover:text-gray-400">Login</a>
+                    {% endif %}
+                </div>
+                <div class="">
+                    <a href="{% url 'dashboard' %}" class="bg-[#A84B00] px-6 py-3 text-white rounded-xl hover:bg-[#8a3f00] transition duration-300">Get Started</a> 
+                </div>
+            </nav>
+         </div>
+        
+        <!-- hero -->
+         <div class="grid grid-cols-3">
+            <div class="flex flex-col col-span-1 items-center justify-center h-screen">
+                <img src="{% static 'coin/images/kenaLogoWithKena.png' %}" alt="Kena Logo" class="w-70 h-30 mb-4">
+                <p class="text-lg text-center">Your trusted platform for secure and efficient crypto transactions.</p>                
+            </div>
+            <div class="flex flex-col col-span-1 items-center justify-center h-screen">
+                <h1 class="text-4xl font-bold
+                    mb-4">Welcome to Kena.com</h1>
+                <p class="text-lg mb-8">Your one-stop solution for all things crypto.</p>
+                <a href="{% url 'dashboard' %}" class="bg-[#A84B00] px-6 py-3 text-white rounded hover:bg-[#8a3f00] transition duration-300">Get Started</a>    
 
-        </nav>
+            </div>
+            <div class="flex flex-col col-span-1 items-center justify-center h-screen">
+                <img src="{% static 'coin/images/blockchainNoBglogo.png' %}" alt="Kena Logo" class="w-90 h-30 mb-4">
+                <p class="text-lg text-center">Join us in revolutionizing the crypto space.</p>
+            </div>
+         
     </div>
+    
+    
+
     
 
 {% endblock %}

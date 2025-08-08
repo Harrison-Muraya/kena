@@ -40,7 +40,6 @@ INSTALLED_APPS = [
     'coin.apps.CoinConfig',
     'tailwind',
     'theme',  # Your Tailwind theme app
-    # 'django_browser_reload',  # For live reloading during development
 ]
 
 TAILWIND_APP_NAME = 'theme'
