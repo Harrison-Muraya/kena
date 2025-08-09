@@ -86,13 +86,3 @@
   </div>
 
 {% endblock %}
-
- <h2>Create a new list</h2>
-  <form method="POST">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <p>
-      Already have an account? Login <a href="{% url 'login' %}">  here</a>
-    </p>
-    <button type="submit">Create</button>
-  </form>
