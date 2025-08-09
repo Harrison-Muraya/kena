@@ -9,9 +9,30 @@
     <title>{% block title %} Kena {% endblock %}</title>
 </head>
 <body class="bg-[#FEFCFF]"> 
-
-    {% block content %} {% endblock %}  
-
+    <div class="container mx-auto text-[#A84B00]">
+        <!-- nav -->         
+         <div class="fixed bg-white shadow-md z-10 w-full">
+            <nav class="flex p-6 justify-between mx-12 items-center">
+                <h1 class="text-2xl font-bold ">Kena.com</h1>
+                <div class="flex space-x-6">
+                    <a href="{% url 'home' %}" class="hover:text-gray-400">Home</a>
+                    <a href="{% url 'dashboard' %}" class="hover:text-gray-400">Dashboard</a>
+                    <a href="#" class="hover:text-gray-400">Transactions</a>
+                    {% if user.is_authenticated %}
+                        <div class="">Welcome, {{ user.username }}!</div>
+                        <a href="#" class="hover:text-gray-400">Profile</a>
+                        <a href="{% url 'logout' %}" class="hover:text-gray-400">Logout</a>
+                    {% else %}
+                        <a href="{% url 'login' %}" class="hover:text-gray-400">Login</a>
+                    {% endif %}
+                </div>
+                <div class="">
+                    <a href="{% url 'dashboard' %}" class="bg-[#A84B00] px-6 py-3 text-white rounded-xl hover:bg-[#8a3f00] transition duration-300">Get Started</a> 
+                </div>
+            </nav>
+         </div>
+        {% block content %} {% endblock %}  
+    </div>
     {% block script %}{% endblock %}
 
 </body>
