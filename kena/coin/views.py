@@ -217,6 +217,14 @@ def send_kena(request):
                 # sender_wallet = Wallet.objects.filter(user=sender)
                 # print("Sender wallet:", sender_wallet)
 
+                #  check if the sender wallet exists
+                try:
+                    sender_wallet = Wallet.objects.filter(user=sender)
+                    print("Sender wallet:", sender_wallet)
+                except Wallet.DoesNotExist:
+                    form.add_error(None, "Sender wallet not found.")
+                    return render(request, 'coin/send_kena.html', {'form': form})
+
                 # print("Sender primary key:", sender.private_key)
                 # Generate to cheack if the wallet belongs to the user
                 data = {
@@ -227,19 +235,11 @@ def send_kena(request):
                 }
                 hasher = blockchain.CalculateHash(data) 
                 genrated_hash = hasher.calculate()
+
                  # Validate wallet ownership
                 if selected_wallet.hash != genrated_hash:
                     form.add_error('wallet', 'This wallet does not belong to you.')
-                    return render(request, 'coin/send_kena.html', {'form': form})
-                
-
-                #  check if the sender wallet exists
-                try:
-                    sender_wallet = Wallet.objects.filter(user=sender)
-                    print("Sender wallet:", sender_wallet)
-                except Wallet.DoesNotExist:
-                    form.add_error(None, "Sender wallet not found.")
-                    return render(request, 'coin/send_kena.html', {'form': form})
+                    return render(request, 'coin/send_kena.html', {'form': form})                           
                 
                 # check if the receiver exists
                 try:
