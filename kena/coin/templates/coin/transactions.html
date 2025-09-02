@@ -4,15 +4,7 @@
 {% block content %}
         {% include "partials/header.html" %}
  
-        {% block header %} {% endblock %}
-
-
-        {% for transaction in transactions %}
-            <p>{{ transaction.hash }}</p>
-        {% empty %}
-            <p>No transactions found.</p>
-        {% endfor %}
-        
+        {% block header %} {% endblock %}       
 
 
     <div class="max-w-4xl mx-auto pt-28 p-6 bg-gray-50 min-h-screen">
@@ -20,7 +12,7 @@
 
          {% for transaction in transactions %}
 
-            <p>{{transaction.transactions}}</p>
+            <!-- <p>{{transaction.transactions}}</p> -->
 
             <div id="blocks-container" class="space-y-4">
                 <!-- Block 1 -->
@@ -38,14 +30,16 @@
                                 </svg>
                             </div>
                             <div>
-                                <div class="font-mono text-sm text-gray-600">Block #850123</div>
-                                <div class="font-mono text-lg font-semibold text-gray-800 break-all">
-                                    0x1a2b3c4d5e6f7890abcdef1234567890abcdef12
+                                <div class="font-mono text-sm text-gray-600">Block #{{ transaction.height }}</div>
+                                <div class="justify-center items-center  ">
+                                    <p class="font-mono text-sm m-1 text-gray-600">block hash: <span class="font-mono text-md font-semibold text-gray-800 break-all">{{ transaction.hash }}</span>  </p>
+                                    <p class="font-mono text-sm m-1 text-gray-600">prev  hash: <span class="font-mono text-md font-semibold text-gray-800 break-all">{{ transaction.previous_hash }}</span>  </p>
+                                    
                                 </div>
                             </div>
                         </div>
                         <div class="text-sm text-gray-500">
-                            3 transactions
+                            {{ transaction.transactions|length }} transactions
                         </div>
                     </div>
 
@@ -54,84 +48,39 @@
                         <div class="p-4">
                             <h3 class="text-lg font-semibold text-gray-700 mb-3">Transactions</h3>
                             <div class="space-y-3">
-                                <div class="bg-white rounded-lg p-3 border border-gray-200">
-                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
-                                        <div>
-                                            <span class="font-medium text-gray-600">Hash:</span>
-                                            <div class="font-mono text-gray-800 break-all">0xabc123...</div>
+
+                                {% for tx in transaction.transactions %}
+                                    {% if tx.type != 'send' or 'fee' %}
+
+                                        <div class="bg-white rounded-lg p-3 border border-gray-200">
+                                            <div class="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
+                                                <div>
+                                                    <span class="font-medium text-gray-600">Hash:</span>
+                                                    <div class="font-mono text-gray-800 break-all">{{tx.hash|slice:":6"}}....{{tx.hash|slice:"-4:"}}</div>
+                                                </div>
+                                                <div>
+                                                    <span class="font-medium text-gray-600">Value:</span>
+                                                    <span class="ml-2 font-semibold text-green-600">{{ tx.amount }} KENA</span>
+                                                </div>
+                                                <div>
+                                                    <span class="font-medium text-gray-600">From:</span>
+                                                    <div class="font-mono text-gray-800 break-all">{{tx.sender}}</div>
+                                                </div>
+                                                <div>
+                                                    <span class="font-medium text-gray-600">To:</span>
+                                                    <div class="font-mono text-gray-800 break-all">{{ tx.receiver }}</div>
+                                                </div>
+                                            </div>
                                         </div>
-                                        <div>
-                                            <span class="font-medium text-gray-600">Value:</span>
-                                            <span class="ml-2 font-semibold text-green-600">2.5 ETH</span>
-                                        </div>
-                                        <div>
-                                            <span class="font-medium text-gray-600">From:</span>
-                                            <div class="font-mono text-gray-800 break-all">0x1234...</div>
-                                        </div>
-                                        <div>
-                                            <span class="font-medium text-gray-600">To:</span>
-                                            <div class="font-mono text-gray-800 break-all">0x5678...</div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="bg-white rounded-lg p-3 border border-gray-200">
-                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
-                                        <div>
-                                            <span class="font-medium text-gray-600">Hash:</span>
-                                            <div class="font-mono text-gray-800 break-all">0xdef456...</div>
-                                        </div>
-                                        <div>
-                                            <span class="font-medium text-gray-600">Value:</span>
-                                            <span class="ml-2 font-semibold text-green-600">0.8 ETH</span>
-                                        </div>
-                                        <div>
-                                            <span class="font-medium text-gray-600">From:</span>
-                                            <div class="font-mono text-gray-800 break-all">0x9abc...</div>
-                                        </div>
-                                        <div>
-                                            <span class="font-medium text-gray-600">To:</span>
-                                            <div class="font-mono text-gray-800 break-all">0xdef0...</div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="bg-white rounded-lg p-3 border border-gray-200">
-                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
-                                        <div>
-                                            <span class="font-medium text-gray-600">Hash:</span>
-                                            <div class="font-mono text-gray-800 break-all">0x789xyz...</div>
-                                        </div>
-                                        <div>
-                                            <span class="font-medium text-gray-600">Value:</span>
-                                            <span class="ml-2 font-semibold text-green-600">10.0 ETH</span>
-                                        </div>
-                                        <div>
-                                            <span class="font-medium text-gray-600">From:</span>
-                                            <div class="font-mono text-gray-800 break-all">0x2468...</div>
-                                        </div>
-                                        <div>
-                                            <span class="font-medium text-gray-600">To:</span>
-                                            <div class="font-mono text-gray-800 break-all">0x1357...</div>
-                                        </div>
-                                    </div>
-                                </div>
+                                        
+                                    {% endif %}
+                                {% endfor %}                               
+
                             </div>
                         </div>
                     </div>
                 </div>           
             </div>
-            
-
-            <!-- {% for tx in transaction.transactions %}
-                {% if tx.type != 'send' or 'fee' %}
-                    <div>
-                        <p>Hash: {{ tx.hash }}</p>
-                        <p>From: {{ tx.sender }}</p>
-                        <p>To: {{ tx.receiver }}</p>
-                        <p>Type {{tx.type}}</p>
-                        <p>Value: {{ tx.amount }}</p>
-                    </div>
-                {% endif %}
-            {% endfor %} -->
         {% empty %}
             <p>No transactions found.</p>
         {% endfor %}
