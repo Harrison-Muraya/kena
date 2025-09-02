@@ -19,6 +19,7 @@
                         class="btn btn-primary">
                         Mine Kena
                 </button>
+
                 <a href="{% url 'download_miner' %}" class="btn btn-primary">
                     Download Miner (Python)
                 </a>
@@ -115,7 +116,8 @@
                 }
                 nonce++;
                 successNotifyState(
-                            "Success!", data.message,
+                            // "Success!", data.message,
+                            "Success!", "Mining in progress...",
                         );
 
                 if (nonce % 10000 === 0) {

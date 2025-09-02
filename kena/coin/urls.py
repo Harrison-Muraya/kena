@@ -9,6 +9,8 @@ urlpatterns = [
     path('listdata/<int:id>/', views.show, name='view_list'),
     path('dashboard/', views.dashboard, name='dashboard'),
 
+    path('transactions/', views.transactions, name='transactions'),
+
     path('send_kena/', views.send_kena, name='send_kena'),
     path('mine_kena/', views.mine_kena, name='mine_kena'),
     

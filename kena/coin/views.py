@@ -199,6 +199,12 @@ def dashboard(request):
         return render(request, 'coin/dashboard.html', {'user': request.user, 'form': form, 'wallets': wallets})
     else:
         return redirect('login')
+    
+#transaction views
+def transactions(request):
+    transactions = Block.objects.all().order_by('-timestamp')  # Fetch all transactions, ordered by most recent
+    print(transactions)
+    return render(request, 'coin/transactions.html', {'transactions': transactions})
 
 #send kena
 def send_kena(request):
@@ -487,6 +493,7 @@ def submit_block(request):
                 "receiver": tx.receiver,
                 "amount": float(tx.amount),
                 "hash": tx.hash,  # if you have this
+                "type": tx.type
             })
             # confirmed.append(tx)
             pending_txn.delete()

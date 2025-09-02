@@ -7,7 +7,7 @@
                 <div class="flex space-x-6">
                     <a href="{% url 'home' %}" class="hover:text-gray-400">Home</a>
                     <a href="{% url 'dashboard' %}" class="hover:text-gray-400">Dashboard</a>
-                    <a href="#" class="hover:text-gray-400">Transactions</a>
+                    <a href="{% url 'transactions' %}" class="hover:text-gray-400">Transactions</a>
                     {% if user.is_authenticated %}
                         <div class="">Welcome, {{ user.username }}!</div>
                         <a href="#" class="hover:text-gray-400">Profile</a>
