@@ -1,1 +1,8 @@
 py manage.py runserver 192.168.100.24:8000
+pip install django-tailwind django-browser-reload
+pip install django-tailwind django-browser-reload
+pip show django-tailwind
+
+
+##### for enabling vertiua envirronment run in vs code ###
+Set-ExcecutionPolicy Unrestricted -Scope Process
