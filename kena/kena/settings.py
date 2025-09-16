@@ -48,6 +48,8 @@ if DEBUG:
     # Add django_browser_reload only in DEBUG mode
     INSTALLED_APPS += ['django_browser_reload']
 
+INTERNAL_IPS = ['127.0.0.1']
+
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
