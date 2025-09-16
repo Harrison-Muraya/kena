@@ -18,26 +18,52 @@
                 <!-- Block 1 -->
                 <div class="bg-white rounded-lg shadow-md border border-gray-200 overflow-hidden block-item" data-block-id="block-1">
                     <div class="flex items-center justify-between p-4 cursor-pointer hover:bg-gray-50 transition-colors duration-200 block-header">
-                        <div class="flex items-center space-x-3">
-                            <div class="flex items-center justify-center w-8 h-8 bg-blue-100 rounded-full chevron-container">
-                                <!-- Chevron Right (collapsed state) -->
-                                <svg class="w-5 h-5 text-blue-600 chevron-right" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m9 18 6-6-6-6"></path>
-                                </svg>
-                                <!-- Chevron Down (expanded state) -->
-                                <svg class="w-5 h-5 text-blue-600 chevron-down hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m19 9-7 7-7-7"></path>
-                                </svg>
-                            </div>
-                            <div>
-                                <div class="font-mono text-sm text-gray-600">Block #{{ transaction.height }}</div>
-                                <div class="justify-center items-center  ">
-                                    <p class="font-mono text-sm m-1 text-gray-600">block hash: <span class="font-mono text-md font-semibold text-gray-800 break-all">{{ transaction.hash }}</span>  </p>
-                                    <p class="font-mono text-sm m-1 text-gray-600">prev  hash: <span class="font-mono text-md font-semibold text-gray-800 break-all">{{ transaction.previous_hash }}</span>  </p>
-                                    
-                                </div>
-                            </div>
-                        </div>
+                        <div class="flex flex-col sm:flex-row sm:items-center sm:space-x-3 space-y-2 sm:space-y-0">
+                <!-- Chevron -->
+                <div class="flex items-center justify-center w-8 h-8 bg-blue-100 rounded-full chevron-container">
+                    <!-- Chevron Right (collapsed state) -->
+                    <svg class="w-5 h-5 text-blue-600 chevron-right" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m9 18 6-6-6-6"></path>
+                    </svg>
+                    <!-- Chevron Down (expanded state) -->
+                    <svg class="w-5 h-5 text-blue-600 chevron-down hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m19 9-7 7-7-7"></path>
+                    </svg>
+                </div>
+
+                <!-- Block info -->
+                <div>
+                    <div class="font-mono text-sm text-gray-600">Block #{{ transaction.height }}</div>
+                    <div>
+                        <!-- Block hash -->
+                        <p class="font-mono text-sm mt-1 text-gray-600">
+                            block hash:
+                            <!-- Short (mobile) -->
+                            <span class="sm:hidden font-mono text-md font-semibold text-gray-800">
+                                {{ transaction.hash|slice:":8" }}...{{ transaction.hash|slice:"-8:" }}
+                            </span>
+                            <!-- Full (desktop) -->
+                            <span class="hidden font-mono text-md font-semibold text-gray-800 break-all">
+                                {{ transaction.hash }}
+                            </span>
+                        </p>
+
+                        <!-- Previous hash -->
+                        <p class="font-mono text-sm mt-1 text-gray-600">
+                            prev hash:
+                            <!-- Short (mobile) -->
+                            <span class="sm:hidden font-mono text-md font-semibold text-gray-800">
+                                {{ transaction.previous_hash|slice:":8" }}...{{ transaction.previous_hash|slice:"-8:" }}
+                            </span>
+                            <!-- Full (desktop) -->
+                            <span class="hidden sm:inline font-mono text-md font-semibold text-gray-800 break-all">
+                                {{ transaction.previous_hash }}
+                            </span>
+                        </p>
+                    </div>
+                </div>
+            </div>
+
                         <div class="text-sm text-gray-500">
                             {{ transaction.transactions|length }} transactions
                         </div>
