@@ -132,22 +132,42 @@ def show(request, id):
     return render(request, 'coin/show.html', {'todolist': todolist, 'items': items})
 
 def register(request):
+    # if request.method == 'POST':
+    #     # Handle form submission
+    #     form = forms.RegisterForm(request.POST)
+    #     if form.is_valid():
+    #         # Generate keys
+    #         private_key, public_key = generate_keys()
+    #         # Save user with public key
+    #         user = form.save(commit=False)  
+    #         user.public_key = public_key.decode('utf-8')
+    #         user.private_key = private_key.decode('utf-8')
+    #         user.save()
+    #         form.save()
+    #         login(request, form.save())
+    #         return redirect('dashboard')
+    # else:
+    #     # Display registration form
+    #     form = forms.RegisterForm()
     if request.method == 'POST':
-        # Handle form submission
         form = forms.RegisterForm(request.POST)
         if form.is_valid():
+            # Create user object but don’t commit yet
+            user = form.save(commit=False)
+
             # Generate keys
             private_key, public_key = generate_keys()
-            # Save user with public key
-            user = form.save(commit=False)  
             user.public_key = public_key.decode('utf-8')
             user.private_key = private_key.decode('utf-8')
+
+            # Save final user
             user.save()
-            form.save()
-            login(request, form.save())
+
+            # Log the user in
+            login(request, user)
+
             return redirect('dashboard')
     else:
-        # Display registration form
         form = forms.RegisterForm()
     return render(request, 'registration/register.html', {'form': form})
 

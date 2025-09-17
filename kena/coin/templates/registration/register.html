@@ -28,28 +28,25 @@
 
             <!-- Registration Form -->
             <div class="bg-white/10 backdrop-blur-lg rounded-2xl p-8 border border-white/20 shadow-2xl">
-                <form id="registerForm" class="space-y-6">
+
+                <form id="registerForm" method="post" class="space-y-6" novalidate>
+                    {% csrf_token %}
+                    
                     <!-- Name Fields -->
                     <div class="grid grid-cols-2 gap-4">
                         <div>
                             <label class="block text-sm font-medium mb-2 text-gray-200">First Name</label>
-                            <input 
-                                type="text" 
-                                id="firstName"
-                                class="w-full p-4 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-400 focus:border-kena-gold focus:ring-2 focus:ring-kena-gold/50 focus:outline-none transition-all"
-                                placeholder="John"
-                                required
-                            >
+                            {{ form.first_name }}
+                            {% if form.first_name.errors %}
+                                <p class="text-red-500 text-sm mt-1">{{ form.first_name.errors.0 }}</p>
+                            {% endif %}
                         </div>
                         <div>
                             <label class="block text-sm font-medium mb-2 text-gray-200">Last Name</label>
-                            <input 
-                                type="text" 
-                                id="lastName"
-                                class="w-full p-4 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-400 focus:border-kena-gold focus:ring-2 focus:ring-kena-gold/50 focus:outline-none transition-all"
-                                placeholder="Doe"
-                                required
-                            >
+                            {{ form.last_name }}
+                            {% if form.last_name.errors %}
+                                <p class="text-red-500 text-sm mt-1">{{ form.last_name.errors.0 }}</p>
+                            {% endif %}
                         </div>
                     </div>
 
@@ -57,57 +54,38 @@
                     <div>
                         <label class="block text-sm font-medium mb-2 text-gray-200">Email Address</label>
                         <div class="relative">
-                            <input 
-                                type="email" 
-                                id="email"
-                                class="w-full p-4 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-400 focus:border-kena-gold focus:ring-2 focus:ring-kena-gold/50 focus:outline-none transition-all"
-                                placeholder="john@example.com"
-                                required
-                            >
+                            {{ form.email }}
                             <div class="absolute inset-y-0 right-0 flex items-center pr-4">
                                 <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207"></path>
                                 </svg>
                             </div>
                         </div>
-                        <div id="emailError" class="hidden text-red-400 text-sm mt-1"></div>
+                        {% if form.email.errors %}
+                            <p class="text-red-500 text-sm mt-1">{{ form.email.errors.0 }}</p>
+                        {% endif %}
                     </div>
 
                     <!-- Phone Number -->
                     <div>
                         <label class="block text-sm font-medium mb-2 text-gray-200">Phone Number</label>
                         <div class="relative">
-                            <select id="countryCode" class="absolute left-0 top-0 h-full bg-white/5 border border-white/10 rounded-l-xl text-white text-sm px-3 focus:outline-none">
-                                <option value="+254">🇰🇪 +254</option>
-                                <option value="+1">🇺🇸 +1</option>
-                                <option value="+44">🇬🇧 +44</option>
-                                <option value="+91">🇮🇳 +91</option>
-                                <option value="+86">🇨🇳 +86</option>
-                            </select>
-                            <input 
-                                type="tel" 
-                                id="phone"
-                                class="w-full p-4 pl-20 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-400 focus:border-kena-gold focus:ring-2 focus:ring-kena-gold/50 focus:outline-none transition-all"
-                                placeholder="712345678"
-                                required
-                            >
+                            {{ form.country_code }}
+                            {{ form.phone }}
                         </div>
+                        {% if form.phone.errors %}
+                            <p class="text-red-500 text-sm mt-1">{{ form.phone.errors.0 }}</p>
+                        {% endif %}
                     </div>
 
                     <!-- Password Input -->
                     <div>
                         <label class="block text-sm font-medium mb-2 text-gray-200">Password</label>
                         <div class="relative">
-                            <input 
-                                type="password" 
-                                id="password"
-                                class="w-full p-4 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-400 focus:border-kena-gold focus:ring-2 focus:ring-kena-gold/50 focus:outline-none transition-all pr-12"
-                                placeholder="Create a strong password"
-                                required
-                            >
+                            {{ form.password1 }}
                             <button 
                                 type="button" 
-                                onclick="togglePassword('password')"
+                                onclick="togglePassword('id_password1', 'eyeIcon1')"
                                 class="absolute inset-y-0 right-0 flex items-center pr-4 text-gray-400 hover:text-white transition-colors"
                             >
                                 <svg id="eyeIcon1" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -116,32 +94,31 @@
                                 </svg>
                             </button>
                         </div>
+                        
                         <!-- Password Strength Indicator -->
                         <div class="mt-2">
                             <div class="flex space-x-1" id="passwordStrength">
-                                <div class="h-1 w-1/4 bg-gray-600 rounded"></div>
-                                <div class="h-1 w-1/4 bg-gray-600 rounded"></div>
-                                <div class="h-1 w-1/4 bg-gray-600 rounded"></div>
-                                <div class="h-1 w-1/4 bg-gray-600 rounded"></div>
+                                <div class="h-1 w-1/4 bg-gray-600 rounded strength-bar"></div>
+                                <div class="h-1 w-1/4 bg-gray-600 rounded strength-bar"></div>
+                                <div class="h-1 w-1/4 bg-gray-600 rounded strength-bar"></div>
+                                <div class="h-1 w-1/4 bg-gray-600 rounded strength-bar"></div>
                             </div>
                             <p id="passwordStrengthText" class="text-xs text-gray-400 mt-1">Password strength</p>
                         </div>
+                        
+                        {% if form.password1.errors %}
+                            <p class="text-red-500 text-sm mt-1">{{ form.password1.errors.0 }}</p>
+                        {% endif %}
                     </div>
 
                     <!-- Confirm Password -->
                     <div>
                         <label class="block text-sm font-medium mb-2 text-gray-200">Confirm Password</label>
                         <div class="relative">
-                            <input 
-                                type="password" 
-                                id="confirmPassword"
-                                class="w-full p-4 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-400 focus:border-kena-gold focus:ring-2 focus:ring-kena-gold/50 focus:outline-none transition-all pr-12"
-                                placeholder="Confirm your password"
-                                required
-                            >
+                            {{ form.password2 }}
                             <button 
                                 type="button" 
-                                onclick="togglePassword('confirmPassword')"
+                                onclick="togglePassword('id_password2', 'eyeIcon2')"
                                 class="absolute inset-y-0 right-0 flex items-center pr-4 text-gray-400 hover:text-white transition-colors"
                             >
                                 <svg id="eyeIcon2" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -151,32 +128,29 @@
                             </button>
                         </div>
                         <div id="passwordMatch" class="hidden text-sm mt-1"></div>
+                        {% if form.password2.errors %}
+                            <p class="text-red-500 text-sm mt-1">{{ form.password2.errors.0 }}</p>
+                        {% endif %}
                     </div>
 
                     <!-- Terms and Privacy -->
                     <div class="flex items-start space-x-3">
-                        <input 
-                            type="checkbox" 
-                            id="terms"
-                            class="w-4 h-4 mt-1 text-kena-gold bg-white/10 border-white/20 rounded focus:ring-kena-gold focus:ring-2"
-                            required
-                        >
-                        <label for="terms" class="text-sm text-gray-300 leading-relaxed">
+                        {{ form.terms_accepted }}
+                        <label for="id_terms_accepted" class="text-sm text-gray-300 leading-relaxed">
                             I agree to the 
                             <a href="#" class="text-kena-gold hover:text-yellow-400 transition-colors">Terms of Service</a> 
                             and 
                             <a href="#" class="text-kena-gold hover:text-yellow-400 transition-colors">Privacy Policy</a>
                         </label>
                     </div>
+                    {% if form.terms_accepted.errors %}
+                        <p class="text-red-500 text-sm mt-1">{{ form.terms_accepted.errors.0 }}</p>
+                    {% endif %}
 
                     <!-- Marketing Consent -->
                     <div class="flex items-start space-x-3">
-                        <input 
-                            type="checkbox" 
-                            id="marketing"
-                            class="w-4 h-4 mt-1 text-kena-gold bg-white/10 border-white/20 rounded focus:ring-kena-gold focus:ring-2"
-                        >
-                        <label for="marketing" class="text-sm text-gray-300 leading-relaxed">
+                        {{ form.marketing_consent }}
+                        <label for="id_marketing_consent" class="text-sm text-gray-300 leading-relaxed">
                             I'd like to receive updates about Kena and cryptocurrency news
                         </label>
                     </div>
@@ -184,7 +158,8 @@
                     <!-- Register Button -->
                     <button 
                         type="submit"
-                        class="w-full p-4 bg-gradient-to-r from-kena-gold to-yellow-500 text-black rounded-xl hover:from-yellow-500 hover:to-kena-gold transition-all font-semibold text-lg transform hover:scale-[1.02] active:scale-[0.98]"
+                        id="registerButton"
+                        class="w-full p-4 bg-gradient-to-r from-kena-gold to-yellow-500 text-black rounded-xl hover:from-yellow-500 hover:to-kena-gold transition-all font-semibold text-lg transform hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                         <span id="registerButtonText">Create Account</span>
                         <svg id="registerSpinner" class="hidden animate-spin -mr-1 ml-3 h-5 w-5 text-black inline" fill="none" viewBox="0 0 24 24">
@@ -192,6 +167,14 @@
                             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                         </svg>
                     </button>
+
+                    <!-- Login Link -->
+                    <div class="text-center">
+                        <p class="text-gray-400">
+                            Already have an account? 
+                            <a href="{% url 'login' %}" class="text-kena-gold hover:text-yellow-400 transition-colors">Sign in</a>
+                        </p>
+                    </div>
                 </form>
 
                 <!-- Divider -->
@@ -224,7 +207,7 @@
                 <div class="mt-6 text-center">
                     <p class="text-gray-300">
                         Already have an account? 
-                        <a href="#" onclick="showLogin()" class="text-kena-gold hover:text-yellow-400 font-semibold transition-colors">
+                        <a href="#" data-url="{% url 'login' %}" onclick="showLogin(this)" class="text-kena-gold hover:text-yellow-400 font-semibold transition-colors">
                             Sign in here
                         </a>
                     </p>
@@ -348,65 +331,17 @@
             });
 
             // Handle form submission
-            document.getElementById('registerForm').addEventListener('submit', function(e) {
-                e.preventDefault();
-                
-                const formData = {
-                    firstName: document.getElementById('firstName').value,
-                    lastName: document.getElementById('lastName').value,
-                    email: document.getElementById('email').value,
-                    phone: document.getElementById('countryCode').value + document.getElementById('phone').value,
-                    password: document.getElementById('password').value,
-                    confirmPassword: document.getElementById('confirmPassword').value,
-                    terms: document.getElementById('terms').checked,
-                    marketing: document.getElementById('marketing').checked
-                };
-                
-                // Validation
-                if (!validateEmail(formData.email)) {
-                    showError('Please enter a valid email address');
-                    return;
-                }
-                
-                if (formData.password !== formData.confirmPassword) {
-                    showError('Passwords do not match');
-                    return;
-                }
-                
-                if (formData.password.length < 8) {
-                    showError('Password must be at least 8 characters long');
-                    return;
-                }
-                
-                if (!formData.terms) {
-                    showError('Please agree to the Terms of Service and Privacy Policy');
-                    return;
-                }
-                
-                const registerButton = document.querySelector('button[type="submit"]');
+            
+            document.getElementById('registerForm').addEventListener('submit', function() {
+                const button = document.getElementById('registerButton');
                 const buttonText = document.getElementById('registerButtonText');
                 const spinner = document.getElementById('registerSpinner');
                 
-                // Show loading state
                 buttonText.textContent = 'Creating Account...';
                 spinner.classList.remove('hidden');
-                registerButton.disabled = true;
-                
-                // Simulate registration API call
-                setTimeout(() => {
-                    // Reset button state
-                    buttonText.textContent = 'Create Account';
-                    spinner.classList.add('hidden');
-                    registerButton.disabled = false;
-                    
-                    // Simulate successful registration
-                    showSuccess('Account created successfully! Please check your email for verification.');
-                    setTimeout(() => {
-                        // Redirect to login or verification page
-                        showLogin();
-                    }, 2000);
-                }, 3000);
+                button.disabled = true;
             });
+            
 
             // Utility functions
             function showSuccess(message) {
@@ -434,8 +369,10 @@
                 return alert;
             }
 
-            function showLogin() {
-                console.log('Navigate to login page');
+            function showLogin(el) {
+              const url = el.getAttribute("data-url")
+              window.location.href = url;
+              console.log('Navigate to login page');
             }
         </script>
     </div>  

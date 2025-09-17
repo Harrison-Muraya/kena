@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
+# from django.contrib.auth.models import User
 from django.conf import settings
 from . import blockchain
 from django.utils.timezone import now
@@ -7,10 +8,20 @@ from django.utils.timezone import now
 # This model is used to create a custom user model that extends the default Django user model
 # It includes additional fields for private key, public key, flag, and status
 class CustomUser(AbstractUser):
+    phone = models.CharField(max_length=15, unique=True, null=True, blank=True)
     private_key = models.TextField(unique=True, null=True, blank=True)
     public_key = models.TextField(unique=True, null=True, blank=True)
+    terms_accepted = models.BooleanField(default=False)
+    marketing_consent = models.BooleanField(default=False)
     flag = models.IntegerField(default=1)
     status = models.BooleanField(default=1)
+
+    # user = models.OneToOneField(User, on_delete=models.CASCADE)
+    # phone = models.CharField(max_length=20)
+    # marketing_consent = models.BooleanField(default=False)
+    # email_verified = models.BooleanField(default=False)
+    # created_at = models.DateTimeField(auto_now_add=True)
+    # updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return f"{self.username} - {self.email} - {self.date_joined}"
