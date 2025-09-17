@@ -171,6 +171,41 @@ def register(request):
         form = forms.RegisterForm()
     return render(request, 'registration/register.html', {'form': form})
 
+# Function to send verification email
+def send_verification_email(user, request):
+    """Send email verification to user"""
+    try:
+        token = default_token_generator.make_token(user)
+        uid = urlsafe_base64_encode(force_bytes(user.pk))
+        
+        verification_link = request.build_absolute_uri(
+            reverse('verify_email', kwargs={'uidb64': uid, 'token': token})
+        )
+        
+        subject = 'Verify your Kena account'
+        message = f'''
+        Hi {user.first_name},
+        
+        Thank you for registering with Kena! Please click the link below to verify your email address:
+        
+        {verification_link}
+        
+        If you didn't create this account, please ignore this email.
+        
+        Best regards,
+        The Kena Team
+        '''
+        
+        send_mail(
+            subject,
+            message,
+            settings.DEFAULT_FROM_EMAIL,
+            [user.email],
+            fail_silently=False,
+        )
+        
+    except Exception as e:
+        logger.error(f"Failed to send verification email: {str(e)}")
 # Dashboard view
 def dashboard(request):
     if request.user.is_authenticated:       

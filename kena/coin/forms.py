@@ -1,7 +1,7 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
-from django.contrib.auth.models import User
-from .models import CustomUser, Wallet
+# from django.contrib.auth.models import User
+from .models import CustomUser, Wallet, UserProfile
 from django.core.exceptions import ValidationError
 import re
 
@@ -141,7 +141,6 @@ class RegisterForm(UserCreationForm):
             raise ValidationError("Password must contain at least one number.")
         
         return password1
-
     def save(self, commit=True):
         user = super().save(commit=False)
         user.email = self.cleaned_data['email']
@@ -151,7 +150,8 @@ class RegisterForm(UserCreationForm):
         if commit:
             user.save()
             # Create user profile with phone and marketing consent
-            CustomUser.objects.create(
+            UserProfile.objects.create(
+                user=user,
                 phone=f"{self.cleaned_data['country_code']}{self.cleaned_data['phone']}",
                 marketing_consent=self.cleaned_data.get('marketing_consent', False)
             )
