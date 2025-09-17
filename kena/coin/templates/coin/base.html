@@ -1,17 +1,99 @@
-{% load static tailwind_tags %}
+<!-- {% load static tailwind_tags %} -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-     {% tailwind_css %}
+     <!-- {% tailwind_css %} -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+        <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'kena-blue': '#0066cc',
+                        'kena-dark': '#1a1a2e',
+                        'kena-purple': '#16213e',
+                        'kena-gold': '#ffd700'
+                    }
+                }
+            }
+        }
+    </script>
     <title>{% block title %} Kena {% endblock %}</title>
 </head>
-<body class="text-[#A84B00]"> 
-    <p>helloww are yo men</p>
+<body class="bg-gradient-to-br from-kena-dark via-kena-purple to-gray-900 text-white min-h-screen">
+    
     {% block content %} {% endblock %}
     {% block script %}{% endblock %}
+
+    <script>
+        // Simulate real-time updates
+        function updateStats() {
+            const pendingTx = document.getElementById('pendingTx');
+            const blockHeight = document.getElementById('blockHeight');
+            
+            // Randomly update pending transactions
+            if (Math.random() > 0.7) {
+                const current = parseInt(pendingTx.textContent);
+                pendingTx.textContent = current + Math.floor(Math.random() * 3) - 1;
+            }
+            
+            // Occasionally add new blocks
+            if (Math.random() > 0.95) {
+                const current = parseInt(blockHeight.textContent.replace(',', ''));
+                blockHeight.textContent = (current + 1).toLocaleString();
+                addNewBlock(current + 1);
+            }
+        }
+
+        function addNewBlock(blockNumber) {
+            const blocksList = document.getElementById('blocksList');
+            const newBlock = document.createElement('div');
+            newBlock.className = 'flex justify-between items-center p-4 bg-white/5 rounded-lg border border-white/5 opacity-0';
+            newBlock.innerHTML = `
+                <div>
+                    <div class="font-semibold text-kena-gold">#${blockNumber.toLocaleString()}</div>
+                    <div class="text-sm text-gray-400">Just now</div>
+                </div>
+                <div class="text-right">
+                    <div class="text-sm">${Math.floor(Math.random() * 200) + 50} transactions</div>
+                    <div class="text-xs text-gray-400">Mined by: 0x${Math.random().toString(16).substr(2, 4)}...</div>
+                </div>
+            `;
+            
+            blocksList.insertBefore(newBlock, blocksList.firstChild);
+            
+            // Animate in
+            setTimeout(() => {
+                newBlock.style.opacity = '1';
+                newBlock.style.transition = 'opacity 0.5s ease-in-out';
+            }, 100);
+            
+            // Remove last block if more than 3
+            if (blocksList.children.length > 3) {
+                blocksList.removeChild(blocksList.lastChild);
+            }
+        }
+
+        // Update every 5 seconds
+        setInterval(updateStats, 5000);
+
+        // Add some visual effects
+        document.addEventListener('DOMContentLoaded', function() {
+            const cards = document.querySelectorAll('.bg-white\\/5');
+            cards.forEach(card => {
+                card.addEventListener('mouseenter', function() {
+                    this.style.transform = 'translateY(-2px)';
+                    this.style.transition = 'transform 0.3s ease';
+                });
+                card.addEventListener('mouseleave', function() {
+                    this.style.transform = 'translateY(0)';
+                });
+            });
+        });
+    </script>
 
 </body>
 </html>
