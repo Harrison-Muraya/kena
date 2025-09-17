@@ -1,14 +1,15 @@
-
+{% load static tailwind_tags %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+     {% tailwind_css %}
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
     <title>{% block title %} Kena {% endblock %}</title>
 </head>
 <body class="text-[#A84B00]"> 
-    
+    <p>helloww are yo men</p>
     {% block content %} {% endblock %}
     {% block script %}{% endblock %}
 
