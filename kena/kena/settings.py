@@ -9,7 +9,9 @@ https://docs.djangoproject.com/en/5.2/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
-
+from django.contrib.auth.signals import user_logged_in, user_logged_out, user_login_failed
+from django.dispatch import receiver
+from django.contrib import messages
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -59,7 +61,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    # "django_browser_reload.middleware.BrowserReloadMiddleware",
+    "django_browser_reload.middleware.BrowserReloadMiddleware",
 ]
 
 ROOT_URLCONF = 'kena.urls'
@@ -125,6 +127,11 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+AUTHENTICATION_BACKENDS = [
+    "coin.backends.EmailBackend",          # custom email login
+    "django.contrib.auth.backends.ModelBackend",  # keep default just in case
+]
+
 
 # Internationalization
 # https://docs.djangoproject.com/en/5.2/topics/i18n/
@@ -151,4 +158,19 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 LOGIN_REDIRECT_URL = '/dashboard'
 # LOGOUT_REDIRECT_URL = ''
+
+
+
+
+@receiver(user_logged_in)
+def on_login(sender, request, user, **kwargs):
+    messages.success(request, f"Welcome back, {user.username}!")
+
+@receiver(user_logged_out)
+def on_logout(sender, request, user, **kwargs):
+    messages.info(request, "You have been logged out successfully.")
+
+@receiver(user_login_failed)
+def on_login_failed(sender, credentials, request, **kwargs):
+    messages.error(request, "Invalid username or password.")
 

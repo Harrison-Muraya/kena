@@ -23,13 +23,36 @@
     </script>
     <title>{% block title %} Kena {% endblock %}</title>
 </head>
+<!-- <body class="flex items-center justify-center"> -->
+
 <body class="bg-gradient-to-br from-kena-dark via-kena-purple to-gray-900 text-white min-h-screen">
-    
+    {% if messages %}
+        <div class="fixed top-4 right-4 space-y-2 z-50">
+            {% for message in messages %}
+            <div role="alert" 
+                class="p-4 rounded-lg shadow-lg
+                {% if message.tags == 'success' %} bg-green-600 text-white {% endif %}
+                {% if message.tags == 'error' %} bg-red-600 text-white {% endif %}
+                {% if message.tags == 'warning' %} bg-yellow-600 text-black {% endif %}
+                {% if message.tags == 'info' %} bg-blue-600 text-white {% endif %}
+                ">
+                {{ message }}
+            </div>
+            {% endfor %}
+        </div>
+    {% endif %}   
     {% block content %} {% endblock %}
     {% block script %}{% endblock %}
 
     <script>
+         setTimeout(() => {
+            document.querySelectorAll('[role="alert"]').forEach(el => {
+            el.classList.add("opacity-0", "transition", "duration-900"); // fade out
+            setTimeout(() => el.remove(), 3000); // remove after fade
+            });
+        }, 4000);
         // Simulate real-time updates
+        
         function updateStats() {
             const pendingTx = document.getElementById('pendingTx');
             const blockHeight = document.getElementById('blockHeight');
