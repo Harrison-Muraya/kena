@@ -76,7 +76,7 @@ class Wallet(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     coin = models.ForeignKey(Coin, null=True, on_delete=models.CASCADE)
     name = models.CharField(max_length=200)
-    amount = models.DecimalField(max_digits=20, decimal_places=5)
+    amount = models.DecimalField(max_digits=20, decimal_places=5, default=0)
     value = models.DecimalField(max_digits=20, decimal_places=2)
     password = models.CharField(max_length=200, null=True, blank=True)
     wallettype = models.CharField(max_length=20, default='personal')

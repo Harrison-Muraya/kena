@@ -26,13 +26,13 @@ DIFFICULTY = 4  # Difficulty level for mining blocks
 FEE = 10  # Transaction fee for sending coins
 
 
-# generate private key and public key
-def generate_keys():
-    from Crypto.PublicKey import RSA
-    key = RSA.generate(2048)
-    private_key = key.export_key()
-    public_key = key.publickey().export_key()
-    return private_key, public_key
+# # generate private key and public key
+# def generate_keys():
+#     from Crypto.PublicKey import RSA
+#     key = RSA.generate(2048)
+#     private_key = key.export_key()
+#     public_key = key.publickey().export_key()
+#     return private_key, public_key
 
 # check key validity
 def checkKey(data):
@@ -133,35 +133,12 @@ def show(request, id):
 
 # User registration view
 def register(request):
-    # if request.method == 'POST':
-    #     # Handle form submission
-    #     form = forms.RegisterForm(request.POST)
-    #     if form.is_valid():
-    #         # Generate keys
-    #         private_key, public_key = generate_keys()
-    #         # Save user with public key
-    #         user = form.save(commit=False)  
-    #         user.public_key = public_key.decode('utf-8')
-    #         user.private_key = private_key.decode('utf-8')
-    #         user.save()
-    #         form.save()
-    #         login(request, form.save())
-    #         return redirect('dashboard')
-    # else:
-    #     # Display registration form
-    #     form = forms.RegisterForm()
+
     if request.method == 'POST':
         form = forms.RegisterForm(request.POST)
         if form.is_valid():
             # Create user object but don’t commit yet
-            # user = form.save(commit=False)
             user = form.save()
-
-            # Generate keys
-            private_key, public_key = generate_keys()
-            user.public_key = public_key.decode('utf-8')
-            user.private_key = private_key.decode('utf-8')
-            user.terms_accepted = form.cleaned_data.get('terms_accepted', False)
 
             # Save final user
             user.save()

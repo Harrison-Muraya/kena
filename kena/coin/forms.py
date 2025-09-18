@@ -1,8 +1,21 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
-from .models import CustomUser, Wallet, UserProfile
+from .models import CustomUser, Wallet, UserProfile, Coin
+from . import views 
+from django.contrib.auth.hashers import make_password
+from . import blockchain
 from django.core.exceptions import ValidationError
 import re
+
+
+# generate private key and public key
+def generate_keys():
+    from Crypto.PublicKey import RSA
+    key = RSA.generate(2048)
+    private_key = key.export_key()
+    public_key = key.publickey().export_key()
+    return private_key, public_key
+
 
 class CreateNewlist(forms.Form):
     name = forms.CharField(label='Name', max_length=200)
@@ -23,14 +36,14 @@ class RegisterForm(UserCreationForm):
         required=True,
         widget=forms.TextInput(attrs={
             'class': 'w-full p-4 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-400 focus:border-kena-gold focus:ring-2 focus:ring-kena-gold/50 focus:outline-none transition-all',
-            'placeholder': 'Doe'
+            'placeholder': 'Muraya'
         })
     )    
     email = forms.EmailField(
         required=True,
         widget=forms.EmailInput(attrs={
             'class': 'w-full p-4 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-400 focus:border-kena-gold focus:ring-2 focus:ring-kena-gold/50 focus:outline-none transition-all',
-            'placeholder': 'john@example.com'
+            'placeholder': 'harrison@example.com'
         })
     )    
     phone = forms.CharField(
@@ -38,7 +51,7 @@ class RegisterForm(UserCreationForm):
         required=True,
         widget=forms.TextInput(attrs={
             'class': 'w-full p-4 pl-20 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-400 focus:border-kena-gold focus:ring-2 focus:ring-kena-gold/50 focus:outline-none transition-all',
-            'placeholder': '712345678'
+            'placeholder': '726688832'
         })
     )    
     country_code = forms.CharField(
@@ -158,19 +171,41 @@ class RegisterForm(UserCreationForm):
         user.username = self._generate_unique_username(self.cleaned_data['email'])
         
         if commit:
+            user.save()           
+
+            # Generate keys
+            private_key, public_key = generate_keys()
+            user.public_key = public_key.decode('utf-8')
+            user.private_key = private_key.decode('utf-8')
             user.save()
+
             # Create user profile after user is saved
             UserProfile.objects.create(
                 user=user,
                 phone=f"{self.cleaned_data['country_code']}{self.cleaned_data['phone']}",
                 marketing_consent=self.cleaned_data.get('marketing_consent', False)
             )
+
+            # Create a default wallet for the user
+            default_coin = Coin.objects.first()  # Assuming there's at least one coin
+            data = {
+                'name': 'Default Wallet',
+                'password': self.cleaned_data.get('password1'),
+                'wallettype': 'primary',
+                'private_key': views.checkKey(user.private_key).export_key().decode() #if user.private_key else ""
+            }
+            hasher = blockchain.CalculateHash(data)
+            hash_value = hasher.calculate()
             # You can also create a default wallet here if needed
             Wallet.objects.create(
-                user=user, 
-                name="Default Wallet", 
-                wallet_type="primary",
-                password=self.cleaned_data['password']
+                user=user,
+                coin=default_coin,
+                name="Default Wallet",
+                amount=0,
+                value=0,
+                hash=hash_value,
+                password=make_password(self.cleaned_data.get('password1')),  # hashed like in dashboard
+                wallettype="primary",
             )
 
         
