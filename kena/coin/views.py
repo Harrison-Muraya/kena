@@ -131,6 +131,7 @@ def show(request, id):
 
     return render(request, 'coin/show.html', {'todolist': todolist, 'items': items})
 
+# User registration view
 def register(request):
     # if request.method == 'POST':
     #     # Handle form submission
@@ -151,8 +152,6 @@ def register(request):
     #     form = forms.RegisterForm()
     if request.method == 'POST':
         form = forms.RegisterForm(request.POST)
-        print("Form errors:", form.errors)  # Debugging line to print form errors
-        print("form data:", request.POST)      # Debugging line to print form data
         if form.is_valid():
             # Create user object but don’t commit yet
             # user = form.save(commit=False)
@@ -209,6 +208,7 @@ def send_verification_email(user, request):
         
     except Exception as e:
         logger.error(f"Failed to send verification email: {str(e)}")
+
 # Dashboard view
 def dashboard(request):
     if request.user.is_authenticated:       
@@ -465,6 +465,7 @@ def get_mine_data(request):
         "timestamp": time.time(),
     })
 
+# submit mined block
 @csrf_exempt
 def submit_block(request):
 
@@ -576,6 +577,7 @@ def submit_block(request):
     )
     return JsonResponse({"success": True, "block": block.hash})
 
+# Download miner script
 @csrf_exempt
 def download_miner_script(request):
     get_url = request.build_absolute_uri(reverse("get_mine_data"))
@@ -652,6 +654,7 @@ def download_miner_script(request):
     response['Content-Disposition'] = 'attachment; filename="miner.py"'
     return response
 
+# Logout view
 def logout_view(request):
     logout(request)
     return redirect('home')
