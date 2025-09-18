@@ -8,14 +8,20 @@ from django.utils.timezone import now
 # This model is used to create a custom user model that extends the default Django user model
 # It includes additional fields for private key, public key, flag, and status
 class CustomUser(AbstractUser):
+    email = models.EmailField(unique=True)
     private_key = models.TextField(unique=True, null=True, blank=True)
     public_key = models.TextField(unique=True, null=True, blank=True)
     terms_accepted = models.BooleanField(default=False)
     flag = models.IntegerField(default=1)
     status = models.BooleanField(default=1)
+    
+    USERNAME_FIELD = "email"
+    REQUIRED_FIELDS = ["username"]
 
     def __str__(self):
         return f"{self.username} - {self.email} - {self.date_joined}"
+    
+
     
 class UserProfile(models.Model):
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)

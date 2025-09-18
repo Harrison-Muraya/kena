@@ -37,6 +37,7 @@
                         <div>
                             <label class="block text-sm font-medium mb-2 text-gray-200">First Name</label>
                             {{ form.first_name }}
+                            <div id="firstNameError" class="text-red-500 text-sm mt-1 hidden"></div>
                             {% if form.first_name.errors %}
                                 <p class="text-red-500 text-sm mt-1">{{ form.first_name.errors.0 }}</p>
                             {% endif %}
@@ -44,6 +45,7 @@
                         <div>
                             <label class="block text-sm font-medium mb-2 text-gray-200">Last Name</label>
                             {{ form.last_name }}
+                            <div id="lastNameError" class="text-red-500 text-sm mt-1 hidden"></div>
                             {% if form.last_name.errors %}
                                 <p class="text-red-500 text-sm mt-1">{{ form.last_name.errors.0 }}</p>
                             {% endif %}
@@ -61,6 +63,7 @@
                                 </svg>
                             </div>
                         </div>
+                        <div id="emailError" class="text-red-500 text-sm mt-1 hidden"></div>
                         {% if form.email.errors %}
                             <p class="text-red-500 text-sm mt-1">{{ form.email.errors.0 }}</p>
                         {% endif %}
@@ -73,6 +76,7 @@
                             {{ form.country_code }}
                             {{ form.phone }}
                         </div>
+                        <div id="phoneError" class="text-red-500 text-sm mt-1 hidden"></div>
                         {% if form.phone.errors %}
                             <p class="text-red-500 text-sm mt-1">{{ form.phone.errors.0 }}</p>
                         {% endif %}
@@ -106,6 +110,7 @@
                             <p id="passwordStrengthText" class="text-xs text-gray-400 mt-1">Password strength</p>
                         </div>
                         
+                        <div id="password1Error" class="text-red-500 text-sm mt-1 hidden"></div>
                         {% if form.password1.errors %}
                             <p class="text-red-500 text-sm mt-1">{{ form.password1.errors.0 }}</p>
                         {% endif %}
@@ -128,6 +133,7 @@
                             </button>
                         </div>
                         <div id="passwordMatch" class="hidden text-sm mt-1"></div>
+                        <div id="password2Error" class="text-red-500 text-sm mt-1 hidden"></div>
                         {% if form.password2.errors %}
                             <p class="text-red-500 text-sm mt-1">{{ form.password2.errors.0 }}</p>
                         {% endif %}
@@ -143,6 +149,7 @@
                             <a href="#" class="text-kena-gold hover:text-yellow-400 transition-colors">Privacy Policy</a>
                         </label>
                     </div>
+                    <div id="termsError" class="text-red-500 text-sm mt-1 hidden"></div>
                     {% if form.terms_accepted.errors %}
                         <p class="text-red-500 text-sm mt-1">{{ form.terms_accepted.errors.0 }}</p>
                     {% endif %}
@@ -230,21 +237,23 @@
 
         <script>
             // Password visibility toggle
-            function togglePassword(inputId) {
+            function togglePassword(inputId, eyeIconId) {
                 const passwordInput = document.getElementById(inputId);
-                const eyeIcon = inputId === 'password' ? document.getElementById('eyeIcon1') : document.getElementById('eyeIcon2');
+                const eyeIcon = document.getElementById(eyeIconId);
                 
-                if (passwordInput.type === 'password') {
-                    passwordInput.type = 'text';
-                    eyeIcon.innerHTML = `
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21"></path>
-                    `;
-                } else {
-                    passwordInput.type = 'password';
-                    eyeIcon.innerHTML = `
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
-                    `;
+                if (passwordInput && eyeIcon) {
+                    if (passwordInput.type === 'password') {
+                        passwordInput.type = 'text';
+                        eyeIcon.innerHTML = `
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21"></path>
+                        `;
+                    } else {
+                        passwordInput.type = 'password';
+                        eyeIcon.innerHTML = `
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                        `;
+                    }
                 }
             }
 
@@ -252,14 +261,15 @@
             function checkPasswordStrength(password) {
                 const strengthIndicator = document.getElementById('passwordStrength');
                 const strengthText = document.getElementById('passwordStrengthText');
-                const indicators = strengthIndicator.children;
                 
+                if (!strengthIndicator || !strengthText) return;
+                
+                const indicators = strengthIndicator.children;
                 let strength = 0;
-                let strengthLabel = '';
                 
                 // Reset indicators
                 for (let i = 0; i < indicators.length; i++) {
-                    indicators[i].className = 'h-1 w-1/4 bg-gray-600 rounded';
+                    indicators[i].className = 'h-1 w-1/4 bg-gray-600 rounded strength-bar';
                 }
                 
                 if (password.length >= 8) strength++;
@@ -269,13 +279,19 @@
                 
                 const colors = ['bg-red-500', 'bg-orange-500', 'bg-yellow-500', 'bg-green-500'];
                 const labels = ['Weak', 'Fair', 'Good', 'Strong'];
+                const textColors = ['text-red-400', 'text-orange-400', 'text-yellow-400', 'text-green-400'];
                 
-                for (let i = 0; i < strength; i++) {
-                    indicators[i].className = `h-1 w-1/4 ${colors[strength - 1]} rounded`;
+                if (strength > 0) {
+                    for (let i = 0; i < strength; i++) {
+                        indicators[i].className = `h-1 w-1/4 ${colors[strength - 1]} rounded strength-bar`;
+                    }
+                    
+                    strengthText.textContent = labels[strength - 1];
+                    strengthText.className = `text-xs mt-1 ${textColors[strength - 1]}`;
+                } else {
+                    strengthText.textContent = 'Password strength';
+                    strengthText.className = 'text-xs mt-1 text-gray-400';
                 }
-                
-                strengthText.textContent = strength > 0 ? labels[strength - 1] : 'Password strength';
-                strengthText.className = `text-xs mt-1 ${strength > 0 ? (strength <= 2 ? 'text-red-400' : strength === 3 ? 'text-yellow-400' : 'text-green-400') : 'text-gray-400'}`;
             }
 
             // Email validation
@@ -286,13 +302,15 @@
 
             // Password match validation
             function checkPasswordMatch() {
-                const password = document.getElementById('password').value;
-                const confirmPassword = document.getElementById('confirmPassword').value;
+                const password = document.getElementById('id_password1');
+                const confirmPassword = document.getElementById('id_password2');
                 const matchIndicator = document.getElementById('passwordMatch');
                 
-                if (confirmPassword.length > 0) {
+                if (!password || !confirmPassword || !matchIndicator) return;
+                
+                if (confirmPassword.value.length > 0) {
                     matchIndicator.classList.remove('hidden');
-                    if (password === confirmPassword) {
+                    if (password.value === confirmPassword.value) {
                         matchIndicator.textContent = '✓ Passwords match';
                         matchIndicator.className = 'text-green-400 text-sm mt-1';
                     } else {
@@ -304,56 +322,173 @@
                 }
             }
 
+            // Form validation functions
+            function validateForm() {
+                let isValid = true;
+                
+                // Clear previous errors
+                document.querySelectorAll('[id$="Error"]').forEach(error => {
+                    error.classList.add('hidden');
+                    error.textContent = '';
+                });
+                
+                // Reset input borders
+                document.querySelectorAll('input').forEach(input => {
+                    input.classList.remove('border-red-500');
+                });
+                
+                // Validate first name
+                const firstName = document.getElementById('id_first_name');
+                if (firstName && !firstName.value.trim()) {
+                    showFieldError('firstNameError', 'First name is required');
+                    isValid = false;
+                }
+                
+                // Validate last name
+                const lastName = document.getElementById('id_last_name');
+                if (lastName && !lastName.value.trim()) {
+                    showFieldError('lastNameError', 'Last name is required');
+                    isValid = false;
+                }
+                
+                // Validate email
+                const email = document.getElementById('id_email');
+                if (email) {
+                    if (!email.value.trim()) {
+                        showFieldError('emailError', 'Email is required');
+                        isValid = false;
+                    } else if (!validateEmail(email.value.trim())) {
+                        showFieldError('emailError', 'Please enter a valid email address');
+                        isValid = false;
+                    }
+                }
+                
+                // Validate phone
+                const phone = document.getElementById('id_phone');
+                if (phone && !phone.value.trim()) {
+                    showFieldError('phoneError', 'Phone number is required');
+                    isValid = false;
+                }
+                
+                // Validate password
+                const password = document.getElementById('id_password1');
+                if (password) {
+                    if (!password.value) {
+                        showFieldError('password1Error', 'Password is required');
+                        isValid = false;
+                    } else if (password.value.length < 8) {
+                        showFieldError('password1Error', 'Password must be at least 8 characters long');
+                        isValid = false;
+                    }
+                }
+                
+                // Validate confirm password
+                const confirmPassword = document.getElementById('id_password2');
+                if (confirmPassword && password) {
+                    if (!confirmPassword.value) {
+                        showFieldError('password2Error', 'Please confirm your password');
+                        isValid = false;
+                    } else if (password.value !== confirmPassword.value) {
+                        showFieldError('password2Error', 'Passwords do not match');
+                        isValid = false;
+                    }
+                }
+                
+                // Validate terms acceptance
+                const termsAccepted = document.getElementById('id_terms_accepted');
+                if (termsAccepted && !termsAccepted.checked) {
+                    showFieldError('termsError', 'You must agree to the Terms of Service and Privacy Policy');
+                    isValid = false;
+                }
+                
+                return isValid;
+            }
+            
+            function showFieldError(errorId, message) {
+                const errorElement = document.getElementById(errorId);
+                if (errorElement) {
+                    errorElement.textContent = message;
+                    errorElement.classList.remove('hidden');
+                    
+                    // Add red border to corresponding input
+                    const fieldName = errorId.replace('Error', '');
+                    const input = document.getElementById(fieldName) || document.getElementById('id_' + fieldName);
+                    if (input) {
+                        input.classList.add('border-red-500');
+                    }
+                }
+            }
+
             // Event listeners
             document.addEventListener('DOMContentLoaded', function() {
-                const passwordInput = document.getElementById('password');
-                const confirmPasswordInput = document.getElementById('confirmPassword');
-                const emailInput = document.getElementById('email');
+                const passwordInput = document.getElementById('id_password1');
+                const confirmPasswordInput = document.getElementById('id_password2');
+                const emailInput = document.getElementById('id_email');
                 
-                passwordInput.addEventListener('input', function() {
-                    checkPasswordStrength(this.value);
-                    checkPasswordMatch();
-                });
+                if (passwordInput) {
+                    passwordInput.addEventListener('input', function() {
+                        checkPasswordStrength(this.value);
+                        checkPasswordMatch();
+                    });
+                }
                 
-                confirmPasswordInput.addEventListener('input', checkPasswordMatch);
+                if (confirmPasswordInput) {
+                    confirmPasswordInput.addEventListener('input', checkPasswordMatch);
+                }
                 
-                emailInput.addEventListener('blur', function() {
-                    const emailError = document.getElementById('emailError');
-                    if (this.value && !validateEmail(this.value)) {
-                        emailError.textContent = 'Please enter a valid email address';
-                        emailError.classList.remove('hidden');
-                        this.classList.add('border-red-500');
-                    } else {
-                        emailError.classList.add('hidden');
-                        this.classList.remove('border-red-500');
-                    }
-                });
+                if (emailInput) {
+                    emailInput.addEventListener('blur', function() {
+                        const emailError = document.getElementById('emailError');
+                        if (this.value && !validateEmail(this.value)) {
+                            if (emailError) {
+                                emailError.textContent = 'Please enter a valid email address';
+                                emailError.classList.remove('hidden');
+                                this.classList.add('border-red-500');
+                            }
+                        } else {
+                            if (emailError) {
+                                emailError.classList.add('hidden');
+                                this.classList.remove('border-red-500');
+                            }
+                        }
+                    });
+                }
             });
 
             // Handle form submission
-            
-            document.getElementById('registerForm').addEventListener('submit', function() {
-                const button = document.getElementById('registerButton');
-                const buttonText = document.getElementById('registerButtonText');
-                const spinner = document.getElementById('registerSpinner');
-                
-                buttonText.textContent = 'Creating Account...';
-                spinner.classList.remove('hidden');
-                button.disabled = true;
-            });
-            
+            const registerForm = document.getElementById('registerForm');
+            if (registerForm) {
+                registerForm.addEventListener('submit', function(e) {
+                    // Only prevent default for client-side validation demo
+                    // Remove this if you want normal Django form submission
+                    if (!validateForm()) {
+                        e.preventDefault();
+                        return false;
+                    }
+                    
+                    const button = document.getElementById('registerButton');
+                    const buttonText = document.getElementById('registerButtonText');
+                    const spinner = document.getElementById('registerSpinner');
+                    
+                    if (button && buttonText && spinner) {
+                        buttonText.textContent = 'Creating Account...';
+                        spinner.classList.remove('hidden');
+                        button.disabled = true;
+                    }
+                });
+            }
 
             // Utility functions
             function showSuccess(message) {
                 const alert = createAlert(message, 'success');
                 document.body.appendChild(alert);
-                setTimeout(() => alert.remove(), 4000);
+                setTimeout(() => alert.remove(), 5000);
             }
 
             function showError(message) {
                 const alert = createAlert(message, 'error');
                 document.body.appendChild(alert);
-                setTimeout(() => alert.remove(), 4000);
+                setTimeout(() => alert.remove(), 5000);
             }
 
             function createAlert(message, type) {
@@ -370,9 +505,12 @@
             }
 
             function showLogin(el) {
-              const url = el.getAttribute("data-url")
-              window.location.href = url;
-              console.log('Navigate to login page');
+                const url = el.getAttribute("data-url");
+                if (url) {
+                    window.location.href = url;
+                } else {
+                    console.log('Navigate to login page');
+                }
             }
         </script>
     </div>  

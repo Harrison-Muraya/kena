@@ -151,21 +151,24 @@ def register(request):
     #     form = forms.RegisterForm()
     if request.method == 'POST':
         form = forms.RegisterForm(request.POST)
+        print("Form errors:", form.errors)  # Debugging line to print form errors
+        print("form data:", request.POST)      # Debugging line to print form data
         if form.is_valid():
             # Create user object but don’t commit yet
-            user = form.save(commit=False)
+            # user = form.save(commit=False)
+            user = form.save()
 
             # Generate keys
             private_key, public_key = generate_keys()
             user.public_key = public_key.decode('utf-8')
             user.private_key = private_key.decode('utf-8')
+            user.terms_accepted = form.cleaned_data.get('terms_accepted', False)
 
             # Save final user
             user.save()
 
             # Log the user in
-            login(request, user)
-
+            login(request, user)    
             return redirect('dashboard')
     else:
         form = forms.RegisterForm()

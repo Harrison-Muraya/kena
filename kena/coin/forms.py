@@ -1,6 +1,5 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
-# from django.contrib.auth.models import User
 from .models import CustomUser, Wallet, UserProfile
 from django.core.exceptions import ValidationError
 import re
@@ -23,6 +22,13 @@ class CreateNewlist(forms.Form):
 #         fields = ('first_name','terms_accepted','updates_accepted','last_name','username','phone', 'email', 'password1', 'password2')
 
 class RegisterForm(UserCreationForm):
+    # username = forms.CharField(
+    #     max_length=150,
+    #     widget=forms.TextInput(attrs={
+    #         'class': 'w-full p-4 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-400 focus:border-kena-gold focus:ring-2 focus:ring-kena-gold/50 focus:outline-none transition-all',
+    #         'placeholder': 'Choose a unique username'
+    #     })
+    # )
     first_name = forms.CharField(
         max_length=30,
         required=True,
@@ -98,12 +104,12 @@ class RegisterForm(UserCreationForm):
     )
 
     class Meta:
-        model = User
+        model = CustomUser
         fields = ('first_name', 'last_name', 'email', 'password1', 'password2')
 
     def clean_email(self):
         email = self.cleaned_data.get('email')
-        if User.objects.filter(email=email).exists():
+        if CustomUser.objects.filter(email=email).exists():
             raise ValidationError("This email address is already registered.")
         return email
 
@@ -141,15 +147,38 @@ class RegisterForm(UserCreationForm):
             raise ValidationError("Password must contain at least one number.")
         
         return password1
+    
+    def _generate_unique_username(self, email):
+            """Generate a unique username from email"""
+            base_username = email.split('@')[0].lower()
+            base_username = re.sub(r'[^a-zA-Z0-9]', '', base_username)  # Remove special chars
+            
+            if len(base_username) < 3:
+                base_username = f"user{base_username}"
+            
+            username = base_username
+            counter = 1
+            
+            while CustomUser.objects.filter(username=username).exists():
+                username = f"{base_username}{counter}"
+                counter += 1
+                
+            return username
+        
     def save(self, commit=True):
+        # Create the user first
         user = super().save(commit=False)
         user.email = self.cleaned_data['email']
         user.first_name = self.cleaned_data['first_name']
         user.last_name = self.cleaned_data['last_name']
+        user.terms_accepted = self.cleaned_data.get('terms_accepted', False)
+        
+        # Auto-generate username from email
+        user.username = self._generate_unique_username(self.cleaned_data['email'])
         
         if commit:
             user.save()
-            # Create user profile with phone and marketing consent
+            # Create user profile after user is saved
             UserProfile.objects.create(
                 user=user,
                 phone=f"{self.cleaned_data['country_code']}{self.cleaned_data['phone']}",

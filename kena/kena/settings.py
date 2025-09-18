@@ -68,6 +68,7 @@ ROOT_URLCONF = 'kena.urls'
 AUTH_USER_MODEL = 'coin.CustomUser' # where custom user model is defined
 
 
+
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
@@ -127,10 +128,11 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-AUTHENTICATION_BACKENDS = [
-    "coin.backends.EmailBackend",          # custom email login
-    "django.contrib.auth.backends.ModelBackend",  # keep default just in case
-]
+
+# AUTHENTICATION_BACKENDS = [
+#     "coin.backends.EmailBackend",          # custom email login
+#     "django.contrib.auth.backends.ModelBackend",  # keep default just in case
+# ]
 
 
 # Internationalization
