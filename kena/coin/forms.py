@@ -9,26 +9,7 @@ class CreateNewlist(forms.Form):
     check_box = forms.BooleanField(required=False, label='Check this box if you want to add a new list')
     # Add any additional fields as needed
 
-# This form is used for user registration
-# It extends UserCreationForm to include fields for username, email, and password
-# class RegisterForm(UserCreationForm):
-#     email = forms.EmailField(required=True)
-#     phone = forms.CharField(max_length=15, required=True)
-#     terms_accepted = forms.BooleanField(required=True, label='I accept the Terms and Conditions')
-#     updates_accepted = forms.BooleanField(required=False, label='I want to receive updates and newsletters')
-
-#     class Meta:
-#         model = CustomUser
-#         fields = ('first_name','terms_accepted','updates_accepted','last_name','username','phone', 'email', 'password1', 'password2')
-
 class RegisterForm(UserCreationForm):
-    # username = forms.CharField(
-    #     max_length=150,
-    #     widget=forms.TextInput(attrs={
-    #         'class': 'w-full p-4 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-400 focus:border-kena-gold focus:ring-2 focus:ring-kena-gold/50 focus:outline-none transition-all',
-    #         'placeholder': 'Choose a unique username'
-    #     })
-    # )
     first_name = forms.CharField(
         max_length=30,
         required=True,
@@ -184,11 +165,20 @@ class RegisterForm(UserCreationForm):
                 phone=f"{self.cleaned_data['country_code']}{self.cleaned_data['phone']}",
                 marketing_consent=self.cleaned_data.get('marketing_consent', False)
             )
+            # You can also create a default wallet here if needed
+            Wallet.objects.create(
+                user=user, 
+                name="Default Wallet", 
+                wallet_type="primary",
+                password=self.cleaned_data['password']
+            )
+
         
         return user
 
 
 WALLET_CHOICES = [
+    ('primary', 'Primary Wallet'),
     ('personal', 'Personal Wallet'),
     ('business', 'Business Wallet'),
     ('miner', 'Miner Wallet'),
