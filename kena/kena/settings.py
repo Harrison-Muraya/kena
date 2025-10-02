@@ -27,7 +27,8 @@ SECRET_KEY = 'django-insecure-$65^eb^#gtn_i)3@u9*5phpgsg@ui41y9g2&wre-9hg%*k!!&$
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['192.168.100.24', 'localhost', '127.0.0.1',]
+# ALLOWED_HOSTS = ['192.168.100.24', 'localhost', '127.0.0.1',]
+ALLOWED_HOSTS = ['*']
 
 # INTERNAL_IPS = ['127.0.0.1']
 
@@ -41,15 +42,15 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'coin.apps.CoinConfig',
-    'tailwind',
-    'theme',  # Your Tailwind theme app
+    # 'tailwind',
+    # 'theme',  # Your Tailwind theme app
 ]
 
-TAILWIND_APP_NAME = 'theme'
-NPM_BIN_PATH = "C:/Program Files/nodejs/npm.cmd"  # Adjust this path if necessary
-if DEBUG:
-    # Add django_browser_reload only in DEBUG mode
-    INSTALLED_APPS += ['django_browser_reload']
+# TAILWIND_APP_NAME = 'theme'
+# NPM_BIN_PATH = "C:/Program Files/nodejs/npm.cmd"  # Adjust this path if necessary
+# if DEBUG:
+#     # Add django_browser_reload only in DEBUG mode
+#     INSTALLED_APPS += ['django_browser_reload']
 
 
 
@@ -61,7 +62,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    "django_browser_reload.middleware.BrowserReloadMiddleware",
+    # "django_browser_reload.middleware.BrowserReloadMiddleware",
 ]
 
 ROOT_URLCONF = 'kena.urls'
