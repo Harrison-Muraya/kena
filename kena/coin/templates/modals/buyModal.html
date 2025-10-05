@@ -1,0 +1,29 @@
+<div id="buyModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 hidden">
+    <div class="bg-kena-dark border border-white/20 rounded-2xl p-8 max-w-md w-full mx-4">
+        <div class="flex justify-between items-center mb-6">
+            <h3 class="text-2xl font-bold">Buy Kena</h3>
+            <button onclick="closeBuyModal()" class="text-gray-400 hover:text-white">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
+        </div>
+        
+        <div id="buyForm">
+            <div class="mb-6">
+                <label class="block text-sm font-medium mb-2">Amount (USD)</label>
+                <input type="number" id="buyAmount" class="w-full p-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400" placeholder="Enter amount">
+                <p class="text-sm text-gray-400 mt-2">≈ <span id="kenaAmount">0</span> KENA</p>
+            </div>
+            
+            <div class="mb-6">
+                <label class="block text-sm font-medium mb-2">Payment Method</label>
+                <div id="paymentMethod" class="p-3 bg-white/10 border border-white/20 rounded-lg"></div>
+            </div>
+            
+            <button onclick="processPurchase()" class="w-full p-4 bg-gradient-to-r from-kena-gold to-yellow-500 text-black rounded-lg hover:from-yellow-500 hover:to-kena-gold transition-all font-semibold">
+                Complete Purchase
+            </button>
+        </div>
+    </div>
+</div>
