@@ -4,7 +4,7 @@
 {% block title %}Dashboard{% endblock %}
 
 {% block content %}
-<div class="">
+<div class="relative">
         <!-- Navigation -->
    {% include 'partials/dashboard/navbar.html' %}
     
@@ -20,7 +20,7 @@
         <div class="mb-8">
             <div class="flex justify-between items-center mb-6">
                 <h2 class="text-2xl font-bold">Your Wallets</h2>
-                <button class="px-4 py-2 bg-gradient-to-r from-kena-gold to-yellow-500 text-black rounded-lg hover:from-yellow-500 hover:to-kena-gold transition-all font-semibold">
+                <button onclick="openAddWalletModal()" class="px-4 py-2 bg-gradient-to-r from-kena-gold to-yellow-500 text-black rounded-lg hover:from-yellow-500 hover:to-kena-gold transition-all font-semibold">
                     + Add Wallet
                 </button>
             </div>
@@ -450,6 +450,47 @@
         </div>
     </div>
 
+    <!-- add wallet modal -->
+    <div id="addWalletModal" class="absolute inset-0 bg-black/50 backdrop-blur-sm flex place-items-center justify-center h-screen z-50">
+        <div class="bg-kena-dark border border-white/20 rounded-2xl p-8 max-w-md w-full mx-4">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-2xl font-bold">Send Kena</h3>
+                <button onclick="closeAddWalletModal()" class="text-gray-400 hover:text-white">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+            
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium mb-2">Recipient Address</label>
+                    <input type="text" id="recipientAddress" class="w-full p-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400" placeholder="0x...">
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium mb-2">Amount (KENA)</label>
+                    <input type="number" id="sendAmount" class="w-full p-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400" placeholder="0.00">
+                    <p class="text-sm text-gray-400 mt-1">Balance: 12,547.82 KENA</p>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium mb-2">Transaction Fee</label>
+                    <select class="w-full p-3 bg-white/10 border border-white/20 rounded-lg text-white">
+                        <option>Slow (0.001 KENA) - ~10 min</option>
+                        <option selected>Standard (0.005 KENA) - ~5 min</option>
+                        <option>Fast (0.01 KENA) - ~2 min</option>
+                    </select>
+                </div>
+                
+                <button onclick="sendTransaction()" class="w-full p-4 bg-gradient-to-r from-kena-gold to-yellow-500 text-black rounded-lg hover:from-yellow-500 hover:to-kena-gold transition-all font-semibold">
+                    Send Transaction
+                </button>
+            </div>
+        </div>
+    </div>
+
+
     <script>
         let isMining = true;
         let currentProgress = 73;
@@ -516,10 +557,22 @@
 
         function openSendModal() {
             document.getElementById('sendModal').classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
         }
 
         function closeSendModal() {
             document.getElementById('sendModal').classList.add('hidden');
+            document.body.style.overflow = '';
+        }
+
+        function openAddWalletModal() {
+            document.getElementById('addWalletModal').classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeAddWalletModal() {
+            document.getElementById('addWalletModal').classList.add('hidden');
+            document.body.style.overflow = '';
         }
 
         // Update KENA amount based on USD input
