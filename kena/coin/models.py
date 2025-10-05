@@ -87,6 +87,51 @@ class Wallet(models.Model):
     
     def __str__(self):
         return f"{self.name} - Balance: {self.amount}K"
+    
+    def get_color_scheme(self):
+        """Return Tailwind CSS gradient classes based on wallet type"""
+        color_schemes = {
+            'personal': {
+                'gradient': 'from-kena-gold via-yellow-500 to-orange-500',
+                'text': 'text-black',
+                'overlay_top': 'bg-white/20',
+                'overlay_bottom': 'bg-black/10',
+                'badge': 'bg-black/20',
+            },
+            'business': {
+                'gradient': 'from-purple-600 via-blue-600 to-indigo-700',
+                'text': 'text-white',
+                'overlay_top': 'bg-white/10',
+                'overlay_bottom': 'bg-white/5',
+                'badge': 'bg-white/20',
+            },
+            'miner': {
+                'gradient': 'from-green-600 via-emerald-600 to-teal-700',
+                'text': 'text-white',
+                'overlay_top': 'bg-white/10',
+                'overlay_bottom': 'bg-white/5',
+                'badge': 'bg-white/20',
+            },
+        }
+        return color_schemes.get(self.wallettype, color_schemes['personal'])
+    
+    def get_wallet_label(self):
+        """Return human-readable wallet type label"""
+        labels = {
+            'personal': 'Personal Wallet',
+            'business': 'Business Wallet',
+            'miner': 'Mining Rewards',
+        }
+        return labels.get(self.wallettype, 'Personal Wallet')
+    
+    def get_wallet_subtitle(self):
+        """Return subtitle for wallet type"""
+        subtitles = {
+            'personal': 'Main Account',
+            'business': 'Business Holdings',
+            'miner': 'Earned from Mining',
+        }
+        return subtitles.get(self.wallettype, 'Main Account')
 
 # This model is used to store billing information for users
 # It includes fields for user, wallet, amount, unique identifier (uid), type, flag, status, and timestamps

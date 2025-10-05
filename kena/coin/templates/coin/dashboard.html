@@ -20,104 +20,65 @@
         <div class="mb-8">
             <div class="flex justify-between items-center mb-6">
                 <h2 class="text-2xl font-bold">Your Wallets</h2>
-                <button onclick="openAddWalletModal()" class="px-4 py-2 bg-gradient-to-r from-kena-gold to-yellow-500 text-black rounded-lg hover:from-yellow-500 hover:to-kena-gold transition-all font-semibold">
+                <!-- <button onclick="openAddWalletModal()" class="px-4 py-2 bg-gradient-to-r from-kena-gold to-yellow-500 text-black rounded-lg hover:from-yellow-500 hover:to-kena-gold transition-all font-semibold">
                     + Add Wallet
-                </button>
+                </button> -->
+                {% if wallets.count < 4 %}
+                    <button onclick="openAddWalletModal()" class="px-4 py-2 bg-gradient-to-r from-kena-gold to-yellow-500 text-black rounded-lg hover:from-yellow-500 hover:to-kena-gold transition-all font-semibold">
+                        + Add Wallet
+                    </button>
+                {% else %}
+                     <button disabled class="px-4 py-2 bg-gray-500 text-gray-300 rounded-lg cursor-not-allowed opacity-50">
+                        Maximum Wallets Reached (4/4)
+                    </button>
+                {% endif %}
             </div>
             
-            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
                 <!-- Primary Wallet Card -->
-                <div class="relative bg-gradient-to-br from-kena-gold via-yellow-500 to-orange-500 rounded-2xl p-6 text-black overflow-hidden transform hover:scale-105 transition-all duration-300 shadow-2xl">
-                    <div class="absolute top-0 right-0 w-32 h-32 bg-white/20 rounded-full -mr-16 -mt-16"></div>
-                    <div class="absolute bottom-0 left-0 w-24 h-24 bg-black/10 rounded-full -ml-12 -mb-12"></div>
-                    <div class="relative z-10">
-                        <div class="flex justify-between items-start mb-8">
-                            <div>
-                                <h3 class="text-lg font-semibold opacity-80">Primary Wallet</h3>
-                                <p class="text-sm opacity-60">Main Account</p>
+                 {% for wallet in wallets %}
+                    {% with colors=wallet.get_color_scheme %}
+                    <div class="relative bg-gradient-to-br {{ colors.gradient }} rounded-2xl p-6 {{ colors.text }} overflow-hidden transform hover:scale-105 transition-all duration-300 shadow-2xl">
+                        <div class="absolute top-0 right-0 w-32 h-32 {{ colors.overlay_top }} rounded-full -mr-16 -mt-16"></div>
+                        <div class="absolute bottom-0 left-0 w-24 h-24 {{ colors.overlay_bottom }} rounded-full -ml-12 -mb-12"></div>
+                        <div class="relative z-10">
+                            <div class="flex justify-between items-start mb-8">
+                                <div>
+                                    <h3 class="text-lg font-semibold {% if wallet.wallettype == 'personal' %}opacity-80{% endif %}">
+                                        {{ wallet.get_wallet_label }}
+                                    </h3>
+                                    <p class="text-sm {% if wallet.wallettype == 'personal' %}opacity-60{% else %}opacity-70{% endif %}">
+                                        {{ wallet.name }}
+                                    </p>
+                                </div>
+                                <div class="w-12 h-8 {{ colors.badge }} rounded flex items-center justify-center">
+                                    <span class="font-bold text-xs">KENA</span>
+                                </div>
                             </div>
-                            <div class="w-12 h-8 bg-black/20 rounded flex items-center justify-center">
-                                <span class="font-bold text-xs">KENA</span>
+                            <div class="mb-6">
+                                <p class="text-2xl font-bold mb-1">{{ wallet.amount|floatformat:2 }}</p>
+                                <p class="text-sm {% if wallet.wallettype == 'personal' %}opacity-60{% else %}opacity-70{% endif %}">
+                                    ≈ ${{ wallet.value|floatformat:2 }} USD
+                                </p>
                             </div>
-                        </div>
-                        <div class="mb-6">
-                            <p class="text-2xl font-bold mb-1">12,547.82</p>
-                            <p class="text-sm opacity-60">≈ $3,764.35 USD</p>
-                        </div>
-                        <div class="flex justify-between items-end">
-                            <div>
-                                <p class="text-xs opacity-60 mb-1">Wallet Address</p>
-                                <p class="font-mono text-sm">0x7a9f...8b2c</p>
-                            </div>
-                            <div class="text-right">
-                                <p class="text-xs opacity-60">Balance</p>
-                                <p class="font-semibold">KENA</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Savings Wallet Card -->
-                <div class="relative bg-gradient-to-br from-purple-600 via-blue-600 to-indigo-700 rounded-2xl p-6 text-white overflow-hidden transform hover:scale-105 transition-all duration-300 shadow-2xl">
-                    <div class="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16"></div>
-                    <div class="absolute bottom-0 left-0 w-24 h-24 bg-white/5 rounded-full -ml-12 -mb-12"></div>
-                    <div class="relative z-10">
-                        <div class="flex justify-between items-start mb-8">
-                            <div>
-                                <h3 class="text-lg font-semibold">Savings Wallet</h3>
-                                <p class="text-sm opacity-70">Long-term Holdings</p>
-                            </div>
-                            <div class="w-12 h-8 bg-white/20 rounded flex items-center justify-center">
-                                <span class="font-bold text-xs">KENA</span>
-                            </div>
-                        </div>
-                        <div class="mb-6">
-                            <p class="text-2xl font-bold mb-1">45,231.67</p>
-                            <p class="text-sm opacity-70">≈ $13,569.50 USD</p>
-                        </div>
-                        <div class="flex justify-between items-end">
-                            <div>
-                                <p class="text-xs opacity-70 mb-1">Wallet Address</p>
-                                <p class="font-mono text-sm">0x3b2c...5d8f</p>
-                            </div>
-                            <div class="text-right">
-                                <p class="text-xs opacity-70">Balance</p>
-                                <p class="font-semibold">KENA</p>
+                            <div class="flex justify-between items-end">
+                                <div>
+                                    <p class="text-xs {% if wallet.wallettype == 'personal' %}opacity-60{% else %}opacity-70{% endif %} mb-1">
+                                        Wallet Address
+                                    </p>
+                                    <p class="font-mono text-sm">{{ wallet.hash|slice:":6" }}...{{ wallet.hash|slice:"-4:" }}</p>
+                                </div>
+                                <div class="text-right">
+                                    <p class="text-xs {% if wallet.wallettype == 'personal' %}opacity-60{% else %}opacity-70{% endif %}">
+                                        Balance
+                                    </p>
+                                    <p class="font-semibold">KENA</p>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
-
-                <!-- Mining Wallet Card -->
-                <div class="relative bg-gradient-to-br from-green-600 via-emerald-600 to-teal-700 rounded-2xl p-6 text-white overflow-hidden transform hover:scale-105 transition-all duration-300 shadow-2xl">
-                    <div class="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16"></div>
-                    <div class="absolute bottom-0 left-0 w-24 h-24 bg-white/5 rounded-full -ml-12 -mb-12"></div>
-                    <div class="relative z-10">
-                        <div class="flex justify-between items-start mb-8">
-                            <div>
-                                <h3 class="text-lg font-semibold">Mining Rewards</h3>
-                                <p class="text-sm opacity-70">Earned from Mining</p>
-                            </div>
-                            <div class="w-12 h-8 bg-white/20 rounded flex items-center justify-center">
-                                <span class="font-bold text-xs">KENA</span>
-                            </div>
-                        </div>
-                        <div class="mb-6">
-                            <p class="text-2xl font-bold mb-1">2,891.45</p>
-                            <p class="text-sm opacity-70">≈ $867.44 USD</p>
-                        </div>
-                        <div class="flex justify-between items-end">
-                            <div>
-                                <p class="text-xs opacity-70 mb-1">Wallet Address</p>
-                                <p class="font-mono text-sm">0x9d8e...1a4c</p>
-                            </div>
-                            <div class="text-right">
-                                <p class="text-xs opacity-70">Balance</p>
-                                <p class="font-semibold">KENA</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                    {% endwith %}
+                {% endfor %}
             </div>
         </div>
 
@@ -407,7 +368,100 @@
 
 {% endblock %}
 
- 
+ <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <!-- Primary Wallet Card -->
+    <div class="relative bg-gradient-to-br from-kena-gold via-yellow-500 to-orange-500 rounded-2xl p-6 text-black overflow-hidden transform hover:scale-105 transition-all duration-300 shadow-2xl">
+        <div class="absolute top-0 right-0 w-32 h-32 bg-white/20 rounded-full -mr-16 -mt-16"></div>
+        <div class="absolute bottom-0 left-0 w-24 h-24 bg-black/10 rounded-full -ml-12 -mb-12"></div>
+        <div class="relative z-10">
+            <div class="flex justify-between items-start mb-8">
+                <div>
+                    <h3 class="text-lg font-semibold opacity-80">Primary Wallet</h3>
+                    <p class="text-sm opacity-60">Main Account</p>
+                </div>
+                <div class="w-12 h-8 bg-black/20 rounded flex items-center justify-center">
+                    <span class="font-bold text-xs">KENA</span>
+                </div>
+            </div>
+            <div class="mb-6">
+                <p class="text-2xl font-bold mb-1">12,547.82</p>
+                <p class="text-sm opacity-60">≈ $3,764.35 USD</p>
+            </div>
+            <div class="flex justify-between items-end">
+                <div>
+                    <p class="text-xs opacity-60 mb-1">Wallet Address</p>
+                    <p class="font-mono text-sm">0x7a9f...8b2c</p>
+                </div>
+                <div class="text-right">
+                    <p class="text-xs opacity-60">Balance</p>
+                    <p class="font-semibold">KENA</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Savings Wallet Card -->
+    <div class="relative bg-gradient-to-br from-purple-600 via-blue-600 to-indigo-700 rounded-2xl p-6 text-white overflow-hidden transform hover:scale-105 transition-all duration-300 shadow-2xl">
+        <div class="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16"></div>
+        <div class="absolute bottom-0 left-0 w-24 h-24 bg-white/5 rounded-full -ml-12 -mb-12"></div>
+        <div class="relative z-10">
+            <div class="flex justify-between items-start mb-8">
+                <div>
+                    <h3 class="text-lg font-semibold">Savings Wallet</h3>
+                    <p class="text-sm opacity-70">Long-term Holdings</p>
+                </div>
+                <div class="w-12 h-8 bg-white/20 rounded flex items-center justify-center">
+                    <span class="font-bold text-xs">KENA</span>
+                </div>
+            </div>
+            <div class="mb-6">
+                <p class="text-2xl font-bold mb-1">45,231.67</p>
+                <p class="text-sm opacity-70">≈ $13,569.50 USD</p>
+            </div>
+            <div class="flex justify-between items-end">
+                <div>
+                    <p class="text-xs opacity-70 mb-1">Wallet Address</p>
+                    <p class="font-mono text-sm">0x3b2c...5d8f</p>
+                </div>
+                <div class="text-right">
+                    <p class="text-xs opacity-70">Balance</p>
+                    <p class="font-semibold">KENA</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mining Wallet Card -->
+    <div class="relative bg-gradient-to-br from-green-600 via-emerald-600 to-teal-700 rounded-2xl p-6 text-white overflow-hidden transform hover:scale-105 transition-all duration-300 shadow-2xl">
+        <div class="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16"></div>
+        <div class="absolute bottom-0 left-0 w-24 h-24 bg-white/5 rounded-full -ml-12 -mb-12"></div>
+        <div class="relative z-10">
+            <div class="flex justify-between items-start mb-8">
+                <div>
+                    <h3 class="text-lg font-semibold">Mining Rewards</h3>
+                    <p class="text-sm opacity-70">Earned from Mining</p>
+                </div>
+                <div class="w-12 h-8 bg-white/20 rounded flex items-center justify-center">
+                    <span class="font-bold text-xs">KENA</span>
+                </div>
+            </div>
+            <div class="mb-6">
+                <p class="text-2xl font-bold mb-1">2,891.45</p>
+                <p class="text-sm opacity-70">≈ $867.44 USD</p>
+            </div>
+            <div class="flex justify-between items-end">
+                <div>
+                    <p class="text-xs opacity-70 mb-1">Wallet Address</p>
+                    <p class="font-mono text-sm">0x9d8e...1a4c</p>
+                </div>
+                <div class="text-right">
+                    <p class="text-xs opacity-70">Balance</p>
+                    <p class="font-semibold">KENA</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 
 
 

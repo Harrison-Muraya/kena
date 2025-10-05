@@ -1,5 +1,6 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login, logout
+from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import csrf_exempt 
 from django.contrib.auth.hashers import make_password
@@ -17,6 +18,7 @@ from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import padding
 from Crypto.Signature import pkcs1_15
 from Crypto.Hash import SHA256
+
 
 from django.urls import reverse
 
@@ -193,6 +195,13 @@ def dashboard(request):
         # print("Private Key:", user.private_key)
         # print("Public Key:", user.public_key)
 
+        # check if user has 4 wallets if yes disable add wallet option
+        wallet_count = Wallet.objects.filter(user=request.user).count()
+        if wallet_count >= 4:
+            messages.error(request, 'You have reached the maximum limit of 4 wallets.')
+            return render(request, 'coin/dashboard.html', {'user': request.user, 'wallet_limit_reached': True})
+        
+
         form = forms.WalletForm()
         if request.method == 'POST':
             form = forms.WalletForm(request.POST)
@@ -230,7 +239,11 @@ def dashboard(request):
                 return redirect('dashboard')
         else:
             form = forms.WalletForm()
-            wallets = Wallet.objects.filter(user=request.user)
+            # wallets = Wallet.objects.filter(user=request.user)
+            wallets = Wallet.objects.filter(user=request.user, status=1)
+            # context = {
+            #         'wallets': wallets,
+            #     }
         return render(request, 'coin/dashboard.html', {'user': request.user, 'form': form, 'wallets': wallets})
     else:
         return redirect('login')
