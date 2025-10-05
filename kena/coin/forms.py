@@ -213,32 +213,70 @@ class RegisterForm(UserCreationForm):
 
 
 WALLET_CHOICES = [
-    ('primary', 'Primary Wallet'),
+    # ('primary', 'Primary Wallet'),
     ('personal', 'Personal Wallet'),
     ('business', 'Business Wallet'),
     ('miner', 'Miner Wallet'),
 ]
 
-class WalletForm(forms.Form):
-    name = forms.CharField(label="Wallet Name", max_length=100, widget=forms.TextInput(attrs={
-        'placeholder': 'Enter your wallet name',
-        'required': True,
-        'id': 'walletName'
+class WalletForm(forms.Form):  
+    name = forms.CharField(
+        label="Wallet Name", 
+        max_length=100, 
+        widget=forms.TextInput(attrs={
+            'class': 'w-full p-2 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-400 focus:border-kena-gold focus:ring-1 focus:ring-kena-gold/50 focus:outline-none transition-all',
+            'placeholder': 'Enter your wallet name',
+            'required': True,
+            'id': 'walletName'
     }))
-    password = forms.CharField(label="Create Password", widget=forms.PasswordInput(attrs={
-        'placeholder': 'Create a secure password',
-        'required': True,
-        'id': 'password'
+    walletType = forms.ChoiceField(
+        label="Wallet Type", 
+        choices=WALLET_CHOICES, 
+        widget=forms.Select(attrs={
+            'class': 'w-full p-2 bg-white/10 border border-white/20 rounded-xl text-white focus:border-kena-gold focus:ring-1 focus:ring-kena-gold/50 focus:outline-none transition-all appearance-none cursor-pointer',
+            'required': True,
+            'id': 'walletType',
+            'style': 'background-image: url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' fill=\'none\' viewBox=\'0 0 24 24\' stroke=\'%23D4AF37\'%3E%3Cpath stroke-linecap=\'round\' stroke-linejoin=\'round\' stroke-width=\'2\' d=\'M19 9l-7 7-7-7\'%3E%3C/path%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 0.75rem center; background-size: 1.5em 1.5em; padding-right: 2.5rem;'
     }))
-    confirmPassword = forms.CharField(label="Confirm Password", widget=forms.PasswordInput(attrs={
-        'placeholder': 'Confirm your password',
-        'required': True,
-        'id': 'confirmPassword'
+    password = forms.CharField(
+        label="Create Password",
+        widget=forms.PasswordInput(attrs={
+            'class': "w-full p-2 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-400 focus:border-kena-gold focus:ring-1 focus:ring-kena-gold/50 focus:outline-none transition-all pr-12",
+            'placeholder': 'Create a secure password',
+            'required': True,
+            'id': 'password'
     }))
-    walletType = forms.ChoiceField(label="Wallet Type", choices=WALLET_CHOICES, widget=forms.Select(attrs={
-        'required': True,
-        'id': 'walletType'
+    confirmPassword = forms.CharField(
+        label="Confirm Password",
+        widget=forms.PasswordInput(attrs={
+            'class': "w-full p-2 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-400 focus:border-kena-gold focus:ring-1 focus:ring-kena-gold/50 focus:outline-none transition-all pr-12",
+            'placeholder': 'Confirm your password',
+            'required': True,
+            'id': 'confirmPassword'
     }))
+   
+   
+
+# class WalletForm(forms.Form):
+#     name = forms.CharField(label="Wallet Name", max_length=100, widget=forms.TextInput(attrs={
+#         'placeholder': 'Enter your wallet name',
+#         'required': True,
+#         'id': 'walletName'
+#     }))
+#     password = forms.CharField(label="Create Password", widget=forms.PasswordInput(attrs={
+#         'placeholder': 'Create a secure password',
+#         'required': True,
+#         'id': 'password'
+#     }))
+#     confirmPassword = forms.CharField(label="Confirm Password", widget=forms.PasswordInput(attrs={
+#         'placeholder': 'Confirm your password',
+#         'required': True,
+#         'id': 'confirmPassword'
+#     }))
+#     walletType = forms.ChoiceField(label="Wallet Type", choices=WALLET_CHOICES, widget=forms.Select(attrs={
+#         'required': True,
+#         'id': 'walletType'
+#     }))
 
 class SendKenaForm(forms.Form):
     def __init__(self, *args, user=None, **kwargs):

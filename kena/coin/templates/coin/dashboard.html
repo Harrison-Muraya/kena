@@ -451,47 +451,133 @@
     </div>
 
     <!-- add wallet modal -->
-    <div id="addWalletModal" class="absolute inset-0 bg-black/50 backdrop-blur-sm flex place-items-center justify-center h-screen z-50">
-        <div class="bg-kena-dark border border-white/20 rounded-2xl p-8 max-w-md w-full mx-4">
-            <div class="flex justify-between items-center mb-6">
-                <h3 class="text-2xl font-bold">Send Kena</h3>
-                <button onclick="closeAddWalletModal()" class="text-gray-400 hover:text-white">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                    </svg>
-                </button>
+    <div id="addWalletModal" class="fixed inset-0  bg-black/50 backdrop-blur-sm flex place-items-center justify-center max-h-screen z-50">
+        <form method="POST" >
+            {% csrf_token %}
+            <div class="bg-kena-dark border border-white/20 rounded-2xl p-8 max-w-md w-full md:mx-4">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="text-2xl font-bold">Create Wallet</h3>
+                    <button onclick="closeAddWalletModal()" class="text-gray-400 hover:text-white">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+                
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Wallet Name</label>
+                        {{form.name}}
+                    </div>
+                    <div id="firstNameError" class="text-red-500 text-sm mt-1 hidden"></div>
+                    {% if form.name.errors %}
+                        <p class="text-red-500 text-sm mt-1">{{ form.name.errors.0 }}</p>
+                    {% endif %}
+                    
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Wallet Type</label>
+                        {{ form.walletType }}
+                    </div>                    
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Password</label>
+                        <!-- {{ form.password }} -->
+                        <div class="relative">
+                            {{ form.password }}
+                            <button 
+                                type="button" 
+                                onclick="togglePassword('password', 'eyeOpen1', 'eyeClosed1')"
+                                class="absolute inset-y-0 right-0 flex items-center pr-4 text-gray-400 hover:text-white transition-colors"
+                            >
+                                <!-- eye open -->
+                                <svg id="eyeOpen1" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                </svg>
+                                <!-- eye closed -->
+                                <svg id="eyeClosed1" class="w-5 h-5 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21" />
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                    <div id="passwordError" class="text-red-500 text-sm mt-1 hidden"></div>
+                    {% if form.password.errors %}
+                        <p class="text-red-500 text-sm mt-1">{{ form.password.errors.0 }}</p>
+                    {% endif %}
+
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Confirm Password</label>
+                        <!-- {{ form.confirmPassword }} -->
+                        <div class="relative">
+                            {{ form.confirmPassword }}
+                            <button 
+                                type="button" 
+                                onclick="togglePassword('confirmPassword', 'eyeOpen2', 'eyeClosed2')"
+                                class="absolute inset-y-0 right-0 flex items-center pr-4 text-gray-400 hover:text-white transition-colors"
+                            >
+                                <!-- eye open -->
+                                <svg id="eyeOpen2" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                </svg>
+                                <!-- eye closed -->
+                                <svg id="eyeClosed2" class="w-5 h-5 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21" />
+                                </svg>
+                            </button>
+                        </div>
+                                            </div>
+                    <div id="confirmPasswordError" class="text-red-500 text-sm mt-1 hidden"></div>
+                    {% if form.confirmPassword.errors %}
+                        <p class="text-red-500 text-sm mt-1">{{ form.confirmPassword.errors.0 }}</p>
+                    {% endif %}                   
+
+                    
+                    <button type="submit" class="w-full p-4 bg-gradient-to-r from-kena-gold to-yellow-500 text-black rounded-lg hover:from-yellow-500 hover:to-kena-gold transition-all font-semibold">
+                        Create Wallet
+                    </button>
+                </div>
             </div>
-            
-            <div class="space-y-4">
-                <div>
-                    <label class="block text-sm font-medium mb-2">Recipient Address</label>
-                    <input type="text" id="recipientAddress" class="w-full p-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400" placeholder="0x...">
-                </div>
-                
-                <div>
-                    <label class="block text-sm font-medium mb-2">Amount (KENA)</label>
-                    <input type="number" id="sendAmount" class="w-full p-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400" placeholder="0.00">
-                    <p class="text-sm text-gray-400 mt-1">Balance: 12,547.82 KENA</p>
-                </div>
-                
-                <div>
-                    <label class="block text-sm font-medium mb-2">Transaction Fee</label>
-                    <select class="w-full p-3 bg-white/10 border border-white/20 rounded-lg text-white">
-                        <option>Slow (0.001 KENA) - ~10 min</option>
-                        <option selected>Standard (0.005 KENA) - ~5 min</option>
-                        <option>Fast (0.01 KENA) - ~2 min</option>
-                    </select>
-                </div>
-                
-                <button onclick="sendTransaction()" class="w-full p-4 bg-gradient-to-r from-kena-gold to-yellow-500 text-black rounded-lg hover:from-yellow-500 hover:to-kena-gold transition-all font-semibold">
-                    Send Transaction
-                </button>
-            </div>
-        </div>
+        </form>
     </div>
+<style>
+   #walletType option {
+    background-color: #1a1a1a;
+    color: white;
+    padding: 0.5rem;
+}
+
+#walletType option:hover {
+    background-color: #2a2a2a;
+}
+</style> 
+
+   <script>
+
+     function togglePassword(inputId, eyeOpenId, eyeClosedId) {
+        const passwordInput = document.getElementById(inputId);
+        const eyeOpen = document.getElementById(eyeOpenId);
+        const eyeClosed = document.getElementById(eyeClosedId);
+
+        if (passwordInput.type === 'password') {
+            passwordInput.type = 'text';
+            eyeOpen.classList.add('hidden');
+            eyeClosed.classList.remove('hidden');
+        } else {
+            passwordInput.type = 'password';
+            eyeOpen.classList.remove('hidden');
+            eyeClosed.classList.add('hidden');
+        }
+    }
 
 
-    <script>
+
         let isMining = true;
         let currentProgress = 73;
 
@@ -568,11 +654,13 @@
         function openAddWalletModal() {
             document.getElementById('addWalletModal').classList.remove('hidden');
             document.body.style.overflow = 'hidden';
+            document.body.style.overflow = 'hidden'; 
         }
 
         function closeAddWalletModal() {
             document.getElementById('addWalletModal').classList.add('hidden');
             document.body.style.overflow = '';
+            document.body.style.overflow = ''; 
         }
 
         // Update KENA amount based on USD input
@@ -828,6 +916,8 @@
                 }
             });
         });
+
+       
     </script>
 </div>   
 
