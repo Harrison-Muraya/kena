@@ -81,12 +81,12 @@ function closeBuyModal() {
 
 function openSendModal() {
     document.getElementById('sendModal').classList.remove('hidden');
-    document.body.style.overflow = 'hidden';
+    // document.body.style.overflow = 'hidden';
 }
 
 function closeSendModal() {
     document.getElementById('sendModal').classList.add('hidden');
-    document.body.style.overflow = '';
+    // document.body.style.overflow = '';
 }
 
 function openAddWalletModal() {

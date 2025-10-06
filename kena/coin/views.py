@@ -197,7 +197,7 @@ def dashboard(request):
 
         # check if user has 4 wallets if yes disable add wallet option
         wallet_count = Wallet.objects.filter(user=request.user).count()
-        if wallet_count >= 4:
+        if wallet_count >= 5:
             messages.error(request, 'You have reached the maximum limit of 4 wallets.')
             return render(request, 'coin/dashboard.html', {'user': request.user, 'wallet_limit_reached': True})
         
@@ -240,7 +240,7 @@ def dashboard(request):
         else:
             form = forms.WalletForm()
             # wallets = Wallet.objects.filter(user=request.user)
-            wallets = Wallet.objects.filter(user=request.user, status=1)
+            wallets = Wallet.objects.filter(user=request.user, status=1).order_by('created_at')
             # context = {
             #         'wallets': wallets,
             #     }
