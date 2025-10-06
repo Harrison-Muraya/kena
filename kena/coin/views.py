@@ -362,7 +362,7 @@ def dashboard(request):
             # context = {
             #         'wallets': wallets,
             #     }
-        return render(request, 'coin/dashboard.html', {'user': request.user, 'form': form, 'wallets': wallets})
+        return render(request, 'coin/dashboard.html', {'user': request.user, 'form': form, 'wallets': wallets, 'send_form': send_form})
     else:
         return redirect('login')
     

@@ -255,28 +255,6 @@ class WalletForm(forms.Form):
             'id': 'confirmPassword'
     }))
    
-   
-
-# class WalletForm(forms.Form):
-#     name = forms.CharField(label="Wallet Name", max_length=100, widget=forms.TextInput(attrs={
-#         'placeholder': 'Enter your wallet name',
-#         'required': True,
-#         'id': 'walletName'
-#     }))
-#     password = forms.CharField(label="Create Password", widget=forms.PasswordInput(attrs={
-#         'placeholder': 'Create a secure password',
-#         'required': True,
-#         'id': 'password'
-#     }))
-#     confirmPassword = forms.CharField(label="Confirm Password", widget=forms.PasswordInput(attrs={
-#         'placeholder': 'Confirm your password',
-#         'required': True,
-#         'id': 'confirmPassword'
-#     }))
-#     walletType = forms.ChoiceField(label="Wallet Type", choices=WALLET_CHOICES, widget=forms.Select(attrs={
-#         'required': True,
-#         'id': 'walletType'
-#     }))
 
 class SendKenaForm(forms.Form):
     def __init__(self, *args, user=None, **kwargs):
@@ -289,14 +267,16 @@ class SendKenaForm(forms.Form):
         empty_label="Select your wallet",
         label="Wallet",
         widget=forms.Select(attrs={
-            'required': True,
+            'class': 'w-full p-2 bg-white/10 border border-white/20 rounded-xl text-white focus:border-kena-gold focus:ring-1 focus:ring-kena-gold/50 focus:outline-none transition-all appearance-none cursor-pointer',
+            'required': True,   
             'id': 'walletName'
         })
     )
     receiver = forms.CharField(label="Receiver Username", max_length=100, widget=forms.TextInput(attrs={
+        'class': 'w-full p-2 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-400 focus:border-kena-gold focus:ring-1 focus:ring-kena-gold/50 focus:outline-none transition-all',
         'placeholder': 'Enter your recepient Username',
         'required': True,
-        'id': 'receiverUsername'
+        'id': 'recipientUsername'
     }))
     amount = forms.DecimalField(label="Amount", max_digits=20, decimal_places=8, widget=forms.NumberInput(attrs={
         'placeholder': 'Enter the amount to send',
@@ -308,6 +288,37 @@ class SendKenaForm(forms.Form):
         'required': True,
         'id': 'password'
     }))
+   
+# class SendKenaForm(forms.Form):
+#     def __init__(self, *args, user=None, **kwargs):
+#         super().__init__(*args, **kwargs)
+#         if user:
+#             self.fields['wallet'].queryset = Wallet.objects.filter(user=user)
+
+#     wallet = forms.ModelChoiceField(
+#         queryset=Wallet.objects.none(),  # Placeholder
+#         empty_label="Select your wallet",
+#         label="Wallet",
+#         widget=forms.Select(attrs={
+#             'required': True,   
+#             'id': 'walletName'
+#         })
+#     )
+#     receiver = forms.CharField(label="Receiver Username", max_length=100, widget=forms.TextInput(attrs={
+#         'placeholder': 'Enter your recepient Username',
+#         'required': True,
+#         'id': 'receiverUsername'
+#     }))
+#     amount = forms.DecimalField(label="Amount", max_digits=20, decimal_places=8, widget=forms.NumberInput(attrs={
+#         'placeholder': 'Enter the amount to send',
+#         'required': True,
+#         'id': 'amount'
+#     }))
+#     password = forms.CharField(label="Password", widget=forms.PasswordInput(attrs={
+#         'placeholder': 'Enter your password',
+#         'required': True,
+#         'id': 'password'
+#     }))
 
    
    
