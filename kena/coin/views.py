@@ -194,7 +194,125 @@ def dashboard(request):
         user = request.user
         # print("Private Key:", user.private_key)
         # print("Public Key:", user.public_key)
+        # -------------------------------------------------------------------------------------------
+        # Handle Send Kena form submission via AJAX
+        if request.method == 'POST' and request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            form = forms.SendKenaForm(request.POST, user=request.user)
+            
+            if form.is_valid():
+                sender = request.user
+                receiver = form.cleaned_data['receiver']
+                amount = form.cleaned_data['amount']
+                selected_wallet = form.cleaned_data['wallet']
+                password = form.cleaned_data['password']
 
+                try:
+                    sender_wallet = Wallet.objects.filter(user=sender)
+                    if not sender_wallet.exists():
+                        return JsonResponse({'success': False, 'error': 'Sender wallet not found.'})
+                except Exception as e:
+                    return JsonResponse({'success': False, 'error': str(e)})
+
+                # Validate wallet ownership
+                data = {
+                    "name": selected_wallet.name,
+                    "password": password,
+                    "walletType": selected_wallet.wallettype,
+                    "private_key": checkKey(sender.private_key).export_key().decode()
+                }
+                hasher = blockchain.CalculateHash(data) 
+                generated_hash = hasher.calculate()
+
+                if selected_wallet.hash != generated_hash:
+                    return JsonResponse({'success': False, 'error': 'This wallet does not belong to you or password is incorrect.'})
+                
+                # Check if the receiver exists
+                try:
+                    recipient = CustomUser.objects.filter(username=receiver)
+                    if not recipient.exists():
+                        return JsonResponse({'success': False, 'error': 'Receiver does not exist'})
+                    
+                    receiver_wallet = Wallet.objects.filter(user=recipient.first())
+                    if not receiver_wallet.exists():
+                        return JsonResponse({'success': False, 'error': 'Receiver has no wallet associated with their account'})
+                except Exception as e:
+                    return JsonResponse({'success': False, 'error': str(e)})
+                
+                # Creating billing instance
+                billing = Billing(
+                    user=sender,
+                    wallet=selected_wallet,
+                    amount=amount + FEE,
+                    fee=FEE,
+                    total=amount + FEE,
+                    uid=uidgenerator.generate_code(),
+                    type='send',
+                )
+                billing.save()
+
+                # Create pending transactions (debit, credit, fee)
+                pending_transaction = PendingTransaction(
+                    billing=billing,
+                    sender=sender,
+                    receiver=recipient.first(),
+                    amount=billing.amount,
+                    type='send',
+                    gateway='kena',
+                    credit=0,
+                    debit=billing.amount,
+                    signature=generate_signature(checkKey(sender.private_key), {
+                        "billing": billing.id,
+                        "uid": billing.uid,
+                        "sender": sender.username,
+                        "amount": billing.amount,
+                    })
+                )
+                pending_transaction.save()
+
+                pending_transaction_receiver = PendingTransaction(
+                    billing=billing,
+                    sender=sender,
+                    receiver=recipient.first(),
+                    amount=billing.amount - FEE,
+                    type='receive',
+                    gateway='kena',
+                    credit=amount,
+                    debit=0,
+                    signature=generate_signature(checkKey(sender.private_key), {
+                        "billing": billing.id,
+                        "uid": billing.uid,
+                        "sender": sender.username,
+                        "amount": billing.amount - FEE,
+                    })
+                )
+                pending_transaction_receiver.save()
+
+                transactionc = CustomUser.objects.filter(username='harris').first()
+                pending_transaction_fee = PendingTransaction(
+                    billing=billing,
+                    sender=sender,
+                    receiver=transactionc,
+                    amount=FEE,
+                    type='fee', 
+                    gateway='kena',
+                    credit=FEE,
+                    debit=0,
+                    signature=generate_signature(checkKey(sender.private_key), {
+                        "billing": billing.id,
+                        "uid": billing.uid,
+                        "sender": sender.username,
+                        "amount": FEE,
+                    })
+                )
+                pending_transaction_fee.save()
+
+                return JsonResponse({'success': True, 'message': 'Transaction sent successfully!'})
+            else:
+                errors = {}
+                for field, error_list in form.errors.items():
+                    errors[field] = [str(e) for e in error_list]
+                return JsonResponse({'success': False, 'errors': errors})
+        # -------------------------------------------------------------------------------------------
         # check if user has 4 wallets if yes disable add wallet option
         wallet_count = Wallet.objects.filter(user=request.user).count()
         if wallet_count >= 5:
