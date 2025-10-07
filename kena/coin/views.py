@@ -102,7 +102,6 @@ def verify_signature(key, transaction_obj, signature):
             
 def home(request):
     blocks = Block.objects.all()
-    print('hellow')
     return render(request, 'coin/home.html', {'blocks': blocks})
 
 def create(request):  
