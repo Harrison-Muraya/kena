@@ -18,6 +18,10 @@
             
             <!-- Custom Wallet Select -->
             <div>
+                <!-- dashbord url -->
+                <div class="hidden">
+                    <input type="text" id="dashboardUrl" value="{% url 'dashboard' %}">
+                </div>
                 <label class="block text-sm font-medium mb-2">Select Wallet</label>
                 
                 <!-- Custom Select Wrapper -->
@@ -112,6 +116,7 @@
                     </button>
                 </div>
             </div>
+
             
             <button type="submit" id="sendButton" class="w-full p-4 bg-gradient-to-r from-kena-gold to-yellow-500 text-black rounded-lg hover:from-yellow-500 hover:to-kena-gold transition-all font-semibold shadow-lg hover:shadow-xl">
                 Send Transaction
@@ -211,169 +216,3 @@
     }
 </style>
 
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    const selectButton = document.getElementById('walletSelectButton');
-    const dropdownMenu = document.getElementById('walletDropdownMenu');
-    const selectArrow = document.getElementById('walletSelectArrow');
-    const selectedWalletName = document.getElementById('selectedWalletName');
-    const selectedWalletBalance = document.getElementById('selectedWalletBalance');
-    const walletError = document.getElementById('walletError');
-    
-    // Find the hidden select element - Django auto-generates ID as "id_FIELDNAME"
-    const hiddenSelect = document.querySelector('#sendKenaForm select[name="wallet"]');
-    
-    if (!hiddenSelect) {
-        console.error('Wallet select field not found!');
-        return;
-    }
-    
-    let isOpen = false;
-    
-    // Toggle dropdown
-    if (selectButton) {
-        selectButton.addEventListener('click', function(e) {
-            e.stopPropagation();
-            isOpen = !isOpen;
-            
-            if (isOpen) {
-                dropdownMenu.classList.remove('hidden');
-                dropdownMenu.classList.add('show');
-                selectArrow.style.transform = 'rotate(180deg)';
-            } else {
-                dropdownMenu.classList.add('hidden');
-                dropdownMenu.classList.remove('show');
-                selectArrow.style.transform = 'rotate(0deg)';
-            }
-        });
-    }
-    
-    // Handle wallet selection
-    const walletOptions = document.querySelectorAll('.wallet-option');
-    walletOptions.forEach(option => {
-        option.addEventListener('click', function() {
-            const walletId = this.dataset.walletId;
-            const walletName = this.dataset.walletName;
-            const walletBalance = this.dataset.walletBalance;
-            const walletType = this.dataset.walletType;
-            
-            // Update hidden select
-            hiddenSelect.value = walletId;
-            
-            // Update display
-            selectedWalletName.textContent = walletName;
-            selectedWalletBalance.textContent = `${parseFloat(walletBalance).toFixed(2)} KENA • ${walletType}`;
-            
-            // Clear error
-            if (walletError) {
-                walletError.classList.add('hidden');
-            }
-            
-            // Close dropdown
-            dropdownMenu.classList.add('hidden');
-            dropdownMenu.classList.remove('show');
-            selectArrow.style.transform = 'rotate(0deg)';
-            isOpen = false;
-            
-            // Remove selection styling from all options
-            walletOptions.forEach(opt => {
-                opt.classList.remove('bg-white/10');
-            });
-            
-            // Add selection styling
-            this.classList.add('bg-white/10');
-        });
-    });
-    
-    // Close dropdown when clicking outside
-    document.addEventListener('click', function(e) {
-        if (selectButton && dropdownMenu) {
-            if (!selectButton.contains(e.target) && !dropdownMenu.contains(e.target)) {
-                dropdownMenu.classList.add('hidden');
-                dropdownMenu.classList.remove('show');
-                selectArrow.style.transform = 'rotate(0deg)';
-                isOpen = false;
-            }
-        }
-    });
-    
-    // Close on Escape key
-    document.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape' && isOpen) {
-            dropdownMenu.classList.add('hidden');
-            dropdownMenu.classList.remove('show');
-            selectArrow.style.transform = 'rotate(0deg)';
-            isOpen = false;
-        }
-    });
-});
-
-document.getElementById('sendKenaForm').addEventListener('submit', function(e) {
-    e.preventDefault();
-    
-    const formData = new FormData(this);
-    const sendButton = document.getElementById('sendButton');
-    const messageContainer = document.getElementById('sendMessageContainer');
-    
-    // Disable button and show loading
-    sendButton.disabled = true;
-    sendButton.textContent = 'Processing...';
-    messageContainer.classList.add('hidden');
-    
-    fetch('{% url "dashboard" %}', {
-        method: 'POST',
-        body: formData,
-        headers: {
-            'X-Requested-With': 'XMLHttpRequest',
-            'X-CSRFToken': formData.get('csrfmiddlewaretoken')
-        }
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            messageContainer.innerHTML = `
-                <div class="p-4 bg-green-500/20 border border-green-500 rounded-lg text-green-400">
-                    ${data.message}
-                </div>
-            `;
-            messageContainer.classList.remove('hidden');
-            
-            // Reset form and close modal after 2 seconds
-            setTimeout(() => {
-                closeSendModal();
-                location.reload(); // Refresh to update balances
-            }, 2000);
-        } else {
-            let errorHtml = '<div class="p-4 bg-red-500/20 border border-red-500 rounded-lg text-red-400"><ul class="list-disc list-inside">';
-            
-            if (data.error) {
-                errorHtml += `<li>${data.error}</li>`;
-            }
-            
-            if (data.errors) {
-                for (const [field, errors] of Object.entries(data.errors)) {
-                    errors.forEach(error => {
-                        errorHtml += `<li>${error}</li>`;
-                    });
-                }
-            }
-            
-            errorHtml += '</ul></div>';
-            messageContainer.innerHTML = errorHtml;
-            messageContainer.classList.remove('hidden');
-        }
-    })
-    .catch(error => {
-        messageContainer.innerHTML = `
-            <div class="p-4 bg-red-500/20 border border-red-500 rounded-lg text-red-400">
-                An error occurred. Please try again.
-            </div>
-        `;
-        messageContainer.classList.remove('hidden');
-    })
-    .finally(() => {
-        sendButton.disabled = false;
-        sendButton.textContent = 'Send Transaction';
-    });
-});
-</script>
