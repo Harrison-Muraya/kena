@@ -359,6 +359,7 @@ def dashboard(request):
             form = forms.WalletForm()
             # wallets = Wallet.objects.filter(user=request.user)
             wallets = Wallet.objects.filter(user=request.user, status=1).order_by('created_at')
+            send_form = forms.SendKenaForm(user=request.user)
             # context = {
             #         'wallets': wallets,
             #     }
