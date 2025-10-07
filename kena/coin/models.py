@@ -164,7 +164,7 @@ class Transaction(models.Model):
     receiver = models.CharField(max_length=100)
     amount = models.DecimalField(max_digits=20, decimal_places=5)
     time = models.DateTimeField(auto_now_add=True)
-    hash = models.CharField(max_length=64, unique=True)
+    hash = models.CharField(max_length=64) # need to make "unique=True" later after testing
     
 
     def __str__(self):
