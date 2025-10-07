@@ -104,34 +104,17 @@
                     <button class="text-kena-gold hover:text-yellow-400 text-sm">View All</button>
                 </div>
                 <div class="space-y-4" id="pendingTxList">
-                    <div class="p-4 bg-white/5 rounded-lg border border-white/5">
-                        <div class="flex justify-between items-start mb-2">
-                            <div class="text-sm text-gray-400">0x4f2a...8b9c</div>
-                            <div class="text-kena-gold font-semibold">+125.50 KENA</div>
+                    {% for txn in pendingTransaction %}
+                        <div class="p-4 bg-white/5 rounded-lg border border-white/5">
+                            <div class="flex justify-between items-start mb-2">
+                                <div class="text-sm text-gray-400">{{ txn.hash|slice:':6'}} • • • {{txn.hash|slice:'-4:'}}</div>
+                                <div class="text-kena-gold font-semibold">+125.50 KENA</div>
+                            </div>
+                            <div class="text-xs text-gray-500">Fee: 0.001 KENA • 30 seconds ago</div>
                         </div>
-                        <div class="text-xs text-gray-500">Fee: 0.001 KENA • 30 seconds ago</div>
-                    </div>
-                    <div class="p-4 bg-white/5 rounded-lg border border-white/5">
-                        <div class="flex justify-between items-start mb-2">
-                            <div class="text-sm text-gray-400">0x8d3e...2f1a</div>
-                            <div class="text-kena-gold font-semibold">+67.25 KENA</div>
-                        </div>
-                        <div class="text-xs text-gray-500">Fee: 0.002 KENA • 45 seconds ago</div>
-                    </div>
-                    <div class="p-4 bg-white/5 rounded-lg border border-white/5">
-                        <div class="flex justify-between items-start mb-2">
-                            <div class="text-sm text-gray-400">0x1c7b...5e8d</div>
-                            <div class="text-kena-gold font-semibold">+289.80 KENA</div>
-                        </div>
-                        <div class="text-xs text-gray-500">Fee: 0.003 KENA • 1 minute ago</div>
-                    </div>
-                    <div class="p-4 bg-white/5 rounded-lg border border-white/5">
-                        <div class="flex justify-between items-start mb-2">
-                            <div class="text-sm text-gray-400">0x6a9c...3d2f</div>
-                            <div class="text-kena-gold font-semibold">+45.12 KENA</div>
-                        </div>
-                        <div class="text-xs text-gray-500">Fee: 0.001 KENA • 2 minutes ago</div>
-                    </div>
+                    {% empty %}
+                        <p class="text-gray-400 text-center">No pending transactions.</p>                    
+                    {% endfor %}                    
                 </div>
             </div>
         </div>
@@ -187,7 +170,63 @@
     {% include "partials/footer.html" %}
     {% block footer %} {% endblock %}
 
+    <script>
+        async function loadPendingTx() {
+            const response = await fetch("/api/pending_transactions/");
+            const data = await response.json();
+                console.log(data);
+            const container = document.querySelector('#pendingTxList');
+            container.innerHTML = "";
+
+            data.transactions.forEach(txn => {
+                container.innerHTML += `
+                    <div class="p-4 bg-white/5 rounded-lg border border-white/5">
+                        <div class="flex justify-between items-start mb-2">
+                            <div class="text-sm text-gray-400">${txn.hash.slice(0, 6)} • • • ${txn.hash.slice(-4)}</div>
+                            <div class="text-kena-gold font-semibold">+${txn.amount} KENA</div>
+                        </div>
+                        <div class="text-xs text-gray-500">30 seconds ago</div>
+                    </div>`;
+            });
+        }
+
+        setInterval(loadPendingTx, 1000); // refresh every 5 seconds
+        loadPendingTx();
+    </script>
+
+
 {% endblock %}
+
+ <div class="space-y-4" id="pendingTxList">
+                    <div class="p-4 bg-white/5 rounded-lg border border-white/5">
+                        <div class="flex justify-between items-start mb-2">
+                            <div class="text-sm text-gray-400">0x4f2a...8b9c</div>
+                            <div class="text-kena-gold font-semibold">+125.50 KENA</div>
+                        </div>
+                        <div class="text-xs text-gray-500">Fee: 0.001 KENA • 30 seconds ago</div>
+                    </div>
+                    <div class="p-4 bg-white/5 rounded-lg border border-white/5">
+                        <div class="flex justify-between items-start mb-2">
+                            <div class="text-sm text-gray-400">0x8d3e...2f1a</div>
+                            <div class="text-kena-gold font-semibold">+67.25 KENA</div>
+                        </div>
+                        <div class="text-xs text-gray-500">Fee: 0.002 KENA • 45 seconds ago</div>
+                    </div>
+                    <div class="p-4 bg-white/5 rounded-lg border border-white/5">
+                        <div class="flex justify-between items-start mb-2">
+                            <div class="text-sm text-gray-400">0x1c7b...5e8d</div>
+                            <div class="text-kena-gold font-semibold">+289.80 KENA</div>
+                        </div>
+                        <div class="text-xs text-gray-500">Fee: 0.003 KENA • 1 minute ago</div>
+                    </div>
+                    <div class="p-4 bg-white/5 rounded-lg border border-white/5">
+                        <div class="flex justify-between items-start mb-2">
+                            <div class="text-sm text-gray-400">0x6a9c...3d2f</div>
+                            <div class="text-kena-gold font-semibold">+45.12 KENA</div>
+                        </div>
+                        <div class="text-xs text-gray-500">Fee: 0.001 KENA • 2 minutes ago</div>
+                    </div>
+                </div>
 
 
 <!-- <div class="">

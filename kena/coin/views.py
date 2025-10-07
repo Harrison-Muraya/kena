@@ -99,11 +99,24 @@ def verify_signature(key, transaction_obj, signature):
 
     except (ValueError, TypeError):
         return False
-            
+
+# Home view            
 def home(request):
     blocks = Block.objects.all()
-    return render(request, 'coin/home.html', {'blocks': blocks})
+    pendingTransaction = PendingTransaction.objects.all().order_by('-timestamp')  # Fetch all transactions, ordered by most recent
+    return render(request, 'coin/home.html', {'blocks': blocks, 'pendingTransaction': pendingTransaction})
 
+# API endpoint to get the latest 10 pending transactions
+def get_pending_transactions(request):
+    txns = PendingTransaction.objects.all().order_by('-timestamp')[:5]
+    data = [
+        {
+            'hash': t.hash,
+            'amount': str(t.amount),
+            'timestamp': t.timestamp.strftime('%Y-%m-%d %H:%M:%S'),
+        } for t in txns
+    ]
+    return JsonResponse({'transactions': data})
 def create(request):  
     if request.method == 'POST':
         form = forms.CreateNewlist(request.POST)
@@ -663,7 +676,7 @@ def submit_block(request):
                 "type": tx.type
             })
             # confirmed.append(tx)
-            # pending_txn.delete()
+            pending_txn.delete()
         except PendingTransaction.DoesNotExist:
             print(f"error: Transaction not found : {txn_hash}")
             return JsonResponse({"error": f"Transaction {txn_hash} not found"}, status=400)
