@@ -1,6 +1,7 @@
 py manage.py runserver 192.168.100.24:8000
 pip install django-tailwind django-browser-reload
 pip install django-tailwind django-browser-reload
+pip freeze > requirements.txt     
 pip show django-tailwind
 python manage.py tailwind inittem
 python manage.py tailwind install
