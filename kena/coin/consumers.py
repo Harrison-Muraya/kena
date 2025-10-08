@@ -15,7 +15,7 @@ class TransactionConsumer(AsyncWebsocketConsumer):
 
     @database_sync_to_async
     def get_transactions(self):
-        txns = PendingTransaction.objects.all().order_by('-timestamp')[:10]
+        txns = PendingTransaction.objects.all().order_by('-timestamp')[:4]
         # print(txns)
         return [
             {

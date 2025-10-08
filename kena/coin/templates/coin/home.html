@@ -169,7 +169,7 @@
     
     let socket;
     let reconnectAttempts = 0;
-    const maxReconnectAttempts = 2;
+    const maxReconnectAttempts = 5;
     const reconnectDelay = 3000; // 3 seconds
 
     function connectWebSocket() {
@@ -182,7 +182,7 @@
         };
 
         socket.onmessage = function(e) {
-            console.log('Received message:', e.data);
+            // console.log('Received message:', e.data);
             try {
                 const data = JSON.parse(e.data);
                 const container = document.querySelector('#pendingTxList');
