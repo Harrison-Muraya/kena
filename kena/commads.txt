@@ -13,3 +13,8 @@ python manage.py tailwind build
 
 ##### for enabling vertiua envirronment run in vs code ###
 Set-ExecutionPolicy Unrestricted -Scope Process
+
+
+##### for channel to run 
+daphne chat.asgi:application
+daphne -b 192.168.100.24 -p 8000 kena.asgi:application  # when in network

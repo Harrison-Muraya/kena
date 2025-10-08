@@ -35,16 +35,28 @@ ALLOWED_HOSTS = ['*']
 # Application definition
 
 INSTALLED_APPS = [
+    "daphne",
+    'channels',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
-    'django.contrib.staticfiles',
+    'django.contrib.staticfiles',    
     'coin.apps.CoinConfig',
     # 'tailwind',
     # 'theme',  # Your Tailwind theme app
 ]
+
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels.layers.InMemoryChannelLayer',
+    },
+}
+
+ASGI_APPLICATION = 'kena.asgi.application'
+
+
 
 # TAILWIND_APP_NAME = 'theme'
 # NPM_BIN_PATH = "C:/Program Files/nodejs/npm.cmd"  # Adjust this path if necessary
@@ -85,7 +97,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'kena.wsgi.application'
+# WSGI_APPLICATION = 'kena.wsgi.application'
 
 
 # Database

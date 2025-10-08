@@ -5,6 +5,9 @@ from django.conf import settings
 from . import blockchain
 from django.utils.timezone import now
 
+from asgiref.sync import async_to_sync
+from channels.layers import get_channel_layer
+
 # This model is used to create a custom user model that extends the default Django user model
 # It includes additional fields for private key, public key, flag, and status
 class CustomUser(AbstractUser):
@@ -223,6 +226,11 @@ class PendingTransaction(models.Model):
             self.hash = blockchain.CalculateHash(data).calculate()
 
         super().save(*args, **kwargs)
+        channel_layer = get_channel_layer()
+        async_to_sync(channel_layer.group_send)(
+            "transactions",
+            {"type": "transaction_update"}
+        )
 
     def __str__(self):
         return f"{self.sender} -> {self.receiver}: {self.amount}-> {self.signature}"

@@ -104,17 +104,7 @@
                     <button class="text-kena-gold hover:text-yellow-400 text-sm">View All</button>
                 </div>
                 <div class="space-y-4" id="pendingTxList">
-                    {% for txn in pendingTransaction %}
-                        <div class="p-4 bg-white/5 rounded-lg border border-white/5">
-                            <div class="flex justify-between items-start mb-2">
-                                <div class="text-sm text-gray-400">{{ txn.hash|slice:':6'}} • • • {{txn.hash|slice:'-4:'}}</div>
-                                <div class="text-kena-gold font-semibold">+125.50 KENA</div>
-                            </div>
-                            <div class="text-xs text-gray-500">Fee: 0.001 KENA • 30 seconds ago</div>
-                        </div>
-                    {% empty %}
-                        <p class="text-gray-400 text-center">No pending transactions.</p>                    
-                    {% endfor %}                    
+                    <p class="text-gray-400 text-center">Loading...</p>
                 </div>
             </div>
         </div>
@@ -171,131 +161,119 @@
     {% block footer %} {% endblock %}
 
     <script>
-        async function loadPendingTx() {
-            const response = await fetch("/api/pending_transactions/");
-            const data = await response.json();
-                console.log(data);
-            const container = document.querySelector('#pendingTxList');
-            container.innerHTML = "";
+    // Determine WebSocket protocol based on page protocol
+    const wsProtocol = window.location.protocol === 'https:' ? 'wss://' : 'ws://';
+    const wsUrl = wsProtocol + window.location.host + '/ws/transactions/';
+    
+    console.log('Attempting to connect to:', wsUrl);
+    
+    let socket;
+    let reconnectAttempts = 0;
+    const maxReconnectAttempts = 2;
+    const reconnectDelay = 3000; // 3 seconds
 
-            data.transactions.forEach(txn => {
-                container.innerHTML += `
-                    <div class="p-4 bg-white/5 rounded-lg border border-white/5">
+    function connectWebSocket() {
+        socket = new WebSocket(wsUrl);
+
+        socket.onopen = function(e) {
+            console.log('WebSocket connected successfully');
+            reconnectAttempts = 0;
+            updateConnectionStatus('connected');
+        };
+
+        socket.onmessage = function(e) {
+            console.log('Received message:', e.data);
+            try {
+                const data = JSON.parse(e.data);
+                const container = document.querySelector('#pendingTxList');
+                
+                if (!container) {
+                    console.error('Container #pendingTxList not found');
+                    return;
+                }
+
+                if (!data.transactions || data.transactions.length === 0) {
+                    container.innerHTML = '<p class="text-gray-400 text-center">No pending transactions</p>';
+                    return;
+                }
+
+                container.innerHTML = '';
+                data.transactions.forEach(txn => {
+                    const txElement = document.createElement('div');
+                    txElement.className = 'p-4 bg-white/5 rounded-lg border border-white/5 hover:bg-white/10 transition-all';
+                    txElement.innerHTML = `
                         <div class="flex justify-between items-start mb-2">
-                            <div class="text-sm text-gray-400">${txn.hash.slice(0, 6)} • • • ${txn.hash.slice(-4)}</div>
-                            <div class="text-kena-gold font-semibold">+${txn.amount} KENA</div>
+                            <div class="text-sm text-gray-400 font-mono">${txn.hash.slice(0, 8)}...${txn.hash.slice(-6)}</div>
+                            <div class="text-kena-gold font-semibold">+${parseFloat(txn.amount).toFixed(2)} KENA</div>
                         </div>
-                        <div class="text-xs text-gray-500">30 seconds ago</div>
-                    </div>`;
-            });
-        }
+                        <div class="text-xs text-gray-500">${txn.timestamp}</div>
+                    `;
+                    container.appendChild(txElement);
+                });
+            } catch (error) {
+                console.error('Error parsing WebSocket message:', error);
+            }
+        };
 
-        setInterval(loadPendingTx, 1000); // refresh every 5 seconds
-        loadPendingTx();
-    </script>
+        socket.onerror = function(error) {
+            console.error('WebSocket error:', error);
+            updateConnectionStatus('error');
+        };
+
+        socket.onclose = function(e) {
+            console.log('WebSocket closed:', e.code, e.reason);
+            updateConnectionStatus('disconnected');
+            
+            // Attempt to reconnect
+            if (reconnectAttempts < maxReconnectAttempts) {
+                reconnectAttempts++;
+                console.log(`Reconnecting... Attempt ${reconnectAttempts}/${maxReconnectAttempts}`);
+                setTimeout(connectWebSocket, reconnectDelay);
+            } else {
+                console.error('Max reconnection attempts reached');
+                const container = document.querySelector('#pendingTxList');
+                if (container) {
+                    container.innerHTML = `
+                        <div class="text-center py-4">
+                            <p class="text-red-400 mb-2">Connection lost</p>
+                            <button onclick="location.reload()" class="px-4 py-2 bg-kena-gold text-black rounded-lg hover:bg-yellow-500 transition-all">
+                                Reload Page
+                            </button>
+                        </div>
+                    `;
+                }
+            }
+        };
+    }
+
+    function updateConnectionStatus(status) {
+        const statusIndicator = document.querySelector('.animate-pulse');
+        if (statusIndicator) {
+            switch(status) {
+                case 'connected':
+                    statusIndicator.className = 'w-3 h-3 bg-green-400 rounded-full mr-3 animate-pulse';
+                    break;
+                case 'disconnected':
+                    statusIndicator.className = 'w-3 h-3 bg-gray-400 rounded-full mr-3';
+                    break;
+                case 'error':
+                    statusIndicator.className = 'w-3 h-3 bg-red-400 rounded-full mr-3 animate-pulse';
+                    break;
+            }
+        }
+    }
+
+    // Initialize connection when page loads
+    connectWebSocket();
+
+    // Clean up on page unload
+    window.addEventListener('beforeunload', function() {
+        if (socket && socket.readyState === WebSocket.OPEN) {
+            socket.close();
+        }
+    });
+</script>
+
 
 
 {% endblock %}
-
- <div class="space-y-4" id="pendingTxList">
-                    <div class="p-4 bg-white/5 rounded-lg border border-white/5">
-                        <div class="flex justify-between items-start mb-2">
-                            <div class="text-sm text-gray-400">0x4f2a...8b9c</div>
-                            <div class="text-kena-gold font-semibold">+125.50 KENA</div>
-                        </div>
-                        <div class="text-xs text-gray-500">Fee: 0.001 KENA • 30 seconds ago</div>
-                    </div>
-                    <div class="p-4 bg-white/5 rounded-lg border border-white/5">
-                        <div class="flex justify-between items-start mb-2">
-                            <div class="text-sm text-gray-400">0x8d3e...2f1a</div>
-                            <div class="text-kena-gold font-semibold">+67.25 KENA</div>
-                        </div>
-                        <div class="text-xs text-gray-500">Fee: 0.002 KENA • 45 seconds ago</div>
-                    </div>
-                    <div class="p-4 bg-white/5 rounded-lg border border-white/5">
-                        <div class="flex justify-between items-start mb-2">
-                            <div class="text-sm text-gray-400">0x1c7b...5e8d</div>
-                            <div class="text-kena-gold font-semibold">+289.80 KENA</div>
-                        </div>
-                        <div class="text-xs text-gray-500">Fee: 0.003 KENA • 1 minute ago</div>
-                    </div>
-                    <div class="p-4 bg-white/5 rounded-lg border border-white/5">
-                        <div class="flex justify-between items-start mb-2">
-                            <div class="text-sm text-gray-400">0x6a9c...3d2f</div>
-                            <div class="text-kena-gold font-semibold">+45.12 KENA</div>
-                        </div>
-                        <div class="text-xs text-gray-500">Fee: 0.001 KENA • 2 minutes ago</div>
-                    </div>
-                </div>
-
-
-<!-- <div class="">
-         <h1>home page welcome </h1>
-        {% if block %}
-            <table>
-                    <thead>
-                        <tr>
-                            <th>height</th>
-                            <th>Nonce</th>
-                            <th>Previous Hash</th>
-                            <th>Block Hash</th>
-                            <th>Date Created</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for block in blocks %}
-                            {% if block.type != 'fee' %}                                                  
-                                <tr>
-                                    <td class="highlight">{{ block.height }}</td>
-                                    <td class="highlight">{{ block.nonce }}</td>
-                                    <td class="highlight">{{ block.previous_hash|slice:":6" }}...{{ block.previous_hash|slice:"-4:" }}</td>
-                                    <td class="highlight">{{ block.hash|slice:":6" }}...{{ block.hash|slice:"-4:" }}</td>
-                                    <td class="highlight">{{ block.timestamp}}</td>
-                                </tr>
-                            {% endif %}
-                        {% endfor %}
-                    </tbody>
-                </table>
-        {% else %}
-            <p>no transactions</p>
-        {% endif %}
-    </div> -->
-
-
-     <!-- <div class="relative grid grid-cols-6">      
-        <header class="flex bg-gray-800 col-span-1 text-white p-4 border-r-[0.5px] border-gray-100/50">                     
-            <nav class="flex flex-col items-left h-screen  ">
-                <h1 class="text-2xl font-bold mb-4">Kena.com</h1>
-                <ul>
-                    <li><a href="{% url 'home' %}">Home</a></li>
-                    <li><a href="{% url 'dashboard' %}">Dashboard</a></li>
-                    {% if user.is_authenticated %}
-                        <li>Welcome, {{ user.username }}!</li>
-                        <li><a href="">Profile</a></li>
-                        <li><a href="{% url 'logout' %}">Logout</a></li>
-                    {% else %}
-                        <li><a href="{% url 'login' %}">Login</a></li>
-                        <li><a href="{% url 'register' %}">Register</a></li>
-                    {% endif %}
-                </ul>
-            </nav>
-        </header>  
-        <main class="grid grid-rows-12 bg-gray-800 col-span-5 ">
-            <div class="row-span-1 bg-gray-900 text-white">
-                <div class="flex justify-between items-center p-6 border-b-[0.5px] border-gray-100/50">
-                    <h1 class="text-2xl font-bold">Kena Dashboard</h1>
-                    {% if user.is_authenticated %}
-                        <p class="text-white">Welcome, {{ user.username }}!</p>
-                    {% else %}
-                        <p class="text-white">Please log in to access your dashboard.</p>
-                    {% endif %}
-                </div>
-            </div>  
-            <div class="row-span-11 p-4">
-                      
-            </div>
-            
-        </main>     
-     </div>  -->
-
- 
