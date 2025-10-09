@@ -40,9 +40,13 @@
                     </ul>
                 </div>
             </div>
-            <div class="border-t border-white/10 mt-8 pt-6 text-center text-gray-400 text-sm">
-                <p>&copy; 2024 Kena Cryptocurrency. All rights reserved.</p>
+            <div class="border-t border-white/10 mt-8 pt-6 text-center text-gray-400 text-sm hover:text-kena-gold transition-colors duration-300">
+                <p>&copy; <span id="year"></span> Kena Value. All rights reserved.</p>
             </div>
+            <script>
+                document.getElementById('year').textContent = new Date().getFullYear();
+            </script>
+
         </div>
     </footer>
 {% endblock %}
