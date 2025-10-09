@@ -676,7 +676,7 @@ def submit_block(request):
                 "type": tx.type
             })
             # confirmed.append(tx)
-            # pending_txn.delete()
+            pending_txn.delete()
         except PendingTransaction.DoesNotExist:
             # print(f"error: Transaction not found : {txn_hash}")
             return JsonResponse({"error": f"Transaction {txn_hash} not found"}, status=400)
