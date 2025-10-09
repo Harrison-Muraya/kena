@@ -16,20 +16,24 @@ class TransactionConsumer(AsyncWebsocketConsumer):
 
     @database_sync_to_async
     def get_transactions(self):
-        txns = PendingTransaction.objects.all().order_by('-timestamp')[:4]
-        # print(txns)
-        return [
-            {
-                'hash': t.hash,
-                'amount': str(t.amount),
-                'timestamp': t.timestamp.strftime('%Y-%m-%d %H:%M:%S'),
-            }
-            for t in txns
-        ]
+        txns_qs  = PendingTransaction.objects.all().order_by('-timestamp')
+        txnsCount = txns_qs.count()
+        txns = txns_qs[:4]
+        return {
+            'count': txnsCount,
+            'list': [
+                {
+                    'hash': t.hash,
+                    'amount': str(t.amount),
+                    'timestamp': t.timestamp.strftime('%Y-%m-%d %H:%M:%S'),
+                }
+                for t in txns
+            ]
+        }
 
     async def send_transactions(self):
         data = await self.get_transactions()
-        await self.send(text_data=json.dumps({'transactions': data}))
+        await self.send(text_data=json.dumps({'transactions': data['list'], 'count': data['count']}))
 
     async def transaction_update(self, event):
         await self.send_transactions()
@@ -50,7 +54,7 @@ class BlockConsumer(AsyncWebsocketConsumer):
     def get_blocks(self):
         from .models import Block  # Import here to avoid circular import
         blocks = Block.objects.all().order_by('-timestamp')[:4]
-        print(blocks)
+        # print(blocks)
         return [
             {
                 'height': b.height,

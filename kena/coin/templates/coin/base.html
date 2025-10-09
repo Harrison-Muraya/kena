@@ -74,6 +74,18 @@
                         break;
                 }
             }
+            // Update block height display
+            function updateblockHeight(height) {
+                const el = document.getElementById('blockHeight');
+                if (el) el.textContent = height.toLocaleString();
+
+            }
+
+            // update Pending Transactions count display
+            function updatePendingCount(count) {    
+                const el = document.getElementById('pendingTx');
+                if (el) el.textContent = count.toLocaleString();
+            }
 
             // Pending Transactions real-time updates        
             const blockSocketUrl = wsProtocol + host + '/ws/blocks/';
@@ -100,7 +112,9 @@
                             container.innerHTML = '<p class="text-gray-400 text-center">No recent blocks</p>';
                             return;
                         }
-
+                        if (data.blocks[0]?.height) {
+                            updateblockHeight(data.blocks[0].height);
+                        }
                         container.innerHTML = '';
                         data.blocks.forEach(block => {
                             const blockDiv = createExpandableBlock(block);
@@ -265,13 +279,25 @@
                 txSocket.onmessage = e => {
                     try {
                         const data = JSON.parse(e.data);
+                        console.log('TX data:', data);
                         const container = document.querySelector('#pendingTxList');
                         if (!container) return;
-
+                        
                         if (!data.transactions?.length) {
                             container.innerHTML = '<p class="text-gray-400 text-center">No pending transactions</p>';
                             return;
                         }
+
+                        // If no transactions
+                        // if (!data.transactions?.length) {
+                        //     container.innerHTML = '<p class="text-gray-400 text-center">No pending transactions</p>';
+                        //     const countEl = document.querySelector('#pendingCount');
+                        //     if (countEl) countEl.textContent = '(0)';
+                        //     return;
+                        // }
+
+                        // Update pending transactions count
+                        updatePendingCount(data.count);
 
                         container.innerHTML = '';
                         data.transactions.forEach(txn => {
