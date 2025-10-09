@@ -75,7 +75,180 @@
                 }
             }
 
-            // Pending Transactions real-time updates
+            // Pending Transactions real-time updates        
+            const blockSocketUrl = wsProtocol + host + '/ws/blocks/';
+            let blockSocket, blockReconnect = 0;
+            const blockMaxReconnect = 5, blockDelay = 2000;
+
+            function connectBlockSocket() {
+                blockSocket = new WebSocket(blockSocketUrl);
+
+                blockSocket.onopen = () => {
+                    console.log('✅ Blocks WS connected');
+                    blockReconnect = 0;
+                    updateStatus('#blocksStatus', 'connected', 'bg-green-400');
+                };
+
+                blockSocket.onmessage = e => {
+                    try {
+                        const data = JSON.parse(e.data);
+                        console.log('Block data:', data);
+                        const container = document.querySelector('#blocksList');
+                        if (!container) return;
+
+                        if (!data.blocks?.length) {
+                            container.innerHTML = '<p class="text-gray-400 text-center">No recent blocks</p>';
+                            return;
+                        }
+
+                        container.innerHTML = '';
+                        data.blocks.forEach(block => {
+                            const blockDiv = createExpandableBlock(block);
+                            container.appendChild(blockDiv);
+                        });
+
+                        // Attach accordion listeners to newly created blocks
+                        attachAccordionListeners();
+                    } catch (err) {
+                        console.error('Block parse error:', err);
+                    }
+                };
+
+                blockSocket.onerror = () => updateStatus('#blocksStatus', 'error');
+                blockSocket.onclose = () => {
+                    updateStatus('#blocksStatus', 'disconnected');
+                    if (blockReconnect < blockMaxReconnect) {
+                        blockReconnect++;
+                        console.warn(`Reconnecting Block WS... (${blockReconnect}/${blockMaxReconnect})`);
+                        setTimeout(connectBlockSocket, blockDelay);
+                    } else {
+                        console.error('❌ Block WS max retries reached');
+                        const c = document.querySelector('#blocksList');
+                        if (c) c.innerHTML = `<p class="text-red-400 text-center">Connection lost</p>`;
+                    }
+                };
+            }
+
+            // Create expandable block element
+            function createExpandableBlock(block) {
+                const wrapper = document.createElement('div');
+                wrapper.className = 'bg-white/5 rounded-lg border border-white/5 overflow-hidden block-item hover:bg-white/10 transition-all';
+                
+                const hasTransactions = block.transactions && block.transactions.length > 0;
+                
+                wrapper.innerHTML = `
+                    <!-- Block Header (clickable) -->
+                    <div class="flex items-center justify-between p-4 cursor-pointer block-header">
+                        <div class="flex items-center space-x-3 gap-y-4">
+                            <!-- Chevron Icon -->
+                            <div class="flex items-center justify-center w-8 h-8 bg-kena-gold/20 rounded-full chevron-container">
+                                <!-- Chevron Right (collapsed) -->
+                                <svg class="w-4 h-4 text-kena-gold chevron-right transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m9 18 6-6-6-6"></path>
+                                </svg>
+                                <!-- Chevron Down (expanded) -->
+                                <svg class="w-4 h-4 text-kena-gold chevron-down hidden transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m19 9-7 7-7-7"></path>
+                                </svg>
+                            </div>
+                            
+                            <!-- Block Info -->
+                            <div class="space-y-2">
+                                <div class="font-semibold text-kena-gold">#${block.height}</div>
+                                <div class="text-xs text-gray-400 font-mono">
+                                    ${block.hash ? `${block.hash.slice(0, 8)}...${block.hash.slice(-6)}` : 'N/A'} Block hash
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="text-right space-y-2">
+                            <div class="text-sm text-gray-300">${hasTransactions ? block.transactions.length : 0} transactions</div>
+                            <div class="text-xs text-gray-400">${block.timestamp || 'Just now'}</div>
+                        </div>
+                    </div>
+
+                    <!-- Transactions Content (collapsible) -->
+                    <div class="transactions-content hidden border-t border-white/5 bg-black/20">
+                        <div class="p-4">
+                            <h3 class="text-sm font-semibold text-gray-300 mb-3">Transactions</h3>
+                            ${hasTransactions ? `
+                                <div class="space-y-2">
+                                    ${block.transactions.map(tx => `
+                                        <div class="bg-white/5 rounded-lg p-3 border border-white/5 text-xs">
+                                            <div class="grid grid-cols-2 gap-2">
+                                                <div>
+                                                    <span class="text-gray-400">Hash:</span>
+                                                    <div class="font-mono text-gray-300">${tx.hash ? `${tx.hash.slice(0, 6)}...${tx.hash.slice(-4)}` : 'N/A'}</div>
+                                                </div>
+                                                <div>
+                                                    <span class="text-gray-400">Amount:</span>
+                                                    <span class="font-semibold text-kena-gold ml-2">${tx.amount || '0'} KENA</span>
+                                                </div>
+                                                <div>
+                                                    <span class="text-gray-400">From:</span>
+                                                    <div class="font-mono text-gray-300 truncate">${tx.sender || 'N/A'}</div>
+                                                </div>
+                                                <div>
+                                                    <span class="text-gray-400">To:</span>
+                                                    <div class="font-mono text-gray-300 truncate">${tx.receiver || 'N/A'}</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            ` : '<p class="text-gray-400 text-center py-2">No transactions in this block</p>'}
+                        </div>
+                    </div>
+                `;
+                
+                return wrapper;
+            }
+
+            // Accordion functionality
+            function attachAccordionListeners() {
+                const blockHeaders = document.querySelectorAll('.block-header');
+                
+                blockHeaders.forEach(header => {
+                    // Remove existing listeners to avoid duplicates
+                    const newHeader = header.cloneNode(true);
+                    header.parentNode.replaceChild(newHeader, header);
+                    
+                    newHeader.addEventListener('click', function() {
+                        const blockItem = this.closest('.block-item');
+                        const transactionsContent = blockItem.querySelector('.transactions-content');
+                        const chevronRight = blockItem.querySelector('.chevron-right');
+                        const chevronDown = blockItem.querySelector('.chevron-down');
+                        
+                        // Toggle visibility with smooth animation
+                        if (transactionsContent.classList.contains('hidden')) {
+                            // Expand
+                            transactionsContent.classList.remove('hidden');
+                            chevronRight.classList.add('hidden');
+                            chevronDown.classList.remove('hidden');
+                            
+                            // Smooth expand animation
+                            transactionsContent.style.maxHeight = '0px';
+                            transactionsContent.style.opacity = '0';
+                            setTimeout(() => {
+                                transactionsContent.style.maxHeight = transactionsContent.scrollHeight + 'px';
+                                transactionsContent.style.opacity = '1';
+                                transactionsContent.style.transition = 'max-height 0.3s ease-out, opacity 0.3s ease-out';
+                            }, 10);
+                        } else {
+                            // Collapse
+                            transactionsContent.style.maxHeight = '0px';
+                            transactionsContent.style.opacity = '0';
+                            setTimeout(() => {
+                                transactionsContent.classList.add('hidden');
+                                chevronRight.classList.remove('hidden');
+                                chevronDown.classList.add('hidden');
+                            }, 300);
+                        }
+                    });
+                });
+            }
+
+            // Pending Transactions WebSocket (your existing code)
             const txSocketUrl = wsProtocol + host + '/ws/transactions/';
             let txSocket, txReconnect = 0;
             const txMaxReconnect = 5, txDelay = 3000;
@@ -125,83 +298,6 @@
                         txReconnect++;
                         console.warn(`Reconnecting TX WS... (${txReconnect}/${txMaxReconnect})`);
                         setTimeout(connectTxSocket, txDelay);
-                    } else {
-                        console.error('❌ TX WS max retries reached');
-                        const c = document.querySelector('#pendingTxList');
-                        if (c) c.innerHTML = `<p class="text-red-400 text-center">Connection lost</p>`;
-                    }
-                };
-            }
-
-            // Block WebSocket connection and handlers
-            const blockSocketUrl = wsProtocol + host + '/ws/blocks/';
-            let blockSocket, blockReconnect = 0;
-            const blockMaxReconnect = 5, blockDelay = 2000;
-
-            function connectBlockSocket() {
-                blockSocket = new WebSocket(blockSocketUrl);
-
-                blockSocket.onopen = () => {
-                    console.log('✅ Blocks WS connected');
-                    blockReconnect = 0;
-                    updateStatus('#blocksStatus', 'connected', 'bg-green-400');
-                };
-
-                blockSocket.onmessage = e => {
-                    try {
-                        const data = JSON.parse(e.data);
-                        console.log('Block data:', data);
-                        const container = document.querySelector('#blocksList');
-                        if (!container) return;
-
-                        if (!data.blocks?.length) {
-                            container.innerHTML = '<p class="text-gray-400 text-center">No recent blocks</p>';
-                            return;
-                        }
-
-                        container.innerHTML = '';
-                        data.blocks.forEach(block => {
-                            const el = document.createElement('div');
-                            el.className = 'flex justify-between items-center p-4 bg-white/5 rounded-lg border border-white/5 hover:bg-white/10 transition-all';
-                            el.innerHTML = `
-                                <div>
-                                    <div class="font-semibold text-kena-gold">#${block.height}</div>
-                                    <div class="text-sm text-gray-400">${block.timestamp}</div>
-                                </div>
-                                <div class="text-right">
-                                    <div class="text-sm">${block.transactions.length} transactions</div>
-                                    <div class="text-xs text-gray-400">Mined by: ${block.miner}</div>
-                                </div>
-                            `;
-
-                            ` <div class="flex justify-between items-center p-4 bg-white/5 rounded-lg border border-white/5">
-                                <div>
-                                    <div class="font-semibold text-kena-gold">#15847</div>
-                                    <div class="text-sm text-gray-400">2 minutes ago</div>
-                                </div>
-                                <div class="text-right">
-                                    <div class="text-sm">142 transactions</div>
-                                    <div class="text-xs text-gray-400">Mined by: 0x7a9f...</div>
-                                </div>
-                            </div>`;
-                            container.appendChild(el);
-                        });
-                    } catch (err) {
-                        console.error('Block parse error:', err);
-                    }
-                };
-
-                blockSocket.onerror = () => updateStatus('#blocksStatus', 'error');
-                blockSocket.onclose = () => {
-                    updateStatus('#blocksStatus', 'disconnected');
-                    if (blockReconnect < blockMaxReconnect) {
-                        blockReconnect++;
-                        console.warn(`Reconnecting Block WS... (${blockReconnect}/${blockMaxReconnect})`);
-                        setTimeout(connectBlockSocket, blockDelay);
-                    } else {
-                        console.error('❌ Block WS max retries reached');
-                        const c = document.querySelector('#blocksList');
-                        if (c) c.innerHTML = `<p class="text-red-400 text-center">Connection lost</p>`;
                     }
                 };
             }
@@ -220,52 +316,52 @@
 
         //Block real-time updates
         
-        function updateStats() {
-            const pendingTx = document.getElementById('pendingTx');
-            const blockHeight = document.getElementById('blockHeight');
+        // function updateStats() {
+        //     const pendingTx = document.getElementById('pendingTx');
+        //     const blockHeight = document.getElementById('blockHeight');
             
-            // Randomly update pending transactions
-            if (Math.random() > 0.7) {
-                const current = parseInt(pendingTx.textContent);
-                pendingTx.textContent = current + Math.floor(Math.random() * 3) - 1;
-            }
+        //     // Randomly update pending transactions
+        //     if (Math.random() > 0.7) {
+        //         const current = parseInt(pendingTx.textContent);
+        //         pendingTx.textContent = current + Math.floor(Math.random() * 3) - 1;
+        //     }
             
-            // Occasionally add new blocks
-            if (Math.random() > 0.95) {
-                const current = parseInt(blockHeight.textContent.replace(',', ''));
-                blockHeight.textContent = (current + 1).toLocaleString();
-                addNewBlock(current + 1);
-            }
-        }
+        //     // Occasionally add new blocks
+        //     if (Math.random() > 0.95) {
+        //         const current = parseInt(blockHeight.textContent.replace(',', ''));
+        //         blockHeight.textContent = (current + 1).toLocaleString();
+        //         addNewBlock(current + 1);
+        //     }
+        // }
 
-        function addNewBlock(blockNumber) {
-            const blocksList = document.getElementById('blocksList');
-            const newBlock = document.createElement('div');
-            newBlock.className = 'flex justify-between items-center p-4 bg-white/5 rounded-lg border border-white/5 opacity-0';
-            newBlock.innerHTML = `
-                <div>
-                    <div class="font-semibold text-kena-gold">#${blockNumber.toLocaleString()}</div>
-                    <div class="text-sm text-gray-400">Just now</div>
-                </div>
-                <div class="text-right">
-                    <div class="text-sm">${Math.floor(Math.random() * 200) + 50} transactions</div>
-                    <div class="text-xs text-gray-400">Mined by: 0x${Math.random().toString(16).substr(2, 4)}...</div>
-                </div>
-            `;
+        // function addNewBlock(blockNumber) {
+        //     const blocksList = document.getElementById('blocksList');
+        //     const newBlock = document.createElement('div');
+        //     newBlock.className = 'flex justify-between items-center p-4 bg-white/5 rounded-lg border border-white/5 opacity-0';
+        //     newBlock.innerHTML = `
+        //         <div>
+        //             <div class="font-semibold text-kena-gold">#${blockNumber.toLocaleString()}</div>
+        //             <div class="text-sm text-gray-400">Just now</div>
+        //         </div>
+        //         <div class="text-right">
+        //             <div class="text-sm">${Math.floor(Math.random() * 200) + 50} transactions</div>
+        //             <div class="text-xs text-gray-400">Mined by: 0x${Math.random().toString(16).substr(2, 4)}...</div>
+        //         </div>
+        //     `;
             
-            blocksList.insertBefore(newBlock, blocksList.firstChild);
+        //     blocksList.insertBefore(newBlock, blocksList.firstChild);
             
-            // Animate in
-            setTimeout(() => {
-                newBlock.style.opacity = '1';
-                newBlock.style.transition = 'opacity 0.5s ease-in-out';
-            }, 100);
+        //     // Animate in
+        //     setTimeout(() => {
+        //         newBlock.style.opacity = '1';
+        //         newBlock.style.transition = 'opacity 0.5s ease-in-out';
+        //     }, 100);
             
-            // Remove last block if more than 3
-            if (blocksList.children.length > 3) {
-                blocksList.removeChild(blocksList.lastChild);
-            }
-        }
+        //     // Remove last block if more than 3
+        //     if (blocksList.children.length > 3) {
+        //         blocksList.removeChild(blocksList.lastChild);
+        //     }
+        // }
 
         // Update every 5 seconds
         // setInterval(updateStats, 5000);
