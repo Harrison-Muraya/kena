@@ -606,7 +606,7 @@ def submit_block(request):
             
             verifiedSignature = verify_signature(checkKey(tx.sender.public_key),transaction_data,tx.signature)  
             if(verifiedSignature):                    
-                print(f"Amount: { tx.amount} verified: {verifiedSignature}, data: {transaction_data}")
+                # print(f"Amount: { tx.amount} verified: {verifiedSignature}, data: {transaction_data}")
                 tx_data.append({
                     "sender": tx.sender.username,
                     "receiver": tx.receiver.username,
@@ -615,7 +615,7 @@ def submit_block(request):
                 })                  
             else:
                 pass
-                print(f"Amount: { tx.amount} failed verification -- verifiedsig: {verifiedSignature}, data: {transaction_data}")
+                # print(f"Amount: { tx.amount} failed verification -- verifiedsig: {verifiedSignature}, data: {transaction_data}")
                            
         except Exception as e:
             print(e)
@@ -655,7 +655,7 @@ def submit_block(request):
         try:
             pending_txn = PendingTransaction.objects.get(hash=txn_hash['hash'])
 
-            print(f"matched pending transaction:  {pending_txn} id : {pending_txn.id}")
+            # print(f"matched pending transaction:  {pending_txn} id : {pending_txn.id}")
             tx = Transaction.objects.create(
                 billing=pending_txn.billing,
                 gateway=pending_txn.gateway,
@@ -676,9 +676,9 @@ def submit_block(request):
                 "type": tx.type
             })
             # confirmed.append(tx)
-            pending_txn.delete()
+            # pending_txn.delete()
         except PendingTransaction.DoesNotExist:
-            print(f"error: Transaction not found : {txn_hash}")
+            # print(f"error: Transaction not found : {txn_hash}")
             return JsonResponse({"error": f"Transaction {txn_hash} not found"}, status=400)
         
     # check if Block contain data if not create genesis block

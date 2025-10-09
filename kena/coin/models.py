@@ -196,6 +196,14 @@ class Block(models.Model):
     hash = models.CharField(max_length=64, unique=True)
     transactions = models.JSONField() # to strore transactions in a json format
 
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        channel_layer = get_channel_layer()
+        async_to_sync(channel_layer.group_send)(
+            "blocks",
+            {"type": "block_update"}
+        )
+
     def __str__(self):
         return f"Block {self.height} - {self.hash[:10]}..."
 
