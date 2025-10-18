@@ -1,0 +1,30 @@
+/* Style the country code select dropdown */
+/* #countryCode {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%23ffffff' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3E%3C/svg%3E");
+    background-position: right 0.25rem center;
+    background-repeat: no-repeat;
+    background-size: 1.25em 1.25em;
+    padding-right: 1.75rem;
+} */
+
+/* Style the dropdown options */
+#countryCode option {
+    background-color: #1e293b; /* Dark slate color */
+    color: white;
+    padding: 0.5rem;
+}
+
+/* Style on hover */
+#countryCode option:hover {
+    background-color: #334155;
+}
+
+/* Style the selected option */
+#countryCode option:checked {
+    background-color: #475569;
+}
+
+#countryCode:focus {
+    outline: none;
+    box-shadow: none;
+}

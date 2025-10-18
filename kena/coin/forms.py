@@ -45,15 +45,16 @@ class RegisterForm(UserCreationForm):
             'class': 'w-full p-4 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-400 focus:border-kena-gold focus:ring-2 focus:ring-kena-gold/50 focus:outline-none transition-all',
             'placeholder': 'harrison@example.com'
         })
-    )    
+    ) 
     phone = forms.CharField(
         max_length=15,
         required=True,
         widget=forms.TextInput(attrs={
-            'class': 'w-full p-4 pl-20 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-400 focus:border-kena-gold focus:ring-2 focus:ring-kena-gold/50 focus:outline-none transition-all',
+            'class': 'w-full p-4 pl-24 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-400 focus:border-kena-gold focus:ring-2 focus:ring-kena-gold/50 focus:outline-none transition-all',
             'placeholder': '726688832'
         })
     )    
+
     country_code = forms.CharField(
         max_length=5,
         initial='+254',
@@ -67,10 +68,35 @@ class RegisterForm(UserCreationForm):
             ],
             attrs={
                 'id': 'countryCode',
-                'class': 'absolute left-0 top-0 h-full bg-white/5 border border-white/10 rounded-l-xl text-white text-sm px-3 focus:outline-none'
+                'class': 'absolute left-3 top-1/2 -translate-y-1/2 bg-transparent border-0 text-white text-sm focus:outline-none focus:ring-0 pr-2 cursor-pointer z-10'
             }
         )
-    )    
+    ) 
+    # phone = forms.CharField(
+    #     max_length=15,
+    #     required=True,
+    #     widget=forms.TextInput(attrs={
+    #         'class': 'w-full p-4 pl-20 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-400 focus:border-kena-gold focus:ring-2 focus:ring-kena-gold/50 focus:outline-none transition-all',
+    #         'placeholder': '726688832'
+    #     })
+    # )    
+    # country_code = forms.CharField(
+    #     max_length=5,
+    #     initial='+254',
+    #     widget=forms.Select(
+    #         choices=[
+    #             ('+254', '🇰🇪 +254'),
+    #             ('+1', '🇺🇸 +1'),
+    #             ('+44', '🇬🇧 +44'),
+    #             ('+91', '🇮🇳 +91'),
+    #             ('+86', '🇨🇳 +86'),
+    #         ],
+    #         attrs={
+    #             'id': 'countryCode',
+    #             'class': 'absolute left-0 top-0 h-full bg-white/5 border border-white/10 rounded-l-xl text-white text-sm px-3 focus:outline-none'
+    #         }
+    #     )
+    # )    
     terms_accepted = forms.BooleanField(
         required=True,
         error_messages={'required': 'You must agree to the Terms of Service and Privacy Policy'},
