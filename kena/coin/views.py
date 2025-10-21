@@ -446,7 +446,7 @@ def send_kena(request):
                 billing = Billing(
                     user=sender,
                     wallet=form.cleaned_data['wallet'],
-                    amount=amount + FEE,  # Total amount including fee
+                    amount=amount,  # Total amount including no fee
                     fee=FEE,  # Transaction fee
                     total=amount + FEE,  # Total amount including fee
                     uid=uidgenerator.generate_code(),  # Generate a unique identifier
