@@ -18,3 +18,5 @@ Set-ExecutionPolicy Unrestricted -Scope Process
 ##### for channel to run 
 daphne chat.asgi:application
 daphne -b 192.168.100.24 -p 8000 kena.asgi:application  # when in network
+
+py manage.py runserver 192.168.100.24:8000  
