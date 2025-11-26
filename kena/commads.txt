@@ -20,3 +20,14 @@ daphne chat.asgi:application
 daphne -b 192.168.100.24 -p 8000 kena.asgi:application  # when in network
 
 py manage.py runserver 192.168.100.24:8000  
+
+
+
+## when deploing on render.com 
+
+root directory is: kena
+build command is: pip install -r requirements.txt && python manage.py collectstatic --noinput
+start command is: python manage.py runserver 0.0.0.0:8000
+
+
+
