@@ -34,10 +34,10 @@ DEBUG = False
 ALLOWED_HOSTS = ['*']
 # ALLOWED_HOSTS = ['kena.onrender.com', 'www.kena.onrender.com']
 
-# CSRF_TRUSTED_ORIGINS = [
-#     'https://kena.onrender.com',
-#     'https://www.kena.onrender.com',
-# ]
+CSRF_TRUSTED_ORIGINS = [
+    'https://kena.onrender.com',
+    'https://www.kena.onrender.com',
+]
 
 # INTERNAL_IPS = ['127.0.0.1']
 

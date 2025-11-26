@@ -106,7 +106,7 @@ def home(request):
     pendingTransaction = PendingTransaction.objects.all().order_by('-timestamp')  # Fetch all transactions, ordered by most recent
     return render(request, 'coin/home.html', {'blocks': blocks, 'pendingTransaction': pendingTransaction})
 
-# API endpoint to get the latest 10 pending transactions
+# API endpoint to get the latest 5 pending transactions
 def get_pending_transactions(request):
     txns = PendingTransaction.objects.all().order_by('-timestamp')[:5]
     data = [
