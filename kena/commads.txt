@@ -13,6 +13,7 @@ python manage.py tailwind build
 
 ##### for enabling vertiua envirronment run in vs code ###
 Set-ExecutionPolicy Unrestricted -Scope Process
+.\venv\Scripts\activate
 
 
 ##### for channel to run 
