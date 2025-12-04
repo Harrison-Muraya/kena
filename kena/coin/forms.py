@@ -315,7 +315,10 @@ class SendKenaForm(forms.Form):
         'required': True,
         'id': 'password'
     }))
-   
+
+class BuyKenaForm(forms.Form):
+    pass
+
 # class SendKenaForm(forms.Form):
 #     def __init__(self, *args, user=None, **kwargs):
 #         super().__init__(*args, **kwargs)

@@ -541,6 +541,8 @@ def mine_kena(request):
         return render(request, 'coin/mine_kena.html',{'transactions': transactions})
     else:
         return redirect('login')
+
+
     
 # returns a json file with block data
 def get_mine_data(request):
@@ -585,6 +587,17 @@ def get_mine_data(request):
         "transactions": tx_data,
         "timestamp": time.time(),
     })
+
+#buy kena via mpesa
+def buy_kena(request):
+    if request.user.is_authenticated:
+        user = request.user
+        if request.method == 'POST' and request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            # form = 
+            pass
+    else:
+        pass
+
 
 # submit mined block
 @csrf_exempt

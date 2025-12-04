@@ -243,7 +243,20 @@ class PendingTransaction(models.Model):
     def __str__(self):
         return f"{self.sender} -> {self.receiver}: {self.amount}-> {self.signature}"
     
-# 
+# mpesa Transaction Model
+class MpesaTransaction(models.Model):
+    Billing = models.ForeignKey(Billing, on_delete=models.CASCADE)
+    type = models.CharField(max_length=20, default='buy_kena-mpesa')
+    MerchantRequestID = models.CharField(max_length=100, blank=True, null=True)
+    CheckoutRequestID = models.CharField(max_length=100, blank=True, null=True)
+    phone_number = models.CharField(max_length=15)
+    amount = models.DecimalField(max_digits=20, decimal_places=5)
+    transaction_id = models.CharField(max_length=100, unique=True)
+    status = models.CharField(max_length=20, default='pending')
+    timestamp = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Mpesa Transaction {self.transaction_id} - {self.phone_number} - {self.amount} - {self.status}" 
 
 # class PendingTransaction(models.Model, object):
 #     def __init__(self, billing, sender, receiver, amt, time):
