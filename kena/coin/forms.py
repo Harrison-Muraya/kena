@@ -1,6 +1,6 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
-from .models import CustomUser, Wallet, UserProfile, Coin
+from .models import CustomUser, Wallet, UserProfile, Coin, MpesaTransaction
 from . import views 
 from django.contrib.auth.hashers import make_password
 from . import blockchain
@@ -316,8 +316,22 @@ class SendKenaForm(forms.Form):
         'id': 'password'
     }))
 
-class BuyKenaForm(forms.Form):
-    pass
+class MpesaBuyKenaForm(forms.Form):
+    phone_number = forms.CharField(label="Phone Number", max_length=15, widget=forms.TextInput(attrs={
+        'class': 'w-full p-2 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-400 focus:border-kena-gold focus:ring-1 focus:ring-kena-gold/50 focus:outline-none transition-all',
+        'placeholder': 'Enter your phone number',
+        'required': True,
+        'id': 'phoneNumber'
+    }))
+    amount = forms.DecimalField(label="Amount", max_digits=20, decimal_places=2, widget=forms.NumberInput(attrs={
+        'class': 'w-full p-2 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-400 focus:border-kena-gold focus:ring-1 focus:ring-kena-gold/50 focus:outline-none transition-all',
+        'placeholder': 'Enter the amount to buy',
+        'required': True,
+        'id': 'amount'
+    }))
+    
+
+    
 
 # class SendKenaForm(forms.Form):
 #     def __init__(self, *args, user=None, **kwargs):

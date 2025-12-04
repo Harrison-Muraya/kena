@@ -593,8 +593,30 @@ def buy_kena(request):
     if request.user.is_authenticated:
         user = request.user
         if request.method == 'POST' and request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-            # form = 
-            pass
+            form = forms.BuyKenaForm(request.POST, user=request.user)
+            if form.is_valid():
+                amount = form.cleaned_data['amount']
+                wallet = form.cleaned_data['wallet']
+
+                # creating a new billing instance
+                billing = Billing(
+                    user=user,
+                    wallet=wallet,
+                    amount=amount,  # Total amount including no fee
+                    fee=0,  # Transaction fee
+                    total=amount,  # Total amount including fee
+                    uid=uidgenerator.generate_code(),  # Generate a unique identifier
+                    type='buy',
+                )
+                billing.save()
+
+                messages.success(request, 'Buy Kena request submitted successfully!')
+                return JsonResponse({'success': True})
+            else:
+                errors = {}
+                for field, error_list in form.errors.items():
+                    errors[field] = [str(e) for e in error_list]
+                return JsonResponse({'success': False, 'errors': errors})
     else:
         pass
 

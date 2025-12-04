@@ -29,7 +29,7 @@ function openBuyModal(method) {
     switch(method) {
         case 'mpesa':
             paymentContent = `
-                <div class="flex items-center">
+                <div id ="mpesa"  class="flex items-center">
                     <div class="w-8 h-8 bg-green-500 rounded mr-3 flex items-center justify-center">
                         <span class="text-xs font-bold text-white">M</span>
                     </div>
@@ -42,7 +42,7 @@ function openBuyModal(method) {
             break;
         case 'paypal':
             paymentContent = `
-                <div class="flex items-center">
+                <div id="paypal" class="flex items-center">
                     <div class="w-8 h-8 bg-blue-500 rounded mr-3 flex items-center justify-center">
                         <span class="text-xs font-bold text-white">P</span>
                     </div>
@@ -53,7 +53,7 @@ function openBuyModal(method) {
             break;
         case 'card':
             paymentContent = `
-                <div class="flex items-center mb-3">
+                <div id="card" class="flex items-center mb-3">
                     <div class="w-8 h-8 bg-purple-500 rounded mr-3 flex items-center justify-center">
                         <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path>
@@ -116,19 +116,47 @@ document.addEventListener('DOMContentLoaded', function() {
 
 function processPurchase() {
     const amount = document.getElementById('buyAmount').value;
+    const formdata = new FormData();
+    buyButton = document.getElementById('PurchaseButton');
+    buyAmountError = document.getElementById('buyAmountError');
+    const url = document.getElementById('dashboardUrl').value;
+
+    const method = document.getElementById('mpesa') ? 'M-Pesa' :
+                   document.getElementById('paypal') ? 'PayPal' :
+                   document.getElementById('card') ? 'Credit/Debit Card' : 'Unknown';
+
+    // console.log('Processing purchase of $' + amount + ' via ' + method);
+    // alert('Processing purchase of $' + amount + ' via ' + method);
     if (!amount || amount <= 0) {
-        alert('Please enter a valid amount');
+        alert('Please enter a valid amount',);
         return;
     }
-    
+
+    if(method === 'mpesa' || method === 'M-Pesa'){
+        // initiate mpesa payment process
+        
+    } else if(method === 'paypal' || method === 'PayPal'){
+        // initiate paypal payment process
+        alert('Redirecting to PayPal for payment of $' + amount);
+    } else if(method === 'card' || method === 'Credit/Debit Card'){
+        // initiate card payment process
+        alert('Processing card payment of $' + amount);
+    }   else {  
+        alert('Please select a payment method');
+        return;
+    }
+
+
+    // console.log('Processing purchase of $' + amount + ' via ' + method);
+
     // Simulate purchase process
-    alert('Purchase initiated! You will receive a confirmation shortly.');
-    closeBuyModal();
+   
+    // closeBuyModal();
     
     // Add to transaction history
-    setTimeout(() => {
-        addTransaction('purchase', parseFloat(amount) / 0.30, 'Purchase via payment method');
-    }, 2000);
+    // setTimeout(() => {
+    //     addTransaction('purchase', parseFloat(amount) / 0.30, 'Purchase via payment method');
+    // }, 2000);
 }
 
 function sendTransaction() {

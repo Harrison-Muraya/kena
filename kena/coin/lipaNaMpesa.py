@@ -1,8 +1,6 @@
 import os
 import requests
 
-
-
 def format_phone_number(phone_number):
     """Convert phone number to 254 format."""
     if phone_number.startswith('0'):
@@ -50,3 +48,31 @@ def lipaNaMpesaOnline(phone_number, amount, account_reference, transaction_desc)
     response = requests.post(api_url, json=payload, headers=headers)
     return response.json()
 
+
+
+
+
+# import requests
+
+# url = "https://api.safaricom.co.ke/YOUR_ENDPOINT"
+# payload = {
+#   "Password": "MTc0Mzc5YmZiMjc5ZjlhYTliZGJjZjE1OGU5N2RkNzFhNDY3Y2QyZTBjODkzMDU5YjEwZjc4ZTZiNzJhZGExZWQyYzkxOTIwMjUxMjA1MDAwNjM4",
+#   "BusinessShortCode": "174379",
+#   "Timestamp": "20251205000638",
+#   "Amount": "1",
+#   "PartyA": "254708374149",
+#   "PartyB": "174379",
+#   "TransactionType": "CustomerPayBillOnline",
+#   "PhoneNumber": "254726688832",
+#   "TransactionDesc": "Test",
+#   "AccountReference": "Test",
+#   "CallBackURL": "https://mydomain.com/mpesa-express-simulate/"
+# }
+
+# headers = {
+#     "Content-Type": "application/json",
+#     "Authorization": "Bearer <ACCESS_TOKEN>"
+# }
+
+# response = requests.post(url, json=payload, headers=headers)
+# print(response.json())
