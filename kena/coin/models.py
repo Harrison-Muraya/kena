@@ -140,7 +140,7 @@ class Wallet(models.Model):
 # It includes fields for user, wallet, amount, unique identifier (uid), type, flag, status, and timestamps
 class Billing(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    wallet = models.ForeignKey(Wallet, on_delete=models.CASCADE)
+    wallet = models.ForeignKey(Wallet, on_delete=models.CASCADE, null=True, blank=True)
     amount = models.DecimalField(max_digits=20, decimal_places=5)
     fee = models.DecimalField(max_digits=20, decimal_places=5, default=0)
     total = models.DecimalField(max_digits=20, decimal_places=5, default=0)
@@ -251,7 +251,7 @@ class MpesaTransaction(models.Model):
     CheckoutRequestID = models.CharField(max_length=100, blank=True, null=True)
     phone_number = models.CharField(max_length=15)
     amount = models.DecimalField(max_digits=20, decimal_places=5)
-    transaction_id = models.CharField(max_length=100, unique=True)
+    transaction_id = models.CharField(max_length=100, unique=True , blank=True, null=True)
     status = models.CharField(max_length=20, default='pending')
     timestamp = models.DateTimeField(auto_now_add=True)
 

@@ -6,7 +6,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.hashers import make_password
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.template import loader
-from . models import Todolist, Item, Coin, Wallet,CustomUser, Billing, Transaction, Block, PendingTransaction
+from . models import Todolist, Item, Coin, Wallet,CustomUser, Billing, Transaction, Block, PendingTransaction, MpesaTransaction
 from . import forms 
 from . import blockchain
 from . import uidgenerator
@@ -596,12 +596,44 @@ def buy_kena(request):
         amount = data.get('amount')
         method = data.get('method')
         phone = data.get('phoneNumber')
+        user = request.user
 
         if method == 'M-Pesa':
             # Here you would integrate with M-Pesa API to process the payment
             # For demonstration, we'll just return a success message
             response = lipaNaMpesa.lipaNaMpesaOnline(phone, amount)
             print("M-Pesa Response:", response)
+            if response.get('ResponseCode') != '0':
+                return JsonResponse({'success': False, 'message': 'M-Pesa payment initiation failed. Please try again.'})
+            else:
+                # creating a new billing instance
+                billing = Billing(
+                    user=user,
+                    # wallet=wallet,
+                    amount=amount,  # Total amount including no fee
+                    fee=0,  # Transaction fee
+                    total=amount,  # Total amount including fee
+                    uid=uidgenerator.generate_code(),  # Generate a unique identifier
+                    type='buykena',
+                )
+                billing.save()
+
+                # mpesa transaction
+                mpesaTransaction = MpesaTransaction(
+                    Billing=billing,
+                    type = 'buykena',
+                    phone_number=phone,
+                    amount=amount,
+                    MerchantRequestID=response.get('MerchantRequestID'),
+                    CheckoutRequestID=response.get('CheckoutRequestID'),                    
+                    status='Pending',
+                )
+
+
+
+           
+            # responseData = response.json()
+            print("M-Pesa Response Data:", response.get('ResponseCode'))
             return JsonResponse({'success': True, 'message': 'M-Pesa payment initiated. Please complete the payment on your phone.', 'response': response})
 
 
