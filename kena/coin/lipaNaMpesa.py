@@ -1,5 +1,14 @@
 import os
 import requests
+import base64
+from datetime import datetime
+
+
+unformated_time = datetime.now()
+formated_time = unformated_time.strftime("%Y%m%d%H%M%S")
+data_to_encode = os.getenv('MPESA_SHORTCODE') + os.getenv("LIPA_NA_MPESA_PASSKEY") + formated_time
+
+password = base64.b64encode(data_to_encode.encode()).decode("utf-8")
 
 def format_phone_number(phone_number):
     """Convert phone number to 254 format."""
@@ -34,8 +43,8 @@ def lipaNaMpesaOnline(phone_number, amount):
     
     payload = {
         "BusinessShortCode": os.getenv('MPESA_SHORTCODE'),
-        "Password": os.getenv('MPESA_PASSWORD'),
-        "Timestamp": "20241003010101",
+        "Password": password,
+        "Timestamp": formated_time,
         "TransactionType": "CustomerPayBillOnline",
         "Amount": amount,
         "PartyA": phone_number,  # Use formatted phone number
