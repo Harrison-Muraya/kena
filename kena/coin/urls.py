@@ -23,5 +23,6 @@ urlpatterns = [
     path('api/download-miner/', views.download_miner_script, name='download_miner'),
     path('api/pending_transactions/', views.get_pending_transactions, name='pending_transactions'),
     path('process-payment/', views.buy_kena, name='buy_kena'),
+    path('mpesa/callback/', views.mpesa_callback, name='mpesa_callback'),
 
 ]

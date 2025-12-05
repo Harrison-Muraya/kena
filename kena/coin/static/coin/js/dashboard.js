@@ -36,7 +36,7 @@ function openBuyModal(method) {
                     <span>M-Pesa</span>
                 </div>
                 <div class="mt-3">
-                    <input id="phoneNumber" type="tel" placeholder="Phone Number" class="w-full p-2 bg-white/10 border border-white/20 rounded text-white placeholder-gray-400">
+                    <input id="phoneNumber" type="tel" placeholder="0726688832" class="w-full p-2 bg-white/10 border border-white/20 rounded text-white placeholder-gray-400">
                 </div>
             `;
             break;
@@ -441,12 +441,12 @@ function processPurchase(e) {
     e.preventDefault();
     const amount = document.getElementById('buyAmount').value;
     const phoneNumber = document.getElementById('phoneNumber') ? document.getElementById('phoneNumber').value : null;
-    buyButton = document.getElementById('PurchaseButton');
-    buyAmountError = document.getElementById('buyAmountError');
+    const buyButton = document.getElementById('PurchaseButton');
+    const buyAmountError = document.getElementById('buyAmountError');
     const url = document.getElementById('BuyKenaUrl').value;
     spinner = document.getElementById('purchaseSpinner');
 
-    console.log(amount, phoneNumber, url, getCookie('csrftoken'));
+    // console.log(amount, phoneNumber, url, getCookie('csrftoken'));
 
     const method = document.getElementById('mpesa') ? 'M-Pesa' :
                    document.getElementById('paypal') ? 'PayPal' :
@@ -458,52 +458,65 @@ function processPurchase(e) {
         buyButton.disabled = false;
         buyButton.textContent = 'Complete Purchase';
     }
+    else{
 
-    if(method === 'mpesa' || method === 'M-Pesa'){
-        // initiate mpesa payment process
-        // buyButton.disabled = true;
-        // buyButton.innerHTML = `
-        //                         Processing
-        //                         <svg id="purchaseSpinner" class="w-5 h-5 ml-2 inline-block animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        //                             <circle class="opacity-25" cx="12" cy="12" r="10" stroke-width="4"></circle>
-        //                             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
-        //                         </svg>
-        //                     `
-        // buyAmountError.classList.add('hidden');
-        // buyButton.classList.add('opacity-70', 'cursor-not-allowed');
+        if(method === 'mpesa' || method === 'M-Pesa'){
+            // initiate mpesa payment process
+            buyButton.disabled = true;
+            buyButton.innerHTML = `
+                                    Processing
+                                    <svg id="purchaseSpinner" class="w-5 h-5 ml-2 inline-block animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke-width="4"></circle>
+                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+                                    </svg>
+                                `
+            buyAmountError.classList.add('hidden');
+            buyButton.classList.add('opacity-70', 'cursor-not-allowed');
 
-        fetch(url, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-Requested-With': 'XMLHttpRequest',
-                'X-CSRFToken': getCookie('csrftoken')
-            },
-            body: JSON.stringify({amount, method, phoneNumber})
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                alert(data.message);
-                // Reset form and close modal after 2 seconds
-                setTimeout(() => {}, 2000);}})
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify({amount, method, phoneNumber})
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    buyAmountError.classList.remove('hidden');
+                    buyButton.innerHTML = `
+                                    Almost Done
+                                    <svg id="purchaseSpinner" class="w-5 h-5 ml-2 inline-block animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke-width="4"></circle>
+                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+                                    </svg>
+                                `
+                    // Reset form and close modal after 2 seconds
+
+                    setTimeout(() => {}, 2000);}})
 
 
 
-        setTimeout(() => {
-            
-        }, 5000);
-       
-    } else if(method === 'paypal' || method === 'PayPal'){
-        // initiate paypal payment process
-        alert('Redirecting to PayPal for payment of $' + amount);
-    } else if(method === 'card' || method === 'Credit/Debit Card'){
-        // initiate card payment process
-        alert('Processing card payment of $' + amount);
-    }   else {  
-        alert('Please select a payment method');
-        return;
+            setTimeout(() => {
+                
+            }, 5000);
+        
+        } else if(method === 'paypal' || method === 'PayPal'){
+            // initiate paypal payment process
+            alert('Redirecting to PayPal for payment of $' + amount);
+        } else if(method === 'card' || method === 'Credit/Debit Card'){
+            // initiate card payment process
+            alert('Processing card payment of $' + amount);
+        }   else {  
+            alert('Please select a payment method');
+            return;
+        }
+        
     }
+
+    
 
 
     // console.log('Processing purchase of $' + amount + ' via ' + method);

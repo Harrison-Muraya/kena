@@ -602,7 +602,7 @@ def buy_kena(request):
             # Here you would integrate with M-Pesa API to process the payment
             # For demonstration, we'll just return a success message
             response = lipaNaMpesa.lipaNaMpesaOnline(phone, amount)
-            print("M-Pesa Response:", response)
+            # print("M-Pesa Response:", response)
             if response.get('ResponseCode') != '0':
                 return JsonResponse({'success': False, 'message': 'M-Pesa payment initiation failed. Please try again.'})
             else:
@@ -621,50 +621,89 @@ def buy_kena(request):
                 # mpesa transaction
                 mpesaTransaction = MpesaTransaction(
                     Billing=billing,
-                    type = 'buykena',
-                    phone_number=phone,
-                    amount=amount,
+                    type = 'buykena',                 
                     MerchantRequestID=response.get('MerchantRequestID'),
                     CheckoutRequestID=response.get('CheckoutRequestID'),                    
                     status='Pending',
                 )
-
-
-
-           
+                mpesaTransaction.save()
+                         
             # responseData = response.json()
-            print("M-Pesa Response Data:", response.get('ResponseCode'))
+            # print("M-Pesa Response Data:", response.get('ResponseCode'))
             return JsonResponse({'success': True, 'message': 'M-Pesa payment initiated. Please complete the payment on your phone.', 'response': response})
 
+# Mpesa callback URL to handle payment confirmation
+@csrf_exempt
+def mpesa_callback(request):
+    data = {
+        'Body': {
+            'stkCallback': {
+                'MerchantRequestID': 'ddb8-4a08-af32-c0e1ff1c640613777',
+                'CheckoutRequestID': 'ws_CO_05122025235543715726688832', 
+                'ResultCode': 0, 
+                'ResultDesc': 'The service request is processed successfully.', 
+                'CallbackMetadata': {
+                    'Item': [
+                        {'Name': 'Amount', 'Value': 1.0}, 
+                        {'Name': 'MpesaReceiptNumber', 'Value': 'TL5JC06Q6W'}, 
+                        {'Name': 'Balance', 'Value': 0.0}, 
+                        {'Name': 'TransactionDate', 'Value': 20251205235605}, 
+                        {'Name': 'PhoneNumber', 'Value': 254726688832}
+                        ]
+                    }
+                }
+            }
+        }
 
-    # if request.user.is_authenticated:
-    #     user = request.user
-    #     if request.method == 'POST' and request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-    #         form = forms.BuyKenaForm(request.POST, user=request.user)
-    #         if form.is_valid():
-    #             amount = form.cleaned_data['amount']
-    #             wallet = form.cleaned_data['wallet']
-
-    #             # creating a new billing instance
-    #             billing = Billing(
-    #                 user=user,
-    #                 wallet=wallet,
-    #                 amount=amount,  # Total amount including no fee
-    #                 fee=0,  # Transaction fee
-    #                 total=amount,  # Total amount including fee
-    #                 uid=uidgenerator.generate_code(),  # Generate a unique identifier
-    #                 type='buy',
-    #             )
-    #             billing.save()
-
-    #             messages.success(request, 'Buy Kena request submitted successfully!')
-    #             return JsonResponse({'success': True})
-    #         else:
-    #             errors = {}
-    #             for field, error_list in form.errors.items():
-    #                 errors[field] = [str(e) for e in error_list]
-    #             return JsonResponse({'success': False, 'errors': errors})
+    # data = json.loads(request.body)
+    if data.get('Body') is None:
+        return JsonResponse({'success': False, 'message': 'Invalid callback data'})
+    else:
+        stkCallback = data.get('Body', {}).get('stkCallback', {})
+    
+        merchant_request_id = stkCallback.get('MerchantRequestID')
         
+        checkout_request_id = stkCallback.get('CheckoutRequestID')
+        
+        result_code = stkCallback.get('ResultCode')
+        result_desc = stkCallback.get('ResultDesc')
+        callback_metadata = stkCallback.get('CallbackMetadata', {})
+        items = callback_metadata.get('Item', [])
+        amount = None
+        mpesa_receipt_number = None  
+    
+    
+        for item in items:
+            if item.get('Name') == 'Amount':
+                amount = item.get('Value')
+            elif item.get('Name') == 'MpesaReceiptNumber':
+                mpesa_receipt_number = item.get('Value')
+        try:
+            mpesa_transaction = MpesaTransaction.objects.get(CheckoutRequestID=checkout_request_id)
+            if result_code == 0:
+                mpesa_transaction.status = 'Completed'
+                mpesa_transaction.transaction_id = mpesa_receipt_number
+                mpesa_transaction.amount = amount
+                mpesa_transaction.save()
+
+                # Update user's Kena balance or create a credit transaction
+                billing = mpesa_transaction.Billing
+                user = billing.user
+
+                # Here you would typically update the user's Kena balance
+                # For demonstration, we'll just print a message
+                print(f"User {user.username} has successfully purchased {amount} Kena.")
+
+            else:
+                mpesa_transaction.status = 'Failed'
+                mpesa_transaction.save()
+                print(f"M-Pesa transaction failed for CheckoutRequestID: {checkout_request_id}, ResultDesc: {result_desc}")
+        except MpesaTransaction.DoesNotExist:
+            print(f"M-Pesa transaction not found for CheckoutRequestID: {checkout_request_id}")
+
+    return JsonResponse({'success': True})
+
+     
 
 
 # submit mined block
