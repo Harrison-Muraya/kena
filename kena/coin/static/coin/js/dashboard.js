@@ -36,7 +36,7 @@ function openBuyModal(method) {
                     <span>M-Pesa</span>
                 </div>
                 <div class="mt-3">
-                    <input type="tel" placeholder="Phone Number" class="w-full p-2 bg-white/10 border border-white/20 rounded text-white placeholder-gray-400">
+                    <input id="phoneNumber" type="tel" placeholder="Phone Number" class="w-full p-2 bg-white/10 border border-white/20 rounded text-white placeholder-gray-400">
                 </div>
             `;
             break;
@@ -113,51 +113,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 });
-
-function processPurchase() {
-    const amount = document.getElementById('buyAmount').value;
-    const formdata = new FormData();
-    buyButton = document.getElementById('PurchaseButton');
-    buyAmountError = document.getElementById('buyAmountError');
-    const url = document.getElementById('dashboardUrl').value;
-
-    const method = document.getElementById('mpesa') ? 'M-Pesa' :
-                   document.getElementById('paypal') ? 'PayPal' :
-                   document.getElementById('card') ? 'Credit/Debit Card' : 'Unknown';
-
-    // console.log('Processing purchase of $' + amount + ' via ' + method);
-    // alert('Processing purchase of $' + amount + ' via ' + method);
-    if (!amount || amount <= 0) {
-        alert('Please enter a valid amount',);
-        return;
-    }
-
-    if(method === 'mpesa' || method === 'M-Pesa'){
-        // initiate mpesa payment process
-        
-    } else if(method === 'paypal' || method === 'PayPal'){
-        // initiate paypal payment process
-        alert('Redirecting to PayPal for payment of $' + amount);
-    } else if(method === 'card' || method === 'Credit/Debit Card'){
-        // initiate card payment process
-        alert('Processing card payment of $' + amount);
-    }   else {  
-        alert('Please select a payment method');
-        return;
-    }
-
-
-    // console.log('Processing purchase of $' + amount + ' via ' + method);
-
-    // Simulate purchase process
-   
-    // closeBuyModal();
-    
-    // Add to transaction history
-    // setTimeout(() => {
-    //     addTransaction('purchase', parseFloat(amount) / 0.30, 'Purchase via payment method');
-    // }, 2000);
-}
 
 function sendTransaction() {
     const address = document.getElementById('recipientAddress').value;
@@ -323,7 +278,6 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 
-
 document.addEventListener('DOMContentLoaded', function() {
     const button = document.getElementById('userMenuButton');
     const menu = document.getElementById('userMenu');
@@ -481,10 +435,93 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 
+document.getElementById('buKenaForm').addEventListener('submit', processPurchase);
+
+function processPurchase(e) {
+    e.preventDefault();
+    const amount = document.getElementById('buyAmount').value;
+    const phoneNumber = document.getElementById('phoneNumber') ? document.getElementById('phoneNumber').value : null;
+    buyButton = document.getElementById('PurchaseButton');
+    buyAmountError = document.getElementById('buyAmountError');
+    const url = document.getElementById('BuyKenaUrl').value;
+    spinner = document.getElementById('purchaseSpinner');
+
+    console.log(amount, phoneNumber, url, getCookie('csrftoken'));
+
+    const method = document.getElementById('mpesa') ? 'M-Pesa' :
+                   document.getElementById('paypal') ? 'PayPal' :
+                   document.getElementById('card') ? 'Credit/Debit Card' : 'Unknown';
+ 
+    if (!amount || amount <= 0) {
+        buyAmountError.textContent = 'Please enter a valid amount';
+        buyAmountError.classList.remove('hidden');
+        buyButton.disabled = false;
+        buyButton.textContent = 'Complete Purchase';
+    }
+
+    if(method === 'mpesa' || method === 'M-Pesa'){
+        // initiate mpesa payment process
+        // buyButton.disabled = true;
+        // buyButton.innerHTML = `
+        //                         Processing
+        //                         <svg id="purchaseSpinner" class="w-5 h-5 ml-2 inline-block animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        //                             <circle class="opacity-25" cx="12" cy="12" r="10" stroke-width="4"></circle>
+        //                             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+        //                         </svg>
+        //                     `
+        // buyAmountError.classList.add('hidden');
+        // buyButton.classList.add('opacity-70', 'cursor-not-allowed');
+
+        fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: JSON.stringify({amount, method, phoneNumber})
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert(data.message);
+                // Reset form and close modal after 2 seconds
+                setTimeout(() => {}, 2000);}})
+
+
+
+        setTimeout(() => {
+            
+        }, 5000);
+       
+    } else if(method === 'paypal' || method === 'PayPal'){
+        // initiate paypal payment process
+        alert('Redirecting to PayPal for payment of $' + amount);
+    } else if(method === 'card' || method === 'Credit/Debit Card'){
+        // initiate card payment process
+        alert('Processing card payment of $' + amount);
+    }   else {  
+        alert('Please select a payment method');
+        return;
+    }
+
+
+    // console.log('Processing purchase of $' + amount + ' via ' + method);
+
+    // Simulate purchase process
+   
+    // closeBuyModal();
+    
+    // Add to transaction history
+    // setTimeout(() => {
+    //     addTransaction('purchase', parseFloat(amount) / 0.30, 'Purchase via payment method');
+    // }, 2000);
+}
+
 document.getElementById('sendKenaForm').addEventListener('submit', function(e) {
     e.preventDefault();
     
-    const formData = new FormData(this);
+    const amount = document.getElementById('sendAmount').value;
     const sendButton = document.getElementById('sendButton');
     const messageContainer = document.getElementById('sendMessageContainer');
     const url = document.getElementById('dashboardUrl').value;
@@ -550,3 +587,19 @@ document.getElementById('sendKenaForm').addEventListener('submit', function(e) {
         sendButton.textContent = 'Send Transaction';
     });
 });
+
+// Helper to get CSRF token from cookie
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}

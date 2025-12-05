@@ -10,12 +10,15 @@
         </div>
         
         <div id="buyForm">
-            <form action="">
+            <form id="buKenaForm" action="">
                 {% csrf_token %}
+                <div class="hidden">
+                    <input type="text" id="BuyKenaUrl" value="{% url 'buy_kena' %}">
+                </div>
                 <div class="mb-6">
                     <label class="block text-sm font-medium mb-2">Amount (USD)</label>
                     <input type="number" id="buyAmount" class="w-full p-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400" placeholder="Enter amount">
-                    <div id="buyAmountError" class="text-sm text-red-400 mt-2 hidden">the amout is too small</div>
+                    <div id="buyAmountError" class="text-sm text-red-600 mt-2 hidden">the amout is too small</div>
                     <p class="text-sm text-gray-400 mt-2">≈ <span id="kenaAmount">0</span> KENA</p>
                 </div>
                 
@@ -24,7 +27,7 @@
                     <div id="paymentMethod" class="p-3 bg-white/10 border border-white/20 rounded-lg"></div>
                 </div>
                 
-                <button id="PurchaseButton" onclick="processPurchase()" class="w-full p-4 bg-gradient-to-r from-kena-gold to-yellow-500 text-black rounded-lg hover:from-yellow-500 hover:to-kena-gold transition-all font-semibold">
+                <button id="PurchaseButton" type="submit" class="w-full p-4 bg-gradient-to-r from-kena-gold to-yellow-500 text-black rounded-lg hover:from-yellow-500 hover:to-kena-gold transition-all font-semibold">
                     Complete Purchase
                 </button>
             </form>

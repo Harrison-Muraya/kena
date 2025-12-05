@@ -10,6 +10,7 @@ from . models import Todolist, Item, Coin, Wallet,CustomUser, Billing, Transacti
 from . import forms 
 from . import blockchain
 from . import uidgenerator
+from . import lipaNaMpesa
 # from datetime import timezone
 import time
 import json
@@ -590,35 +591,48 @@ def get_mine_data(request):
 
 #buy kena via mpesa
 def buy_kena(request):
-    if request.user.is_authenticated:
-        user = request.user
-        if request.method == 'POST' and request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-            form = forms.BuyKenaForm(request.POST, user=request.user)
-            if form.is_valid():
-                amount = form.cleaned_data['amount']
-                wallet = form.cleaned_data['wallet']
+     if request.method == 'POST':
+        data = json.loads(request.body)
+        amount = data.get('amount')
+        method = data.get('method')
+        phone = data.get('phoneNumber')
 
-                # creating a new billing instance
-                billing = Billing(
-                    user=user,
-                    wallet=wallet,
-                    amount=amount,  # Total amount including no fee
-                    fee=0,  # Transaction fee
-                    total=amount,  # Total amount including fee
-                    uid=uidgenerator.generate_code(),  # Generate a unique identifier
-                    type='buy',
-                )
-                billing.save()
+        if method == 'M-Pesa':
+            # Here you would integrate with M-Pesa API to process the payment
+            # For demonstration, we'll just return a success message
+            response = lipaNaMpesa.lipaNaMpesaOnline(phone, amount)
+            print("M-Pesa Response:", response)
+            return JsonResponse({'success': True, 'message': 'M-Pesa payment initiated. Please complete the payment on your phone.', 'response': response})
 
-                messages.success(request, 'Buy Kena request submitted successfully!')
-                return JsonResponse({'success': True})
-            else:
-                errors = {}
-                for field, error_list in form.errors.items():
-                    errors[field] = [str(e) for e in error_list]
-                return JsonResponse({'success': False, 'errors': errors})
-    else:
-        pass
+
+    # if request.user.is_authenticated:
+    #     user = request.user
+    #     if request.method == 'POST' and request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+    #         form = forms.BuyKenaForm(request.POST, user=request.user)
+    #         if form.is_valid():
+    #             amount = form.cleaned_data['amount']
+    #             wallet = form.cleaned_data['wallet']
+
+    #             # creating a new billing instance
+    #             billing = Billing(
+    #                 user=user,
+    #                 wallet=wallet,
+    #                 amount=amount,  # Total amount including no fee
+    #                 fee=0,  # Transaction fee
+    #                 total=amount,  # Total amount including fee
+    #                 uid=uidgenerator.generate_code(),  # Generate a unique identifier
+    #                 type='buy',
+    #             )
+    #             billing.save()
+
+    #             messages.success(request, 'Buy Kena request submitted successfully!')
+    #             return JsonResponse({'success': True})
+    #         else:
+    #             errors = {}
+    #             for field, error_list in form.errors.items():
+    #                 errors[field] = [str(e) for e in error_list]
+    #             return JsonResponse({'success': False, 'errors': errors})
+        
 
 
 # submit mined block

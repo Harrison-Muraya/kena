@@ -22,7 +22,7 @@ def getAccessToken():
     
     return token
 
-def lipaNaMpesaOnline(phone_number, amount, account_reference, transaction_desc):
+def lipaNaMpesaOnline(phone_number, amount):
     phone_number = format_phone_number(phone_number)  # Ensure correct phone format
     access_token = getAccessToken()
     api_url = "https://sandbox.safaricom.co.ke/mpesa/stkpush/v1/processrequest"
