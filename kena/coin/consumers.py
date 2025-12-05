@@ -1,7 +1,7 @@
 import json
 from channels.generic.websocket import AsyncWebsocketConsumer
 from channels.db import database_sync_to_async
-from .models import PendingTransaction
+from .models import PendingTransaction 
 
 # Consumer to handle WebSocket connections for real-time transaction updates
 class TransactionConsumer(AsyncWebsocketConsumer):
@@ -72,6 +72,38 @@ class BlockConsumer(AsyncWebsocketConsumer):
 
     async def block_update(self, event):
         await self.send_blocks()
+
+# Consumer to handle WebSocket connections for real-time M-Pesa payment status updates
+class MpesaStatusConsumer(AsyncWebsocketConsumer):
+    async def connect(self):
+        await self.channel_layer.group_add("mpesa_status", self.channel_name)
+        await self.accept()
+        # send initial status
+        await self.send_status()
+
+    async def disconnect(self, close_code):
+        await self.channel_layer.group_discard("mpesa_status", self.channel_name)
+
+    @database_sync_to_async
+    def get_latest_mpesa_status(self):
+        from .models import MpesaTransaction  # Import here to avoid circular import
+        latest_transaction = MpesaTransaction.objects.all().order_by('-timestamp').first()
+        if latest_transaction:
+            return {
+                'phone_number': latest_transaction.phone_number,
+                'amount': str(latest_transaction.amount),
+                'transaction_id': latest_transaction.transaction_id,
+                'status': latest_transaction.status,
+                'timestamp': latest_transaction.timestamp.strftime('%Y-%m-%d %H:%M:%S'),
+            }
+        return None
+
+    async def send_status(self):
+        data = await self.get_latest_mpesa_status()
+        await self.send(text_data=json.dumps({'mpesa_status': data}))
+
+    async def mpesa_status_update(self, event):
+        await self.send_status()
 
 # A simple test consumer for debugging purposes
 

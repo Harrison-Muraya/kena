@@ -542,9 +542,7 @@ def mine_kena(request):
         return render(request, 'coin/mine_kena.html',{'transactions': transactions})
     else:
         return redirect('login')
-
-
-    
+   
 # returns a json file with block data
 def get_mine_data(request):
     # pending = PendingTransaction.objects.all()[:10]
@@ -635,27 +633,27 @@ def buy_kena(request):
 # Mpesa callback URL to handle payment confirmation
 @csrf_exempt
 def mpesa_callback(request):
-    data = {
-        'Body': {
-            'stkCallback': {
-                'MerchantRequestID': 'ddb8-4a08-af32-c0e1ff1c640613777',
-                'CheckoutRequestID': 'ws_CO_05122025235543715726688832', 
-                'ResultCode': 0, 
-                'ResultDesc': 'The service request is processed successfully.', 
-                'CallbackMetadata': {
-                    'Item': [
-                        {'Name': 'Amount', 'Value': 1.0}, 
-                        {'Name': 'MpesaReceiptNumber', 'Value': 'TL5JC06Q6W'}, 
-                        {'Name': 'Balance', 'Value': 0.0}, 
-                        {'Name': 'TransactionDate', 'Value': 20251205235605}, 
-                        {'Name': 'PhoneNumber', 'Value': 254726688832}
-                        ]
-                    }
-                }
-            }
-        }
+    # data = {
+    #     'Body': {
+    #         'stkCallback': {
+    #             'MerchantRequestID': 'ddb8-4a08-af32-c0e1ff1c640613777',
+    #             'CheckoutRequestID': 'ws_CO_05122025235543715726688832', 
+    #             'ResultCode': 0, 
+    #             'ResultDesc': 'The service request is processed successfully.', 
+    #             'CallbackMetadata': {
+    #                 'Item': [
+    #                     {'Name': 'Amount', 'Value': 1.0}, 
+    #                     {'Name': 'MpesaReceiptNumber', 'Value': 'TL5JC06Q6W'}, 
+    #                     {'Name': 'Balance', 'Value': 0.0}, 
+    #                     {'Name': 'TransactionDate', 'Value': 20251205235605}, 
+    #                     {'Name': 'PhoneNumber', 'Value': 254726688832}
+    #                     ]
+    #                 }
+    #             }
+    #         }
+    #     }
 
-    # data = json.loads(request.body)
+    data = json.loads(request.body)
     if data.get('Body') is None:
         return JsonResponse({'success': False, 'message': 'Invalid callback data'})
     else:
@@ -678,33 +676,56 @@ def mpesa_callback(request):
                 amount = item.get('Value')
             elif item.get('Name') == 'MpesaReceiptNumber':
                 mpesa_receipt_number = item.get('Value')
+            elif item.get('Name') == 'PhoneNumber':
+                phone_number = item.get('Value')
         try:
             mpesa_transaction = MpesaTransaction.objects.get(CheckoutRequestID=checkout_request_id)
             if result_code == 0:
                 mpesa_transaction.status = 'Completed'
                 mpesa_transaction.transaction_id = mpesa_receipt_number
                 mpesa_transaction.amount = amount
+                mpesa_transaction.phone_number = phone_number
                 mpesa_transaction.save()
 
                 # Update user's Kena balance or create a credit transaction
                 billing = mpesa_transaction.Billing
                 user = billing.user
 
+                # Create a new credit PendingTransaction instance for the purchased Kena
+                pending_transaction_credit = PendingTransaction(
+                    billing=billing,
+                    sender= user,  # No sender for purchase transactions 
+                    receiver=user,
+                    amount=amount,  # Amount of Kena purchased
+                    type='buykena',
+                    gateway='mpesa',
+                    credit=amount,  # Credit the purchased amount
+                    debit=0,  # No debit for purchase transactions
+                    signature=generate_signature(checkKey(user.private_key), {
+                            "billing": billing.id,
+                            "uid": billing.uid,
+                            "sender": user.username,
+                            "amount": billing.amount,
+                        })   # No signature needed for purchase transactions
+                )
+                pending_transaction_credit.save()
+
+                
+
+
                 # Here you would typically update the user's Kena balance
                 # For demonstration, we'll just print a message
                 print(f"User {user.username} has successfully purchased {amount} Kena.")
-
+                return JsonResponse({'success': True, 'message': 'M-Pesa payment completed successfully.'})
             else:
                 mpesa_transaction.status = 'Failed'
                 mpesa_transaction.save()
-                print(f"M-Pesa transaction failed for CheckoutRequestID: {checkout_request_id}, ResultDesc: {result_desc}")
+                return JsonResponse({'success': False, 'message': f'M-Pesa payment failed: {result_desc}'})
         except MpesaTransaction.DoesNotExist:
             print(f"M-Pesa transaction not found for CheckoutRequestID: {checkout_request_id}")
+            return JsonResponse({'success': False, 'message': 'Transaction not found'})
 
-    return JsonResponse({'success': True})
-
-     
-
+   
 
 # submit mined block
 @csrf_exempt
