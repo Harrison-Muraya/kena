@@ -829,7 +829,7 @@ def submit_block(request):
         try:
             pending_txn = PendingTransaction.objects.get(hash=txn_hash['hash'])
 
-            # print(f"matched pending transaction:  {pending_txn} id : {pending_txn.id}")
+            # print(f"matched pending transaction:  {pending_txn} ")
             tx = Transaction.objects.create(
                 billing=pending_txn.billing,
                 gateway=pending_txn.gateway,
@@ -837,6 +837,8 @@ def submit_block(request):
                 debit=pending_txn.debit,
                 credit=pending_txn.credit,
                 sender=pending_txn.sender.username,
+                walletHash = pending_txn.walletHash,
+
                 # receiver=pending_txn.receiver.username,
                 amount=pending_txn.amount
             )
