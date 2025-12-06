@@ -298,9 +298,9 @@ class SendKenaForm(forms.Form):
             'id': 'walletName'
         })
     )
-    receiver = forms.CharField(label="Receiver Username", max_length=100, widget=forms.TextInput(attrs={
+    walletHash = forms.CharField(label="Receiver Address", max_length=100, widget=forms.TextInput(attrs={
         'class': 'w-full p-2 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-400 focus:border-kena-gold focus:ring-1 focus:ring-kena-gold/50 focus:outline-none transition-all',
-        'placeholder': 'Enter your recepient Username',
+        'placeholder': 'Enter your recepient Address',
         'required': True,
         'id': 'recipientUsername'
     }))
@@ -308,7 +308,7 @@ class SendKenaForm(forms.Form):
         'class': 'w-full p-2 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-400 focus:border-kena-gold focus:ring-1 focus:ring-kena-gold/50 focus:outline-none transition-all',
         'placeholder': 'Enter the amount to send',
         'required': True,
-        'id': 'amount'
+        'id': 'sendAmount'
     }))
     password = forms.CharField(label="Password", widget=forms.PasswordInput(attrs={
         'placeholder': 'Enter your password',

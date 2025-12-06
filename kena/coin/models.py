@@ -168,6 +168,7 @@ class Transaction(models.Model):
     amount = models.DecimalField(max_digits=20, decimal_places=5)
     time = models.DateTimeField(auto_now_add=True)
     hash = models.CharField(max_length=64) # need to make "unique=True" later after testing
+    walletHash = models.CharField(null=True, blank=True, max_length=200)
     
 
     def __str__(self):
@@ -221,6 +222,7 @@ class PendingTransaction(models.Model):
     timestamp = models.DateTimeField(default=now)  # Manually set timestamp
     hash = models.CharField(max_length=64, unique=True, blank=True)
     signature = models.CharField(null=True, blank=True)
+    walletHash = models.CharField(null=True, blank=True, max_length=200)
 
     def save(self, *args, **kwargs):
         # Only calculate hash if not already set

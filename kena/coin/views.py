@@ -211,14 +211,18 @@ def dashboard(request):
         # Handle Send Kena form submission via AJAX
         if request.method == 'POST' and request.headers.get('X-Requested-With') == 'XMLHttpRequest':
             form = forms.SendKenaForm(request.POST, user=request.user)
+
+            # print('form Data',form)  # Debug: Print form errors if any
             
             if form.is_valid():
                 sender = request.user
-                receiver = form.cleaned_data['receiver']
+                # receiver = form.cleaned_data['receiver']
+                walletHash = form.cleaned_data['walletHash']
                 amount = form.cleaned_data['amount']
                 selected_wallet = form.cleaned_data['wallet']
                 password = form.cleaned_data['password']
-
+                
+                # Find receiver by walletHash
                 try:
                     sender_wallet = Wallet.objects.filter(user=sender)
                     if not sender_wallet.exists():
@@ -241,16 +245,19 @@ def dashboard(request):
                 
                 # Check if the receiver exists
                 try:
-                    recipient = CustomUser.objects.filter(username=receiver)
-                    if not recipient.exists():
+                    # recipient = CustomUser.objects.filter(username=receiver)                    
+                    # if not recipient.exists():
+                    recipient_wallet = Wallet.objects.filter(hash=walletHash)
+                    if not recipient_wallet.exists():
                         return JsonResponse({'success': False, 'error': 'Receiver does not exist'})
                     
-                    receiver_wallet = Wallet.objects.filter(user=recipient.first())
+                    # receiver_wallet = Wallet.objects.filter(user=recipient.first())
+                    receiver_wallet = recipient_wallet
                     if not receiver_wallet.exists():
                         return JsonResponse({'success': False, 'error': 'Receiver has no wallet associated with their account'})
                 except Exception as e:
                     return JsonResponse({'success': False, 'error': str(e)})
-                
+
                 # Creating billing instance
                 billing = Billing(
                     user=sender,
@@ -263,16 +270,19 @@ def dashboard(request):
                 )
                 billing.save()
 
+                print("Billing created with ID:", billing.id)
                 # Create pending transactions (debit, credit, fee)
+                # Transaction for sender (debit)
                 pending_transaction = PendingTransaction(
                     billing=billing,
                     sender=sender,
-                    receiver=recipient.first(),
+                    # receiver=recipient.first(),
                     amount=billing.amount,
                     type='send',
                     gateway='kena',
                     credit=0,
                     debit=billing.amount,
+                    walletHash = selected_wallet.hash,
                     signature=generate_signature(checkKey(sender.private_key), {
                         "billing": billing.id,
                         "uid": billing.uid,
@@ -282,15 +292,19 @@ def dashboard(request):
                 )
                 pending_transaction.save()
 
+                print("Pending transaction for sender created with ID:", pending_transaction.id)
+
+                # Transaction for receiver (credit)
                 pending_transaction_receiver = PendingTransaction(
                     billing=billing,
                     sender=sender,
-                    receiver=recipient.first(),
+                    # receiver=recipient.first(),
                     amount=billing.amount - FEE,
                     type='receive',
                     gateway='kena',
                     credit=amount,
                     debit=0,
+                    walletHash = receiver_wallet.first().hash,
                     signature=generate_signature(checkKey(sender.private_key), {
                         "billing": billing.id,
                         "uid": billing.uid,
@@ -300,6 +314,9 @@ def dashboard(request):
                 )
                 pending_transaction_receiver.save()
 
+                print("Pending transaction for receiver created with ID:", pending_transaction_receiver.id)
+
+                # Transaction for fee (credit to system)
                 transactionc = CustomUser.objects.filter(username='harris').first()
                 pending_transaction_fee = PendingTransaction(
                     billing=billing,
@@ -318,6 +335,7 @@ def dashboard(request):
                     })
                 )
                 pending_transaction_fee.save()
+                print("Pending transaction for fee created with ID:", pending_transaction_fee.id)
 
                 return JsonResponse({'success': True, 'message': 'Transaction sent successfully!'})
             else:

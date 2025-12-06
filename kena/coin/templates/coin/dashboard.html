@@ -38,7 +38,7 @@
                 <!-- Primary Wallet Card -->
                  {% for wallet in wallets %}
                     {% with colors=wallet.get_color_scheme %}
-                    <div class="relative bg-gradient-to-br {{ colors.gradient }} rounded-2xl p-6 {{ colors.text }} overflow-hidden transform hover:scale-105 transition-all duration-300 shadow-2xl">
+                    <!-- <div class="relative bg-gradient-to-br {{ colors.gradient }} rounded-2xl p-6 {{ colors.text }} overflow-hidden transform hover:scale-105 transition-all duration-300 shadow-2xl">
                         <div class="absolute top-0 right-0 w-32 h-32 {{ colors.overlay_top }} rounded-full -mr-16 -mt-16"></div>
                         <div class="absolute bottom-0 left-0 w-24 h-24 {{ colors.overlay_bottom }} rounded-full -ml-12 -mb-12"></div>
                         <div class="relative z-10">
@@ -63,12 +63,77 @@
                             </div>
                             <div class="flex justify-between items-end">
                                 <div>
-                                    <p class="text-xs {% if wallet.wallettype == 'personal' %}opacity-60{% else %}opacity-70{% endif %} mb-1">
-                                        Wallet Address
-                                    </p>
+                                    <div class="flex items-center mb-1">
+                                        <p class="text-xs {% if wallet.wallettype == 'personal' %}opacity-60{% else %}opacity-70{% endif %} mb-1">
+                                            Wallet Address
+                                        </p>
+                                        <p class="text-xs {% if wallet.wallettype == 'personal' %}opacity-60{% else %}opacity-70{% endif %} ml-4 mb-1">
+                                            copy
+                                        </p>
+                                    </div>
                                     <p class="font-mono text-sm">{{ wallet.hash|slice:":10" }}...{{ wallet.hash|slice:"-4:" }}</p>
                                 </div>
                                 <div class="text-right">
+                                    <p class="text-xs {% if wallet.wallettype == 'personal' %}opacity-60{% else %}opacity-70{% endif %}">
+                                        Balance
+                                    </p>
+                                    <p class="font-semibold">KENA</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div> -->
+                    <div class="relative bg-gradient-to-br {{ colors.gradient }} rounded-2xl p-6 {{ colors.text }} overflow-hidden transform hover:scale-105 transition-all duration-300 shadow-2xl">
+                        <!-- Decorative overlays -->
+                        <div class="absolute top-0 right-0 w-32 h-32 {{ colors.overlay_top }} rounded-full -mr-16 -mt-16"></div>
+                        <div class="absolute bottom-0 left-0 w-24 h-24 {{ colors.overlay_bottom }} rounded-full -ml-12 -mb-12"></div>
+                        
+                        <!-- Card content -->
+                        <div class="relative z-10">
+                            <!-- Header -->
+                            <div class="flex justify-between items-start mb-8">
+                                <div>
+                                    <h3 class="text-lg font-semibold {% if wallet.wallettype == 'personal' %}opacity-80{% endif %}">
+                                        {{ wallet.get_wallet_label }}
+                                    </h3>
+                                    <p class="text-sm {% if wallet.wallettype == 'personal' %}opacity-60{% else %}opacity-70{% endif %}">
+                                        {{ wallet.name }}
+                                    </p>
+                                </div>
+                                <div class="w-12 h-8 {{ colors.badge }} rounded flex items-center justify-center">
+                                    <span class="font-bold text-xs">KENA</span>
+                                </div>
+                            </div>
+                            
+                            <!-- Balance -->
+                            <div class="mb-6">
+                                <p class="text-2xl font-bold mb-1">{{ wallet.amount|floatformat:2 }}</p>
+                                <p class="text-sm {% if wallet.wallettype == 'personal' %}opacity-60{% else %}opacity-70{% endif %}">
+                                    ≈ ${{ wallet.value|floatformat:2 }} USD
+                                </p>
+                            </div>
+                            
+                            <!-- Footer -->
+                            <div class="flex justify-between items-end">
+                                <div class="flex-1">
+                                    <div class="flex items-center gap-2 mb-2">
+                                        <p class="text-xs {% if wallet.wallettype == 'personal' %}opacity-60{% else %}opacity-70{% endif %}">
+                                            Wallet Address
+                                        </p>
+                                        <button 
+                                            onclick="copyWalletAddress('{{ wallet.hash }}', 'copy-btn-{{ wallet.id }}')"
+                                            id="copy-btn-{{ wallet.id }}"
+                                            class="flex items-center gap-1 px-2 py-1 rounded {% if wallet.wallettype == 'personal' %}bg-black/20 hover:bg-black/30{% else %}bg-white/20 hover:bg-white/30{% endif %} transition-all text-xs font-medium"
+                                            title="Copy address">
+                                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                                            </svg>
+                                            <span>Copy</span>
+                                        </button>
+                                    </div>
+                                    <p class="font-mono text-sm">{{ wallet.hash|slice:":10" }}...{{ wallet.hash|slice:"-4:" }}</p>
+                                </div>
+                                
+                                <div class="text-right ml-4">
                                     <p class="text-xs {% if wallet.wallettype == 'personal' %}opacity-60{% else %}opacity-70{% endif %}">
                                         Balance
                                     </p>
@@ -364,6 +429,50 @@
 {% load static %}
 <script src="{% static 'coin/js/dashboard.js' %}"></script>
 
+<script>
+function copyWalletAddress(address, buttonId) {
+    const button = document.getElementById(buttonId);
+    const originalContent = button.innerHTML;
+    
+    // Create temporary textarea
+    const textArea = document.createElement('textarea');
+    textArea.value = address;
+    textArea.style.position = 'fixed';
+    textArea.style.left = '-999999px';
+    textArea.style.top = '-999999px';
+    document.body.appendChild(textArea);
+    textArea.focus();
+    textArea.select();
+    
+    try {
+        // Execute copy command
+        document.execCommand('copy');
+        
+        // Show success
+        button.innerHTML = `
+            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+            </svg>
+            <span>Copied!</span>
+        `;
+        button.disabled = true;
+        
+        // Reset after 2 seconds
+        setTimeout(function() {
+            button.innerHTML = originalContent;
+            button.disabled = false;
+        }, 2000);
+        
+    } catch (err) {
+        console.error('Copy failed:', err);
+        alert('Address: ' + address + '\n\nPlease copy manually.');
+    }
+    
+    // Clean up
+    document.body.removeChild(textArea);
+}
+</script>
+
 </div>   
 
 {% endblock %}
@@ -462,6 +571,7 @@
         </div>
     </div>
 </div>
+
 
 
 

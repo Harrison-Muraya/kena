@@ -567,8 +567,7 @@ async function processPurchase(e) {
 
 document.getElementById('sendKenaForm').addEventListener('submit', function(e) {
     e.preventDefault();
-    
-    const amount = document.getElementById('sendAmount').value;
+    formData = new FormData(this);
     const sendButton = document.getElementById('sendButton');
     const messageContainer = document.getElementById('sendMessageContainer');
     const url = document.getElementById('dashboardUrl').value;
