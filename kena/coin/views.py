@@ -583,7 +583,7 @@ def get_mine_data(request):
                 # print(f"Amount: { tx.amount} verified: {verifiedSignature}, data: {transaction_data}")
                 tx_data.append({
                     "sender": tx.sender.username,
-                    "receiver": tx.receiver.username,
+                    # "receiver": tx.receiver.username,
                     "amount": float(tx.amount),
                     "hash": tx.hash
                 })                  
@@ -780,7 +780,7 @@ def submit_block(request):
             
             verifiedSignature = verify_signature(checkKey(tx.sender.public_key),transaction_data,tx.signature)  
             if(verifiedSignature):                    
-                # print(f"Amount: { tx.amount} verified: {verifiedSignature}, data: {transaction_data}")
+                print(f"Amount: { tx.amount} verified: {verifiedSignature}, data: {transaction_data}")
                 tx_data.append({
                     "sender": tx.sender.username,
                     "receiver": tx.receiver.username,
@@ -788,8 +788,8 @@ def submit_block(request):
                     "hash": tx.hash
                 })                  
             else:
-                pass
-                # print(f"Amount: { tx.amount} failed verification -- verifiedsig: {verifiedSignature}, data: {transaction_data}")
+                # pass
+                print(f"Amount: { tx.amount} failed verification -- verifiedsig: {verifiedSignature}, data: {transaction_data}")
                            
         except Exception as e:
             print(e)
@@ -837,7 +837,7 @@ def submit_block(request):
                 debit=pending_txn.debit,
                 credit=pending_txn.credit,
                 sender=pending_txn.sender.username,
-                receiver=pending_txn.receiver.username,
+                # receiver=pending_txn.receiver.username,
                 amount=pending_txn.amount
             )
 
