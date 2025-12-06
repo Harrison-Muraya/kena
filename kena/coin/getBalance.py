@@ -2,7 +2,7 @@ from models import Billing, Transaction, Wallet
 from django.db import models
 
 
-def get_balance(user_id, wallet_id):
+def get_balance(walletHash, user_id):
     """
     Get the balance by calculating credited amount.
 
@@ -13,10 +13,11 @@ def get_balance(user_id, wallet_id):
         float: The balance of the user's wallet.
     """
     try:
-        wallet = Wallet.objects.get(id=wallet_id, user_id=user_id)
+        wallet = Wallet.objects.get(hash=walletHash, user_id=user_id)
         credited_amount = (
             Transaction.objects.filter(
-                billing__
+                status='completed',
+                type='credit'
             ).aggregate(total_amount=models.Sum('amount'))['total_amount'] or 0.0
         )
         debited_amount = (

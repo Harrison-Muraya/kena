@@ -152,7 +152,8 @@ class Billing(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return f"{self.user} - {self.wallet.name} - {self.amount} - {self.type} - {self.status} - {self.created_at}"
+        wallet_name = self.wallet.name if self.wallet else "No Wallet"
+        return f"{self.user} - {wallet_name} - {self.amount} - {self.type} - {self.status} - {self.created_at}"
     
 # This model is used to store transaction details
 # It includes fields for billing, gateway, sender, receiver, amount, fee, time, and a unique hash
