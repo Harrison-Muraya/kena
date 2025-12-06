@@ -1,0 +1,11 @@
+SECRET_KEY=your_secret_key
+DEBUG=False
+DATABASE_URL=postgres://user:password@host:port/dbname
+
+
+MPESA_CONSUMER_KEY = ''
+MPESA_CONSUMER_SECRET = ''
+LIPA_NA_MPESA_PASSKEY = ''
+MPESA_SHORTCODE = ''
+CALLBACK_URL = ''
+MPESA_PASSWORD = 'Safaricom123!!'
