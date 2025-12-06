@@ -14,6 +14,7 @@
                 {% csrf_token %}
                 <div class="hidden">
                     <input type="text" id="BuyKenaUrl" value="{% url 'buy_kena' %}">
+                    <input type="text" id="MpesaStatusUrl" value="{% url 'check_mpesa_status' %}">
                 </div>
                 <div class="mb-6">
                     <label class="block text-sm font-medium mb-2">Amount (USD)</label>

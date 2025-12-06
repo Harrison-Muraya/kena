@@ -435,15 +435,18 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 
+// Handle Buy KENA form submission
 document.getElementById('buKenaForm').addEventListener('submit', processPurchase);
 
-function processPurchase(e) {
+// Process purchase function
+async function processPurchase(e) {
     e.preventDefault();
     const amount = document.getElementById('buyAmount').value;
     const phoneNumber = document.getElementById('phoneNumber') ? document.getElementById('phoneNumber').value : null;
     const buyButton = document.getElementById('PurchaseButton');
     const buyAmountError = document.getElementById('buyAmountError');
     const url = document.getElementById('BuyKenaUrl').value;
+    
     spinner = document.getElementById('purchaseSpinner');
 
     // console.log(amount, phoneNumber, url, getCookie('csrftoken'));
@@ -472,36 +475,59 @@ function processPurchase(e) {
                                 `
             buyAmountError.classList.add('hidden');
             buyButton.classList.add('opacity-70', 'cursor-not-allowed');
+            try {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRFToken': getCookie('csrftoken')
+                    },
+                    body: JSON.stringify({ amount, method, phoneNumber })
+                })
 
-            fetch(url, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-Requested-With': 'XMLHttpRequest',
-                    'X-CSRFToken': getCookie('csrftoken')
-                },
-                body: JSON.stringify({amount, method, phoneNumber})
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    buyAmountError.classList.remove('hidden');
-                    buyButton.innerHTML = `
-                                    Almost Done
-                                    <svg id="purchaseSpinner" class="w-5 h-5 ml-2 inline-block animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke-width="4"></circle>
-                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
-                                    </svg>
-                                `
-                    // Reset form and close modal after 2 seconds
+                const data = await response.json()
+                if (!data.success) {
+                    throw new Error(data.message || 'Payment initiation failed.')
+                }
+                const checkoutId = data.response.CheckoutRequestID;
+                console.log('✅ M-Pesa initiated, CheckoutRequestID:', checkoutId)
 
-                    setTimeout(() => {}, 2000);}})
+                // Poll the backend for payment status
+                let attempts = 0
+                let paymentComplete = false;
+                const pollInterval = setInterval(async () => {
+                    attempts++;
+                    console.log(`Checking payment status... (${attempts})`)
 
+                    const status = await checkMpesaStatus(checkoutId)
+                    console.log('Payment status:', status)
+                    if (status === true || attempts >= 5) {
+                        clearInterval(pollInterval)
 
+                        if (status === true) {
+                            buyAmountError.textContent = '✅ Payment successful! KENA will be credited shortly.'
+                            setTimeout(() => {
+                                closeBuyModal()                                
+                            }, 3000);
+                        } else {
+                            buyAmountError.textContent = '⚠️ Payment still pending. Please check M-Pesa.'
+                        }
 
-            setTimeout(() => {
-                
-            }, 5000);
+                        buyAmountError.classList.remove('hidden')
+                        buyButton.disabled = false
+                        buyButton.textContent = 'Complete Purchase'
+                        buyButton.classList.remove('opacity-70', 'cursor-not-allowed')
+                    }
+                }, 15000) // check every 15 seconds
+            }catch (error){
+                console.error('Error processing M-Pesa payment:', error)
+                buyAmountError.textContent = 'An error occurred while processing your payment. Please try again.'
+                buyAmountError.classList.remove('hidden')
+                buyButton.disabled = false
+                buyButton.textContent = 'Complete Purchase'
+                buyButton.classList.remove('opacity-70', 'cursor-not-allowed')
+            };
         
         } else if(method === 'paypal' || method === 'PayPal'){
             // initiate paypal payment process
@@ -514,9 +540,7 @@ function processPurchase(e) {
             return;
         }
         
-    }
-
-    
+    }   
 
 
     // console.log('Processing purchase of $' + amount + ' via ' + method);
@@ -601,6 +625,23 @@ document.getElementById('sendKenaForm').addEventListener('submit', function(e) {
     });
 });
 
+// function to check if mpesa payment was completed
+async function checkMpesaStatus(checkoutId) {
+    const url = document.getElementById('MpesaStatusUrl').value;
+    let isTxnCompleted = false;
+    
+   const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken')
+        },
+        body: JSON.stringify({ CheckoutRequestID: checkoutId })
+    });
+    const result = await response.json();
+    return result.success === true;
+
+}
 // Helper to get CSRF token from cookie
 function getCookie(name) {
     let cookieValue = null;
@@ -616,3 +657,11 @@ function getCookie(name) {
     }
     return cookieValue;
 }
+
+// {
+//   "MerchantRequestID": "ddb8-4a08-af32-c0e1ff1c640614706",
+//   "CheckoutRequestID": "ws_CO_06122025021627503726688832",
+//   "ResponseCode": "0",
+//   "ResponseDescription": "Success. Request accepted for processing",
+//   "CustomerMessage": "Success. Request accepted for processing"
+// }

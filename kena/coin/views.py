@@ -600,7 +600,7 @@ def buy_kena(request):
             # Here you would integrate with M-Pesa API to process the payment
             # For demonstration, we'll just return a success message
             response = lipaNaMpesa.lipaNaMpesaOnline(phone, amount)
-            # print("M-Pesa Response:", response)
+           
             if response.get('ResponseCode') != '0':
                 return JsonResponse({'success': False, 'message': 'M-Pesa payment initiation failed. Please try again.'})
             else:
@@ -629,6 +629,21 @@ def buy_kena(request):
             # responseData = response.json()
             # print("M-Pesa Response Data:", response.get('ResponseCode'))
             return JsonResponse({'success': True, 'message': 'M-Pesa payment initiated. Please complete the payment on your phone.', 'response': response})
+        
+       
+
+def mpesa_payment_status(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        checkout_request_id = data.get('CheckoutRequestID')
+        try:
+            mpesa_transaction = MpesaTransaction.objects.get(CheckoutRequestID=checkout_request_id)
+            if mpesa_transaction.status == 'Completed':
+                return JsonResponse({'success': True, 'message': 'M-Pesa payment completed successfully.'})
+            else:
+                return JsonResponse({'success': False, 'message': 'M-Pesa payment is still pending.'})
+        except MpesaTransaction.DoesNotExist:
+            return JsonResponse({'success': False, 'message': 'Transaction not found'})            
 
 # Mpesa callback URL to handle payment confirmation
 @csrf_exempt
@@ -710,7 +725,7 @@ def mpesa_callback(request):
                 )
                 pending_transaction_credit.save()
 
-                
+
 
 
                 # Here you would typically update the user's Kena balance

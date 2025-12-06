@@ -24,5 +24,6 @@ urlpatterns = [
     path('api/pending_transactions/', views.get_pending_transactions, name='pending_transactions'),
     path('process-payment/', views.buy_kena, name='buy_kena'),
     path('mpesa/callback/', views.mpesa_callback, name='mpesa_callback'),
+    path('check-mpesa-status/', views.mpesa_payment_status, name='check_mpesa_status'),
 
 ]
