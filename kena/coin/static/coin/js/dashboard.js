@@ -445,6 +445,7 @@ async function processPurchase(e) {
     const phoneNumber = document.getElementById('phoneNumber') ? document.getElementById('phoneNumber').value : null;
     const buyButton = document.getElementById('PurchaseButton');
     const buyAmountError = document.getElementById('buyAmountError');
+    const buyMessage = document.getElementById('buyMessage');
     const url = document.getElementById('BuyKenaUrl').value;
     
     spinner = document.getElementById('purchaseSpinner');
@@ -458,6 +459,9 @@ async function processPurchase(e) {
     if (!amount || amount <= 0) {
         buyAmountError.textContent = 'Please enter a valid amount';
         buyAmountError.classList.remove('hidden');
+        buyMessage.classList.remove('hidden')
+        buyMessage.className = 'bg-red-600/20 border border-red-500/30 text-red-400 p-3 rounded-lg mb-4 items-center text-center'
+        buyMessage.textContent = 'Please enter a valid amount.'
         buyButton.disabled = false;
         buyButton.textContent = 'Complete Purchase';
     }
@@ -491,7 +495,7 @@ async function processPurchase(e) {
                     throw new Error(data.message || 'Payment initiation failed.')
                 }
                 const checkoutId = data.response.CheckoutRequestID;
-                console.log('✅ M-Pesa initiated, CheckoutRequestID:', checkoutId)
+                console.log('M-Pesa initiated, CheckoutRequestID:', checkoutId)
 
                 // Poll the backend for payment status
                 let attempts = 0
@@ -506,12 +510,16 @@ async function processPurchase(e) {
                         clearInterval(pollInterval)
 
                         if (status === true) {
-                            buyAmountError.textContent = '✅ Payment successful! KENA will be credited shortly.'
+                            buyMessage.classList.remove('hidden');
+                            buyMessage.className = 'bg-green-600/20 border border-green-500/30 text-green-400 p-3 rounded-lg mb-4 items-center text-center'
+                            buyMessage.textContent = 'Payment successful! KENA will be credited shortly.'
                             setTimeout(() => {
                                 closeBuyModal()                                
                             }, 3000);
                         } else {
-                            buyAmountError.textContent = '⚠️ Payment still pending. Please check M-Pesa.'
+                            buyMessage.classList.remove('hidden');
+                            buyMessage.className = 'bg-yellow-600/20 border border-yellow-500/30 text-yellow-400 p-3 rounded-lg mb-4 items-center text-center'
+                            buyMessage.textContent = 'Payment still pending. Please check M-Pesa.'
                         }
 
                         buyAmountError.classList.remove('hidden')
@@ -522,8 +530,10 @@ async function processPurchase(e) {
                 }, 15000) // check every 15 seconds
             }catch (error){
                 console.error('Error processing M-Pesa payment:', error)
-                buyAmountError.textContent = 'An error occurred while processing your payment. Please try again.'
-                buyAmountError.classList.remove('hidden')
+                buyMessage.classList.remove('hidden')
+                buyMessage.className = 'bg-red-600/20 border border-red-500/30 text-red-400 p-3 rounded-lg mb-4 items-center text-center'
+                buyMessage.textContent = 'An error occurred while processing your payment. Please try again.'
+                
                 buyButton.disabled = false
                 buyButton.textContent = 'Complete Purchase'
                 buyButton.classList.remove('opacity-70', 'cursor-not-allowed')
