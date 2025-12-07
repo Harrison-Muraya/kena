@@ -377,7 +377,6 @@ def dashboard(request):
             messages.error(request, 'You have reached the maximum limit of 4 wallets.')
             return render(request, 'coin/dashboard.html', {'user': request.user, 'wallet_limit_reached': True})
         
-
         form = forms.WalletForm()
         if request.method == 'POST':
             form = forms.WalletForm(request.POST)
