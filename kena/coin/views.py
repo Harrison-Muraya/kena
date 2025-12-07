@@ -22,11 +22,12 @@ from Crypto.Hash import SHA256
 
 
 from django.urls import reverse
+from decimal import Decimal
 
 
 # constant variables
 DIFFICULTY = 4  # Difficulty level for mining blocks
-FEE = 10  # Transaction fee for sending coins
+# FEE = 10  # Transaction fee for sending coins
 
 
 # # generate private key and public key
@@ -201,6 +202,8 @@ def send_verification_email(user, request):
     except Exception as e:
         logger.error(f"Failed to send verification email: {str(e)}")
 
+FEE = Decimal('10.0')  # Transaction fee for sending coins
+
 # Dashboard view
 def dashboard(request):
     if request.user.is_authenticated:       
@@ -243,20 +246,41 @@ def dashboard(request):
                 if selected_wallet.hash != generated_hash:
                     return JsonResponse({'success': False, 'error': 'This wallet does not belong to you or password is incorrect.'})
                 
+                # print('wallet ownership validated')
+                # Check if wallet has sufficient balance
+                if selected_wallet.amount < (amount + FEE):
+                    error_msg = f'Insufficient balance. You have {selected_wallet.amount} KENA but need {amount + FEE} KENA (including fee).'                    
+                    return JsonResponse({'success': False, 'error': error_msg})
+                    
+                # Check if wallet has sufficient balance
+                if selected_wallet.amount < (amount + FEE):
+                    error_msg = f'Insufficient balance. You have {selected_wallet.amount} KENA but need {amount + FEE} KENA (including fee).'
+                    return JsonResponse({'success': False, 'error': error_msg})
+                    
+
                 # Check if the receiver exists
                 try:
                     # recipient = CustomUser.objects.filter(username=receiver)                    
                     # if not recipient.exists():
-                    recipient_wallet = Wallet.objects.filter(hash=walletHash)
-                    if not recipient_wallet.exists():
+                    receiver_wallet = Wallet.objects.filter(hash=walletHash).first()
+                    # print('Recipient wallet exicist:', receiver_wallet)
+                    if not receiver_wallet:
                         return JsonResponse({'success': False, 'error': 'Receiver does not exist'})
                     
                     # receiver_wallet = Wallet.objects.filter(user=recipient.first())
-                    receiver_wallet = recipient_wallet
-                    if not receiver_wallet.exists():
-                        return JsonResponse({'success': False, 'error': 'Receiver has no wallet associated with their account'})
+                    receiver_wallet_user = receiver_wallet.user
+                    # print('receiver wallet User is: ', receiver_wallet)
+                    # print('receiver wallet hash is: ', receiver_wallet.hash)
+                    
+
                 except Exception as e:
                     return JsonResponse({'success': False, 'error': str(e)})
+                # print('receiver wallet found')
+                # Prevent sending to yourself
+                if receiver_wallet_user == sender:
+                    return JsonResponse({'success': False, 'error': 'Cannot send to your own wallet'})
+                
+                # print('not sending to self')
 
                 # Creating billing instance
                 billing = Billing(
@@ -270,11 +294,12 @@ def dashboard(request):
                 )
                 billing.save()
 
-                print("Billing created with ID:", billing.id)
+                # print("Billing created with ID:", billing.id)
                 # Create pending transactions (debit, credit, fee)
-                # Transaction for sender (debit)
+                # 1. Debit transaction for sender
                 pending_transaction = PendingTransaction(
                     billing=billing,
+                    wallet=selected_wallet,
                     sender=sender,
                     # receiver=recipient.first(),
                     amount=billing.amount,
@@ -292,11 +317,12 @@ def dashboard(request):
                 )
                 pending_transaction.save()
 
-                print("Pending transaction for sender created with ID:", pending_transaction.id)
+                # print("Pending transaction for sender created with ID:", pending_transaction.id)
 
-                # Transaction for receiver (credit)
+                # 2. Credit transaction for receiver
                 pending_transaction_receiver = PendingTransaction(
                     billing=billing,
+                    wallet=receiver_wallet,
                     sender=sender,
                     # receiver=recipient.first(),
                     amount=billing.amount - FEE,
@@ -304,7 +330,7 @@ def dashboard(request):
                     gateway='kena',
                     credit=amount,
                     debit=0,
-                    walletHash = receiver_wallet.first().hash,
+                    walletHash = receiver_wallet.hash,
                     signature=generate_signature(checkKey(sender.private_key), {
                         "billing": billing.id,
                         "uid": billing.uid,
@@ -314,12 +340,13 @@ def dashboard(request):
                 )
                 pending_transaction_receiver.save()
 
-                print("Pending transaction for receiver created with ID:", pending_transaction_receiver.id)
+                # print("Pending transaction for receiver created with ID:", pending_transaction_receiver.id)
 
                 # Transaction for fee (credit to system)
                 transactionc = CustomUser.objects.filter(username='harris').first()
                 pending_transaction_fee = PendingTransaction(
                     billing=billing,
+                    # wallet=fee_wallet,
                     sender=sender,
                     receiver=transactionc,
                     amount=FEE,
@@ -335,7 +362,7 @@ def dashboard(request):
                     })
                 )
                 pending_transaction_fee.save()
-                print("Pending transaction for fee created with ID:", pending_transaction_fee.id)
+                # print("Pending transaction for fee created with ID:", pending_transaction_fee.id)
 
                 return JsonResponse({'success': True, 'message': 'Transaction sent successfully!'})
             else:
@@ -648,8 +675,6 @@ def buy_kena(request):
             # print("M-Pesa Response Data:", response.get('ResponseCode'))
             return JsonResponse({'success': True, 'message': 'M-Pesa payment initiated. Please complete the payment on your phone.', 'response': response})
         
-       
-
 def mpesa_payment_status(request):
     if request.method == 'POST':
         data = json.loads(request.body)
@@ -723,17 +748,20 @@ def mpesa_callback(request):
                 # Update user's Kena balance or create a credit transaction
                 billing = mpesa_transaction.Billing
                 user = billing.user
-
+                wallet = Wallet.objects.filter(user=user, wallettype='primary').first()
+                Wallet_hash = wallet.hash if wallet else ''
                 # Create a new credit PendingTransaction instance for the purchased Kena
                 pending_transaction_credit = PendingTransaction(
                     billing=billing,
+                    wallet= wallet,
                     sender= user,  # No sender for purchase transactions 
                     receiver=user,
                     amount=amount,  # Amount of Kena purchased
-                    type='buykena',
+                    type='receive',
                     gateway='mpesa',
                     credit=amount,  # Credit the purchased amount
                     debit=0,  # No debit for purchase transactions
+                    walletHash = Wallet_hash,
                     signature=generate_signature(checkKey(user.private_key), {
                             "billing": billing.id,
                             "uid": billing.uid,
@@ -742,9 +770,6 @@ def mpesa_callback(request):
                         })   # No signature needed for purchase transactions
                 )
                 pending_transaction_credit.save()
-
-
-
 
                 # Here you would typically update the user's Kena balance
                 # For demonstration, we'll just print a message
@@ -757,8 +782,6 @@ def mpesa_callback(request):
         except MpesaTransaction.DoesNotExist:
             print(f"M-Pesa transaction not found for CheckoutRequestID: {checkout_request_id}")
             return JsonResponse({'success': False, 'message': 'Transaction not found'})
-
-   
 
 # submit mined block
 @csrf_exempt
@@ -780,7 +803,7 @@ def submit_block(request):
             
             verifiedSignature = verify_signature(checkKey(tx.sender.public_key),transaction_data,tx.signature)  
             if(verifiedSignature):                    
-                print(f"Amount: { tx.amount} verified: {verifiedSignature}, data: {transaction_data}")
+                # print(f"Amount: { tx.amount} verified: {verifiedSignature}, data: {transaction_data}")
                 tx_data.append({
                     "sender": tx.sender.username,
                     "receiver": tx.receiver.username,
@@ -788,8 +811,8 @@ def submit_block(request):
                     "hash": tx.hash
                 })                  
             else:
-                # pass
-                print(f"Amount: { tx.amount} failed verification -- verifiedsig: {verifiedSignature}, data: {transaction_data}")
+                pass
+                # print(f"Amount: { tx.amount} failed verification -- verifiedsig: {verifiedSignature}, data: {transaction_data}")
                            
         except Exception as e:
             print(e)
@@ -832,6 +855,7 @@ def submit_block(request):
             # print(f"matched pending transaction:  {pending_txn} ")
             tx = Transaction.objects.create(
                 billing=pending_txn.billing,
+                wallet=pending_txn.wallet,
                 gateway=pending_txn.gateway,
                 type=pending_txn.type,
                 debit=pending_txn.debit,

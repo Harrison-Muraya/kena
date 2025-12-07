@@ -38,50 +38,6 @@
                 <!-- Primary Wallet Card -->
                  {% for wallet in wallets %}
                     {% with colors=wallet.get_color_scheme %}
-                    <!-- <div class="relative bg-gradient-to-br {{ colors.gradient }} rounded-2xl p-6 {{ colors.text }} overflow-hidden transform hover:scale-105 transition-all duration-300 shadow-2xl">
-                        <div class="absolute top-0 right-0 w-32 h-32 {{ colors.overlay_top }} rounded-full -mr-16 -mt-16"></div>
-                        <div class="absolute bottom-0 left-0 w-24 h-24 {{ colors.overlay_bottom }} rounded-full -ml-12 -mb-12"></div>
-                        <div class="relative z-10">
-                            <div class="flex justify-between items-start mb-8">
-                                <div>
-                                    <h3 class="text-lg font-semibold {% if wallet.wallettype == 'personal' %}opacity-80{% endif %}">
-                                        {{ wallet.get_wallet_label }}
-                                    </h3>
-                                    <p class="text-sm {% if wallet.wallettype == 'personal' %}opacity-60{% else %}opacity-70{% endif %}">
-                                        {{ wallet.name }}
-                                    </p>
-                                </div>
-                                <div class="w-12 h-8 {{ colors.badge }} rounded flex items-center justify-center">
-                                    <span class="font-bold text-xs">KENA</span>
-                                </div>
-                            </div>
-                            <div class="mb-6">
-                                <p class="text-2xl font-bold mb-1">{{ wallet.amount|floatformat:2 }}</p>
-                                <p class="text-sm {% if wallet.wallettype == 'personal' %}opacity-60{% else %}opacity-70{% endif %}">
-                                    ≈ ${{ wallet.value|floatformat:2 }} USD
-                                </p>
-                            </div>
-                            <div class="flex justify-between items-end">
-                                <div>
-                                    <div class="flex items-center mb-1">
-                                        <p class="text-xs {% if wallet.wallettype == 'personal' %}opacity-60{% else %}opacity-70{% endif %} mb-1">
-                                            Wallet Address
-                                        </p>
-                                        <p class="text-xs {% if wallet.wallettype == 'personal' %}opacity-60{% else %}opacity-70{% endif %} ml-4 mb-1">
-                                            copy
-                                        </p>
-                                    </div>
-                                    <p class="font-mono text-sm">{{ wallet.hash|slice:":10" }}...{{ wallet.hash|slice:"-4:" }}</p>
-                                </div>
-                                <div class="text-right">
-                                    <p class="text-xs {% if wallet.wallettype == 'personal' %}opacity-60{% else %}opacity-70{% endif %}">
-                                        Balance
-                                    </p>
-                                    <p class="font-semibold">KENA</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div> -->
                     <div class="relative bg-gradient-to-br {{ colors.gradient }} rounded-2xl p-6 {{ colors.text }} overflow-hidden transform hover:scale-105 transition-all duration-300 shadow-2xl">
                         <!-- Decorative overlays -->
                         <div class="absolute top-0 right-0 w-32 h-32 {{ colors.overlay_top }} rounded-full -mr-16 -mt-16"></div>

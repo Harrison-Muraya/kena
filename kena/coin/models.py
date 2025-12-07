@@ -4,6 +4,8 @@ from django.contrib.auth.models import User
 from django.conf import settings
 from . import blockchain
 from django.utils.timezone import now
+from django.db.models import Sum
+from django.utils import timezone
 
 from asgiref.sync import async_to_sync
 from channels.layers import get_channel_layer
@@ -159,6 +161,7 @@ class Billing(models.Model):
 # It includes fields for billing, gateway, sender, receiver, amount, fee, time, and a unique hash
 # The save method calculates the hash for the transaction based on the provided data   
 class Transaction(models.Model):
+    wallet = models.ForeignKey(Wallet, on_delete=models.CASCADE, null=True, blank=True)
     billing = models.ForeignKey(Billing, on_delete=models.CASCADE, null=False, blank=False)
     gateway = models.CharField(max_length=100, default='kena')
     type = models.CharField(max_length=20, default='send')
@@ -172,8 +175,8 @@ class Transaction(models.Model):
     walletHash = models.CharField(null=True, blank=True, max_length=200)
     
 
-    def __str__(self):
-        return f"Transaction from {self.sender} to {self.receiver} of {self.amount} at {self.time}"
+    # def __str__(self):
+    #     return f"Transaction from {self.sender} to {self.receiver} of {self.amount} at {self.time}"
     
     def save(self, *args, **kwargs):
         data = {
@@ -182,10 +185,52 @@ class Transaction(models.Model):
             "sender": self.sender,
             "receiver": self.receiver,
             "amount": str(self.amount),
-            "time": str(self.time)
+            "time": str(self.time) if self.time else str(timezone.now()),
         }
         self.hash = blockchain.CalculateHash(data).calculate()
         super().save(*args, **kwargs)  # Call the "real" save() method
+         
+        if self.wallet:
+            self.update_wallet_balance()
+        
+    def update_wallet_balance(self):
+        """Update the associated wallet's balance"""
+        if not self.wallet:
+            return
+            
+        # Calculate total credits (money received)
+        credited = (
+            Transaction.objects.filter(wallet=self.wallet, type='receive')
+            .aggregate(total=Sum('credit'))['total'] or 0
+        )
+        
+        # Calculate total debits (money sent)
+        debited = (
+            Transaction.objects.filter(wallet=self.wallet, type='send')
+            .aggregate(total=Sum('debit'))['total'] or 0
+        )
+        
+        # Calculate fees paid
+        fees = (
+            Transaction.objects.filter(wallet=self.wallet, type='fee')
+            .aggregate(total=Sum('debit'))['total'] or 0
+        )
+        
+        # New balance = credits - debits - fees
+        new_balance = credited - debited - fees
+        
+        print(f"Wallet: {self.wallet.name}")
+        print(f"Credited: {credited}, Debited: {debited}, Fees: {fees}")
+        print(f"New Balance: {new_balance}")
+        
+        # Update wallet balance
+        self.wallet.amount = new_balance
+        self.wallet.save(update_fields=['amount'])
+            
+    def __str__(self):
+        return f"Transaction from {self.sender} to {self.receiver} of {self.amount} at {self.time}"
+
+
 
 # This model is used to store blocks in the blockchain
 # It includes fields for height, nonce, timestamp, previous hash, hash, and transactions    
@@ -212,6 +257,7 @@ class Block(models.Model):
 # This model is used to store pending transactions
 # It includes fields for sender, receiver, amount, timestamp, and a unique hash
 class PendingTransaction(models.Model):
+    wallet = models.ForeignKey(Wallet, on_delete=models.CASCADE, null=True, blank=True)
     billing = models.ForeignKey(Billing, on_delete=models.CASCADE)
     gateway = models.CharField(max_length=100, default='kena')
     type = models.CharField(max_length=20, default='send')

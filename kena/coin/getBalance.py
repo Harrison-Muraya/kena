@@ -16,14 +16,12 @@ def get_balance(walletHash, user_id):
         wallet = Wallet.objects.get(hash=walletHash, user_id=user_id)
         credited_amount = (
             Transaction.objects.filter(
-                status='completed',
                 type='credit'
             ).aggregate(total_amount=models.Sum('amount'))['total_amount'] or 0.0
         )
         debited_amount = (
             Transaction.objects.filter(
                 wallet_id=wallet.id,
-                status='completed',
                 type='debit'
             ).aggregate(total_amount=models.Sum('amount'))['total_amount'] or 0.0
         )
