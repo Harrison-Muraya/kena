@@ -213,26 +213,28 @@ class RegisterForm(UserCreationForm):
             )
 
             # Create a default wallet for the user
-            # default_coin = Coin.objects.first()  # Assuming there's at least one coin
-            # data = {
-            #     'name': 'Default Wallet',
-            #     'password': self.cleaned_data.get('password1'),
-            #     'wallettype': 'primary',
-            #     'private_key': views.checkKey(user.private_key).export_key().decode() #if user.private_key else ""
-            # }
-            # hasher = blockchain.CalculateHash(data)
-            # hash_value = hasher.calculate()
-            # # You can also create a default wallet here if needed
-            # Wallet.objects.create(
-            #     user=user,
-            #     coin=default_coin,
-            #     name="Default Wallet",
-            #     amount=0,
-            #     value=0,
-            #     hash=hash_value,
-            #     password=make_password(self.cleaned_data.get('password1')),  # hashed like in dashboard
-            #     wallettype="primary",
-            # )
+            default_coin = Coin.objects.first()  # Assuming there's at least one coin
+            data = {
+                'name': 'Default Wallet',
+                # 'password': self.cleaned_data.get('password1'),
+                'password': '12345678',  # Empty password for hash calculation
+                'wallettype': 'primary',
+                'private_key': views.checkKey(user.private_key).export_key().decode() #if user.private_key else ""
+            }
+            hasher = blockchain.CalculateHash(data)
+            hash_value = hasher.calculate()
+            # You can also create a default wallet here if needed
+            Wallet.objects.create(
+                user=user,
+                coin=default_coin,
+                name="Default Wallet",
+                amount=0,
+                value=0,
+                hash=hash_value,
+                # password=make_password(self.cleaned_data.get('password1')),  # hashed like in dashboard
+                password=make_password('12345678'),  # hashed like in dashboard
+                wallettype="primary",
+            )
 
         
         return user
