@@ -651,6 +651,50 @@ async function checkMpesaStatus(checkoutId) {
     return result.success === true;
 
 }
+
+// Copy wallet address to clipboard
+function copyWalletAddress(address, buttonId) {
+    const button = document.getElementById(buttonId);
+    const originalContent = button.innerHTML;
+    
+    // Create temporary textarea
+    const textArea = document.createElement('textarea');
+    textArea.value = address;
+    textArea.style.position = 'fixed';
+    textArea.style.left = '-999999px';
+    textArea.style.top = '-999999px';
+    document.body.appendChild(textArea);
+    textArea.focus();
+    textArea.select();
+    
+    try {
+        // Execute copy command
+        document.execCommand('copy');
+        
+        // Show success
+        button.innerHTML = `
+            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+            </svg>
+            <span>Copied!</span>
+        `;
+        button.disabled = true;
+        
+        // Reset after 2 seconds
+        setTimeout(function() {
+            button.innerHTML = originalContent;
+            button.disabled = false;
+        }, 2000);
+        
+    } catch (err) {
+        console.error('Copy failed:', err);
+        alert('Address: ' + address + '\n\nPlease copy manually.');
+    }
+    
+    // Clean up
+    document.body.removeChild(textArea);
+}
+
 // Helper to get CSRF token from cookie
 function getCookie(name) {
     let cookieValue = null;
@@ -666,6 +710,8 @@ function getCookie(name) {
     }
     return cookieValue;
 }
+
+
 
 // {
 //   "MerchantRequestID": "ddb8-4a08-af32-c0e1ff1c640614706",
