@@ -242,7 +242,7 @@ def dashboard(request):
                 }
                 hasher = blockchain.CalculateHash(data) 
                 generated_hash = hasher.calculate()
-
+            
                 if selected_wallet.hash != generated_hash:
                     return JsonResponse({'success': False, 'error': 'This wallet does not belong to you or password is incorrect.'})
                 

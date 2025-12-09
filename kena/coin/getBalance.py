@@ -30,3 +30,8 @@ def get_balance(walletHash, user_id):
     except Exception as e:
         print(f"Error getting balance for user {user_id}: {e}")
         return 0.0
+
+
+
+#  data: {'name': 'Default Wallet', 'password': 'rTBN$9g*2Ni3z&)', 'wallettype': 'primary', 'private_key': '-----BEGIN RSA PRIVATE KEY-----'}
+#  data: {'name': 'Default Wallet', 'password': 'rTBN$9g*2Ni3z&)', 'walletType': 'primary', 'private_key': '-----BEGIN RSA PRIVATE KEY-----'}

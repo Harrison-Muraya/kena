@@ -35,7 +35,7 @@
             </div>
             
             <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-                {% if wallet %}
+                {% if wallets  %}
                     <!-- Primary Wallet Card -->
                     {% for wallet in wallets %}
                         {% with colors=wallet.get_color_scheme %}
