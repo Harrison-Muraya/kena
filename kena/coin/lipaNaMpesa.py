@@ -50,8 +50,8 @@ def lipaNaMpesaOnline(phone_number, amount):
         "PartyA": phone_number,  # Use formatted phone number
         "PartyB": os.getenv('MPESA_SHORTCODE'),
         "PhoneNumber": phone_number,  # Use formatted phone number
-        # "CallBackURL": "https://yourdomain.com/payments/callback/",
-        "CallBackURL": os.getenv('CALLBACK_URL'),
+        "CallBackURL": "https://c3ffb02e3e49.ngrok-free.app/mpesa/callback/",
+        # "CallBackURL": os.getenv('CALLBACK_URL'),
         "AccountReference": "Buy Kena",
         "TransactionDesc": "Kena paymants"    }
 
