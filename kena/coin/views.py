@@ -11,6 +11,7 @@ from . import forms
 from . import blockchain
 from . import uidgenerator
 from . import lipaNaMpesa
+from . import paypalCheckout
 # from datetime import timezone
 import time
 import json
@@ -23,6 +24,7 @@ from Crypto.Hash import SHA256
 
 from django.urls import reverse
 from decimal import Decimal
+import requests
 
 
 # constant variables
@@ -631,6 +633,10 @@ def get_mine_data(request):
         "timestamp": time.time(),
     })
 
+
+
+
+
 #buy kena via mpesa
 def buy_kena(request):
      if request.method == 'POST':
@@ -674,9 +680,72 @@ def buy_kena(request):
             # print("M-Pesa Response Data:", response.get('ResponseCode'))
             return JsonResponse({'success': True, 'message': 'M-Pesa payment initiated. Please complete the payment on your phone.', 'response': response})
         
-        elif method == 'PayPal' or method == 'Stripe':
+        elif method == 'PayPal' or method == 'paypal':
             # Integrate PayPal payment processing here
             print("PayPal payment method selected.")
+            try:
+                # Get PayPal access token
+                access_token = paypalCheckout.get_paypal_access_token()
+                               
+                # Create PayPal order
+                order_url = f'{paypalCheckout.PAYPAL_API_BASE}/v2/checkout/orders'
+                headers = {
+                    'Content-Type': 'application/json',
+                    'Authorization': f'Bearer {access_token}'
+                }
+                
+                # Calculate KENA amount
+                kena_amount = Decimal(amount) / Decimal('0.30')
+                
+                order_data = {
+                    'intent': 'CAPTURE',
+                    'purchase_units': [{
+                        'amount': {
+                            'currency_code': 'USD',
+                            'value': str(amount)
+                        },
+                        'description': f'{kena_amount:.2f} KENA tokens'
+                    }],
+                    'application_context': {
+                        'brand_name': 'KENA Coin',
+                        'landing_page': 'NO_PREFERENCE',
+                        'user_action': 'PAY_NOW',
+                        'return_url': request.build_absolute_uri('/paypal/success/'),
+                        'cancel_url': request.build_absolute_uri('/paypal/cancel/')
+                    }
+                }
+                
+                response = requests.post(order_url, json=order_data, headers=headers)
+                order = response.json()
+                
+                if response.status_code == 201:
+                    # Get approval URL
+                    approval_url = next(
+                        link['href'] for link in order['links'] 
+                        if link['rel'] == 'approve'
+                    )
+                    
+                    
+                    # Save order ID to session for later verification
+                    request.session['paypal_order_id'] = order['id']
+                    request.session['paypal_amount'] = str(amount)
+                    
+                    return JsonResponse({
+                        'success': True,
+                        'approval_url': approval_url,
+                        'order_id': order['id']
+                    })
+                else:
+                    return JsonResponse({
+                        'success': False,
+                        'message': 'Failed to create PayPal order'
+                    })
+                    
+            except Exception as e:
+                return JsonResponse({
+                    'success': False,
+                    'message': str(e)
+                })
             return JsonResponse({'success': True, 'message': 'PayPal payment processing is not yet implemented.'})
         
 def mpesa_payment_status(request):

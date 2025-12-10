@@ -554,33 +554,33 @@ async function processPurchase(e) {
             buyButton.classList.add('opacity-70', 'cursor-not-allowed')
             
 
-            // try {
-            //     const response = await fetch(url, {
-            //         method: 'POST',
-            //         headers: {
-            //             'Content-Type': 'application/json',
-            //             'X-Requested-With': 'XMLHttpRequest',
-            //             'X-CSRFToken': getCookie('csrftoken')
-            //         },
-            //         body: JSON.stringify({ amount, method  })                
-            //     });
+            try {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRFToken': getCookie('csrftoken')
+                    },
+                    body: JSON.stringify({ amount, method  })                
+                });
                 
-            //     const data = await response.json();
+                const data = await response.json();
                 
-            //     if (data.success && data.redirect_url) {
-            //         // Redirect to PayPal
-            //         window.location.href = data.redirect_url;
-            //     } else {
-            //         throw new Error(data.message || 'PayPal payment initiation failed.');
-            //     }
+                if (data.success && data.redirect_url) {
+                    // Redirect to PayPal
+                    window.location.href = data.redirect_url;
+                } else {
+                    throw new Error(data.message || 'PayPal payment initiation failed.');
+                }
                 
-            // } catch (error) {
-            //     console.error('Error processing PayPal payment:', error);
-            //     showMessage('error', error.message || 'An error occurred with PayPal.');
+            } catch (error) {
+                console.error('Error processing PayPal payment:', error);
+                showMessage('error', error.message || 'An error occurred with PayPal.');
                 
-            //     buyButton.disabled = false;
-            //     buyButton.textContent = 'Complete Purchase';
-            // }
+                buyButton.disabled = false;
+                buyButton.textContent = 'Complete Purchase';
+            }
 
             // alert('Redirecting to PayPal for payment of $' + amount);
         } else if(method === 'card' || method === 'Credit/Debit Card'){
