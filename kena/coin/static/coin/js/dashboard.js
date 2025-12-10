@@ -277,7 +277,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 
-
+// to PayPal checkoutmake user dropdown functional
 document.addEventListener('DOMContentLoaded', function() {
     const button = document.getElementById('userMenuButton');
     const menu = document.getElementById('userMenu');
@@ -541,7 +541,48 @@ async function processPurchase(e) {
         
         } else if(method === 'paypal' || method === 'PayPal'){
             // initiate paypal payment process
-            alert('Redirecting to PayPal for payment of $' + amount);
+            // Disable button
+            buyButton.disabled = true;
+            buyButton.innerHTML = `
+                Redirecting...
+                <svg class="w-5 h-5 ml-2 inline-block animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+                </svg>
+            `;
+            buyAmountError.classList.add('hidden')
+            buyButton.classList.add('opacity-70', 'cursor-not-allowed')
+            
+
+            // try {
+            //     const response = await fetch(url, {
+            //         method: 'POST',
+            //         headers: {
+            //             'Content-Type': 'application/json',
+            //             'X-Requested-With': 'XMLHttpRequest',
+            //             'X-CSRFToken': getCookie('csrftoken')
+            //         },
+            //         body: JSON.stringify({ amount, method  })                
+            //     });
+                
+            //     const data = await response.json();
+                
+            //     if (data.success && data.redirect_url) {
+            //         // Redirect to PayPal
+            //         window.location.href = data.redirect_url;
+            //     } else {
+            //         throw new Error(data.message || 'PayPal payment initiation failed.');
+            //     }
+                
+            // } catch (error) {
+            //     console.error('Error processing PayPal payment:', error);
+            //     showMessage('error', error.message || 'An error occurred with PayPal.');
+                
+            //     buyButton.disabled = false;
+            //     buyButton.textContent = 'Complete Purchase';
+            // }
+
+            // alert('Redirecting to PayPal for payment of $' + amount);
         } else if(method === 'card' || method === 'Credit/Debit Card'){
             // initiate card payment process
             alert('Processing card payment of $' + amount);
@@ -565,6 +606,8 @@ async function processPurchase(e) {
     // }, 2000);
 }
 
+
+// Handle Send KENA form submission
 document.getElementById('sendKenaForm').addEventListener('submit', function(e) {
     e.preventDefault();
     formData = new FormData(this);

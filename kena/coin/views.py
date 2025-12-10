@@ -674,6 +674,11 @@ def buy_kena(request):
             # print("M-Pesa Response Data:", response.get('ResponseCode'))
             return JsonResponse({'success': True, 'message': 'M-Pesa payment initiated. Please complete the payment on your phone.', 'response': response})
         
+        elif method == 'PayPal' or method == 'Stripe':
+            # Integrate PayPal payment processing here
+            print("PayPal payment method selected.")
+            return JsonResponse({'success': True, 'message': 'PayPal payment processing is not yet implemented.'})
+        
 def mpesa_payment_status(request):
     if request.method == 'POST':
         data = json.loads(request.body)
