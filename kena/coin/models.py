@@ -307,6 +307,19 @@ class MpesaTransaction(models.Model):
     def __str__(self):
         return f"Mpesa Transaction {self.transaction_id} - {self.phone_number} - {self.amount} - {self.status}" 
 
+# paypal Transaction Model
+class PaypalTransaction(models.Model):
+    Billing = models.ForeignKey(Billing, on_delete=models.CASCADE)
+    type = models.CharField(max_length=20, default='buy_kena-paypal')
+    order_id = models.CharField(max_length=100, unique=True , blank=True, null=True)
+    payer_id = models.CharField(max_length=100, blank=True, null=True)
+    amount = models.DecimalField(max_digits=20, decimal_places=5, blank=True, null=True)
+    status = models.CharField(max_length=20, default='pending')
+    timestamp = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Paypal Transaction {self.order_id} - {self.amount} - {self.status}"
+
 # class PendingTransaction(models.Model, object):
 #     def __init__(self, billing, sender, receiver, amt, time):
 #         self.billing = billing

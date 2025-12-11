@@ -6,7 +6,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.hashers import make_password
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.template import loader
-from . models import Todolist, Item, Coin, Wallet,CustomUser, Billing, Transaction, Block, PendingTransaction, MpesaTransaction
+from . models import Todolist, Item, Coin, Wallet,CustomUser, Billing, Transaction, Block, PendingTransaction, MpesaTransaction, PaypalTransaction
 from . import forms 
 from . import blockchain
 from . import uidgenerator
@@ -595,6 +595,7 @@ def get_mine_data(request):
     pending = PendingTransaction.objects.all()
     # print(pending)
     tx_data = []
+    rejected_tx = []
 
     for tx in pending:
         # validate Pending transaction signature
@@ -603,7 +604,7 @@ def get_mine_data(request):
                     "billing": tx.billing.id,
                     "uid": tx.billing.uid,
                     "sender": tx.sender.username,
-                    "amount": tx.amount,
+                    "amount": str(tx.amount),
                 }
             
             verifiedSignature = verify_signature(checkKey(tx.sender.public_key),transaction_data,tx.signature)  
@@ -695,7 +696,7 @@ def buy_kena(request):
                 }
                 
                 # Calculate KENA amount
-                kena_amount = Decimal(amount) / Decimal('0.30')
+                kena_amount = Decimal(amount)
                 
                 order_data = {
                     'intent': 'CAPTURE',
@@ -710,18 +711,15 @@ def buy_kena(request):
                         'brand_name': 'KENA Coin',
                         'landing_page': 'NO_PREFERENCE',
                         'user_action': 'PAY_NOW',
-                        # 'return_url': request.build_absolute_uri('/paypal/success/'),
-                        'return_url': 'https://ecea412fc9c6.ngrok-free.app/paypal/success/',
-                        'cancel_url': 'https://ecea412fc9c6.ngrok-free.app/paypal/cancel/'
-                        # 'cancel_url': request.build_absolute_uri('/paypal/cancel/')
+                        'return_url': request.build_absolute_uri('/paypal/success/'),
+                         'cancel_url': request.build_absolute_uri('/paypal/cancel/')
                     }
                 }
                 # print('built url:',  request.build_absolute_uri('/paypal/success/'))
 
                 response = requests.post(order_url, json=order_data, headers=headers)
                 order = response.json()
-                print("PayPal Order Response:", order)
-                print("PayPal Order Status Code:", response.status_code)
+                # print("PayPal Order Response:", order)
                 if response.status_code == 201:
                     # Get approval URL
                     approval_url = next(
@@ -729,12 +727,23 @@ def buy_kena(request):
                         if link['rel'] == 'approve'
                     )
                     
+                    paypalbilling = Billing.objects.create(
+                        user=request.user,
+                        amount=kena_amount,
+                        type='purchase',
+                        uid=uidgenerator.generate_code()
+                    )
+
+                    PaypalTransaction.objects.create(
+                        Billing=paypalbilling,
+                        order_id=order['id'],
+                        amount=kena_amount,
+                        status='Created'
+                    )
                     
                     # Save order ID to session for later verification
-                    request.session['paypal_order_id'] = order['id']
-                    request.session['paypal_amount'] = str(amount)
-
-                    print("PayPal Approval URL:", approval_url)
+                    # request.session['paypal_order_id'] = order['id']
+                    # request.session['paypal_amount'] = str(amount)
                     
                     return JsonResponse({
                         'success': True,
@@ -846,21 +855,21 @@ def mpesa_callback(request):
                             "billing": billing.id,
                             "uid": billing.uid,
                             "sender": user.username,
-                            "amount": billing.amount,
+                            "amount": str(billing.amount),
                         })   # No signature needed for purchase transactions
                 )
                 pending_transaction_credit.save()
 
                 # Here you would typically update the user's Kena balance
                 # For demonstration, we'll just print a message
-                print(f"User {user.username} has successfully purchased {amount} Kena.")
+                # print(f"User {user.username} has successfully purchased {amount} Kena.")
                 return JsonResponse({'success': True, 'message': 'M-Pesa payment completed successfully.'})
             else:
                 mpesa_transaction.status = 'Failed'
                 mpesa_transaction.save()
                 return JsonResponse({'success': False, 'message': f'M-Pesa payment failed: {result_desc}'})
         except MpesaTransaction.DoesNotExist:
-            print(f"M-Pesa transaction not found for CheckoutRequestID: {checkout_request_id}")
+            # print(f"M-Pesa transaction not found for CheckoutRequestID: {checkout_request_id}")
             return JsonResponse({'success': False, 'message': 'Transaction not found'})
 
 # PayPal success 
@@ -884,52 +893,49 @@ def paypal_success(request):
         
         response = requests.post(capture_url, headers=headers)
         capture_data = response.json()
+        # print("PayPal Capture Response:", capture_data)
         
         if capture_data['status'] == 'COMPLETED':
-            # Payment successful - credit user's account
-            amount = Decimal(request.session.get('paypal_amount', '0'))
-            kena_amount = amount / Decimal('0.30')
             
-            # Create billing and transaction records
-            billing = Billing.objects.create(
-                user=request.user,
-                amount=kena_amount,
-                type='purchase',
-                uid=uidgenerator.generate_code()
-            )
+            capture_id = capture_data['id']
+           
+            billing = PaypalTransaction.objects.get(order_id=capture_id)
             
             # Get user's first wallet or create one
-            wallet = Wallet.objects.filter(user=request.user, status=1).first()
-            
-            # if wallet:
-            #     Transaction.objects.create(
-            #         billing=billing,
-            #         wallet=wallet,
-            #         sender='PayPal',
-            #         receiver=request.user.username,
-            #         amount=kena_amount,
-            #         type='receive',
-            #         gateway='paypal',
-            #         credit=kena_amount,
-            #         debit=0,
-            #         hash=blockchain.CalculateHash({
-            #             'order_id': order_id,
-            #             'amount': str(kena_amount),
-            #             'user': request.user.username
-            #         }).calculate()
-            #     )
+            wallet = Wallet.objects.filter(user=request.user, wallettype='primary').first()
+
+            if wallet:
+                PendingTransaction.objects.create(
+                    billing=billing.Billing,
+                    wallet=wallet,
+                    sender=request.user,
+                    receiver=request.user,
+                    amount=billing.amount,
+                    type='receive',
+                    gateway='paypal',
+                    credit=billing.amount,
+                    debit=0,
+                    walletHash = wallet.hash,
+                    signature=generate_signature(checkKey(request.user.private_key), {
+                        'billing': billing.Billing.id,
+                        'uid': billing.Billing.uid,
+                        'sender': request.user.username,
+                        'amount': str(billing.amount),                       
+                    })
+                )
             
             # Clear session
             request.session.pop('paypal_order_id', None)
             request.session.pop('paypal_amount', None)
             
-            messages.success(request, f'Successfully purchased {kena_amount:.2f} KENA!')
+            messages.success(request, f'Successfully purchased {billing.amount} KENA!')
             return redirect('dashboard')
         else:
             messages.error(request, 'Payment was not completed.')
             return redirect('dashboard')
             
     except Exception as e:
+        print(f'Error processing PayPal payment: {str(e)}')
         messages.error(request, f'Error processing payment: {str(e)}')
         return redirect('dashboard')
 
