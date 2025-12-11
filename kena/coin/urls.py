@@ -23,7 +23,11 @@ urlpatterns = [
     path('api/download-miner/', views.download_miner_script, name='download_miner'),
     path('api/pending_transactions/', views.get_pending_transactions, name='pending_transactions'),
     path('process-payment/', views.buy_kena, name='buy_kena'),
+
     path('mpesa/callback/', views.mpesa_callback, name='mpesa_callback'),
     path('check-mpesa-status/', views.mpesa_payment_status, name='check_mpesa_status'),
+
+    path('paypal/success/', views.paypal_success, name='paypal_success'),
+    path('paypal/cancel/', views.paypal_cancel, name='paypal_cancel'),
 
 ]

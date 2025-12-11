@@ -566,17 +566,19 @@ async function processPurchase(e) {
                 });
                 
                 const data = await response.json();
-                
-                if (data.success && data.redirect_url) {
+                console.log('is success:', data.success);
+                console.log('redirect url:', data.approval_url);
+                console.log('PayPal initiation response:', data);
+                if (data.success && data.approval_url) {
                     // Redirect to PayPal
-                    window.location.href = data.redirect_url;
+                    window.location.href = data.approval_url;
                 } else {
                     throw new Error(data.message || 'PayPal payment initiation failed.');
                 }
                 
             } catch (error) {
                 console.error('Error processing PayPal payment:', error);
-                showMessage('error', error.message || 'An error occurred with PayPal.');
+                // showMessage('error', error.message || 'An error occurred with PayPal.');
                 
                 buyButton.disabled = false;
                 buyButton.textContent = 'Complete Purchase';
