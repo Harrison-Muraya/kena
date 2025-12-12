@@ -64,8 +64,12 @@ function openBuyModal(method) {
                 <div class="space-y-2">
                     <input type="text" placeholder="Card Number" class="w-full p-2 bg-white/10 border border-white/20 rounded text-white placeholder-gray-400">
                     <div class="flex space-x-2">
-                        <input type="text" placeholder="MM/YY" class="flex-1 p-2 bg-white/10 border border-white/20 rounded text-white placeholder-gray-400">
-                        <input type="text" placeholder="CVV" class="flex-1 p-2 bg-white/10 border border-white/20 rounded text-white placeholder-gray-400">
+                        <input type="text" placeholder="MM/YY"
+                                class="flex-1 p-2 bg-white/10 border border-white/20 rounded text-white placeholder-gray-400"
+                                maxlength="4" inputmode="numeric" autocomplete="cc-exp">
+                        <input type="text" placeholder="CVV"
+                                class="w-20 flex-none p-2 bg-white/10 border border-white/20 rounded text-white placeholder-gray-400"
+                                maxlength="4" inputmode="numeric" autocomplete="cc-csc">
                     </div>
                 </div>
             `;

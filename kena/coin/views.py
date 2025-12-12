@@ -648,10 +648,6 @@ def get_mine_data(request):
         "timestamp": time.time(),
     })
 
-
-
-
-
 #buy kena via mpesa
 def buy_kena(request):
      if request.method == 'POST':
