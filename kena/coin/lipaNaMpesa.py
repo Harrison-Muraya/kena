@@ -32,6 +32,7 @@ def getAccessToken():
     return token
 
 def lipaNaMpesaOnline(phone_number, amount):
+    print("Lipa na Mpesa callback url called", os.getenv('CALLBACK_URL'))
     phone_number = format_phone_number(phone_number)  # Ensure correct phone format
     access_token = getAccessToken()
     api_url = "https://sandbox.safaricom.co.ke/mpesa/stkpush/v1/processrequest"
@@ -50,7 +51,7 @@ def lipaNaMpesaOnline(phone_number, amount):
         "PartyA": phone_number,  # Use formatted phone number
         "PartyB": os.getenv('MPESA_SHORTCODE'),
         "PhoneNumber": phone_number,  # Use formatted phone number
-        "CallBackURL": "https://ecea412fc9c6.ngrok-free.app/mpesa/callback/",
+        # "CallBackURL": "https://ecea412fc9c6.ngrok-free.app/mpesa/callback/",
         # "CallBackURL": os.getenv('CALLBACK_URL'),
         "AccountReference": "Buy Kena",
         "TransactionDesc": "Kena paymants"    }
