@@ -32,7 +32,6 @@ def getAccessToken():
     return token
 
 def lipaNaMpesaOnline(phone_number, amount):
-    print("Lipa na Mpesa callback url called", os.getenv('CALLBACK_URL'))
     phone_number = format_phone_number(phone_number)  # Ensure correct phone format
     access_token = getAccessToken()
     api_url = "https://sandbox.safaricom.co.ke/mpesa/stkpush/v1/processrequest"
