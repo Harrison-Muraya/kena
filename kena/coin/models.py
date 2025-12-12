@@ -291,7 +291,37 @@ class PendingTransaction(models.Model):
 
     def __str__(self):
         return f"{self.sender} -> {self.receiver}: {self.amount}-> {self.signature}"
-    
+
+# This model is used to store rejected transactions
+# It includes fields for sender, receiver, amount, timestamp, and a unique hash
+class RejectedTransaction(models.Model):
+    wallet = models.ForeignKey(Wallet, on_delete=models.CASCADE, null=True, blank=True)
+    billing = models.ForeignKey(Billing, on_delete=models.CASCADE)
+    gateway = models.CharField(max_length=100, default='kena')
+    type = models.CharField(max_length=20, default='send')
+    debit = models.DecimalField(max_digits=20, decimal_places=5, default=0)
+    credit = models.DecimalField(max_digits=20, decimal_places=5, default=0)
+    sender = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    receiver = models.CharField(max_length=100, null=True, blank=True)
+    amount = models.DecimalField(max_digits=20, decimal_places=5)
+    timestamp = models.DateTimeField(default=now)  # Manually set timestamp
+    hash = models.CharField(max_length=64, unique=True, blank=True)
+    signature = models.CharField(null=True, blank=True)
+    walletHash = models.CharField(null=True, blank=True, max_length=200)
+    reason = models.TextField(null=True, blank=True)
+
+    def save(self, *args, **kwargs):
+        # Only calculate hash if not already set
+        if not self.hash:
+            data = {
+                "sender": str(self.sender),
+                "receiver": str(self.receiver),
+                "amount": str(self.amount),
+                "timestamp": str(self.timestamp),
+            }
+            self.hash = blockchain.CalculateHash(data).calculate()
+
+        super().save(*args, **kwargs)
 # mpesa Transaction Model
 class MpesaTransaction(models.Model):
     Billing = models.ForeignKey(Billing, on_delete=models.CASCADE)

@@ -6,7 +6,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.hashers import make_password
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.template import loader
-from . models import Todolist, Item, Coin, Wallet,CustomUser, Billing, Transaction, Block, PendingTransaction, MpesaTransaction, PaypalTransaction
+from . models import Todolist, Item, Coin, Wallet,CustomUser, Billing, Transaction, Block, PendingTransaction, MpesaTransaction, PaypalTransaction, RejectedTransaction
 from . import forms 
 from . import blockchain
 from . import uidgenerator
@@ -616,9 +616,23 @@ def get_mine_data(request):
                     "amount": float(tx.amount),
                     "hash": tx.hash
                 })                  
-            else:
-                pass
+            else:   
                 # print(f"Amount: { tx.amount} failed verification -- verifiedsig: {verifiedSignature}, data: {transaction_data}")
+                RejectedTransaction.objects.create(
+                    billing=tx.billing,
+                    wallet=tx.wallet,
+                    sender=tx.sender,
+                    receiver=tx.receiver,
+                    amount=tx.amount,
+                    type=tx.type,
+                    gateway=tx.gateway,
+                    credit=tx.credit,
+                    debit=tx.debit,
+                    signature=tx.signature,
+                    reason="Invalid signature"
+                )
+                tx.delete()  # Remove invalid transaction from pending
+                print(f"Rejected transaction from {tx.sender.username} for amount {tx.amount} due to invalid signature.")
                            
         except Exception as e:
             print(e)
@@ -763,7 +777,8 @@ def buy_kena(request):
                 })
      else:
         return JsonResponse({'success': False, 'message': 'Invalid request method'})
-        
+
+# Check M-Pesa payment status
 def mpesa_payment_status(request):
     if request.method == 'POST':
         data = json.loads(request.body)

@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import CustomUser, Todolist, Item, Coin, Wallet, Billing, Transaction, Block, PendingTransaction, UserProfile, MpesaTransaction, PaypalTransaction
+from .models import CustomUser, Todolist, Item, Coin, Wallet, Billing, Transaction, Block, PendingTransaction, UserProfile, MpesaTransaction, PaypalTransaction, RejectedTransaction
 
 # Register your models here.
 admin.site.register(CustomUser)
@@ -14,3 +14,4 @@ admin.site.register(PendingTransaction)
 admin.site.register(UserProfile)
 admin.site.register(MpesaTransaction)
 admin.site.register(PaypalTransaction)
+admin.site.register(RejectedTransaction)
