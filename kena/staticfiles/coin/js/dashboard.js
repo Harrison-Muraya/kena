@@ -29,20 +29,20 @@ function openBuyModal(method) {
     switch(method) {
         case 'mpesa':
             paymentContent = `
-                <div class="flex items-center">
+                <div id ="mpesa"  class="flex items-center">
                     <div class="w-8 h-8 bg-green-500 rounded mr-3 flex items-center justify-center">
                         <span class="text-xs font-bold text-white">M</span>
                     </div>
                     <span>M-Pesa</span>
                 </div>
                 <div class="mt-3">
-                    <input type="tel" placeholder="Phone Number" class="w-full p-2 bg-white/10 border border-white/20 rounded text-white placeholder-gray-400">
+                    <input id="phoneNumber" type="tel" placeholder="0726688832" class="w-full p-2 bg-white/10 border border-white/20 rounded text-white placeholder-gray-400">
                 </div>
             `;
             break;
         case 'paypal':
             paymentContent = `
-                <div class="flex items-center">
+                <div id="paypal" class="flex items-center">
                     <div class="w-8 h-8 bg-blue-500 rounded mr-3 flex items-center justify-center">
                         <span class="text-xs font-bold text-white">P</span>
                     </div>
@@ -53,7 +53,7 @@ function openBuyModal(method) {
             break;
         case 'card':
             paymentContent = `
-                <div class="flex items-center mb-3">
+                <div id="card" class="flex items-center mb-3">
                     <div class="w-8 h-8 bg-purple-500 rounded mr-3 flex items-center justify-center">
                         <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path>
@@ -64,8 +64,12 @@ function openBuyModal(method) {
                 <div class="space-y-2">
                     <input type="text" placeholder="Card Number" class="w-full p-2 bg-white/10 border border-white/20 rounded text-white placeholder-gray-400">
                     <div class="flex space-x-2">
-                        <input type="text" placeholder="MM/YY" class="flex-1 p-2 bg-white/10 border border-white/20 rounded text-white placeholder-gray-400">
-                        <input type="text" placeholder="CVV" class="flex-1 p-2 bg-white/10 border border-white/20 rounded text-white placeholder-gray-400">
+                        <input type="text" placeholder="MM/YY"
+                                class="flex-1 p-2 bg-white/10 border border-white/20 rounded text-white placeholder-gray-400"
+                                maxlength="4" inputmode="numeric" autocomplete="cc-exp">
+                        <input type="text" placeholder="CVV"
+                                class="w-20 flex-none p-2 bg-white/10 border border-white/20 rounded text-white placeholder-gray-400"
+                                maxlength="4" inputmode="numeric" autocomplete="cc-csc">
                     </div>
                 </div>
             `;
@@ -113,23 +117,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 });
-
-function processPurchase() {
-    const amount = document.getElementById('buyAmount').value;
-    if (!amount || amount <= 0) {
-        alert('Please enter a valid amount');
-        return;
-    }
-    
-    // Simulate purchase process
-    alert('Purchase initiated! You will receive a confirmation shortly.');
-    closeBuyModal();
-    
-    // Add to transaction history
-    setTimeout(() => {
-        addTransaction('purchase', parseFloat(amount) / 0.30, 'Purchase via payment method');
-    }, 2000);
-}
 
 function sendTransaction() {
     const address = document.getElementById('recipientAddress').value;
@@ -294,8 +281,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 
-
-
+// to PayPal checkoutmake user dropdown functional
 document.addEventListener('DOMContentLoaded', function() {
     const button = document.getElementById('userMenuButton');
     const menu = document.getElementById('userMenu');
@@ -453,10 +439,184 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 
+// Handle Buy KENA form submission
+document.getElementById('buKenaForm').addEventListener('submit', processPurchase);
+
+// Process purchase function
+async function processPurchase(e) {
+    e.preventDefault();
+    const amount = document.getElementById('buyAmount').value;
+    const phoneNumber = document.getElementById('phoneNumber') ? document.getElementById('phoneNumber').value : null;
+    const buyButton = document.getElementById('PurchaseButton');
+    const buyAmountError = document.getElementById('buyAmountError');
+    const buyMessage = document.getElementById('buyMessage');
+    const url = document.getElementById('BuyKenaUrl').value;
+    
+    spinner = document.getElementById('purchaseSpinner');
+
+    // console.log(amount, phoneNumber, url, getCookie('csrftoken'));
+
+    const method = document.getElementById('mpesa') ? 'M-Pesa' :
+                   document.getElementById('paypal') ? 'PayPal' :
+                   document.getElementById('card') ? 'Credit/Debit Card' : 'Unknown';
+ 
+    if (!amount || amount <= 0) {
+        buyAmountError.textContent = 'Please enter a valid amount';
+        buyAmountError.classList.remove('hidden');
+        buyMessage.classList.remove('hidden')
+        buyMessage.className = 'bg-red-600/20 border border-red-500/30 text-red-400 p-3 rounded-lg mb-4 items-center text-center'
+        buyMessage.textContent = 'Please enter a valid amount.'
+        buyButton.disabled = false;
+        buyButton.textContent = 'Complete Purchase';
+    }
+    else{
+
+        if(method === 'mpesa' || method === 'M-Pesa'){
+            // initiate mpesa payment process
+            buyButton.disabled = true;
+            buyButton.innerHTML = `
+                                    Processing
+                                    <svg id="purchaseSpinner" class="w-5 h-5 ml-2 inline-block animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke-width="4"></circle>
+                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+                                    </svg>
+                                `
+            buyAmountError.classList.add('hidden');
+            buyButton.classList.add('opacity-70', 'cursor-not-allowed');
+            try {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRFToken': getCookie('csrftoken')
+                    },
+                    body: JSON.stringify({ amount, method, phoneNumber })
+                })
+
+                const data = await response.json()
+                if (!data.success) {
+                    throw new Error(data.message || 'Payment initiation failed.')
+                }
+                const checkoutId = data.response.CheckoutRequestID;
+                console.log('M-Pesa initiated, CheckoutRequestID:', checkoutId)
+
+                // Poll the backend for payment status
+                let attempts = 0
+                let paymentComplete = false;
+                const pollInterval = setInterval(async () => {
+                    attempts++;
+                    console.log(`Checking payment status... (${attempts})`)
+
+                    const status = await checkMpesaStatus(checkoutId)
+                    console.log('Payment status:', status)
+                    if (status === true || attempts >= 5) {
+                        clearInterval(pollInterval)
+
+                        if (status === true) {
+                            buyMessage.classList.remove('hidden');
+                            buyMessage.className = 'bg-green-600/20 border border-green-500/30 text-green-400 p-3 rounded-lg mb-4 items-center text-center'
+                            buyMessage.textContent = 'Payment successful! KENA will be credited shortly.'
+                            setTimeout(() => {
+                                closeBuyModal()                                
+                            }, 3000);
+                        } else {
+                            buyMessage.classList.remove('hidden');
+                            buyMessage.className = 'bg-yellow-600/20 border border-yellow-500/30 text-yellow-400 p-3 rounded-lg mb-4 items-center text-center'
+                            buyMessage.textContent = 'Payment still pending. Please check M-Pesa.'
+                        }
+
+                        buyAmountError.classList.remove('hidden')
+                        buyButton.disabled = false
+                        buyButton.textContent = 'Complete Purchase'
+                        buyButton.classList.remove('opacity-70', 'cursor-not-allowed')
+                    }
+                }, 15000) // check every 15 seconds
+            }catch (error){
+                console.error('Error processing M-Pesa payment:', error)
+                buyMessage.classList.remove('hidden')
+                buyMessage.className = 'bg-red-600/20 border border-red-500/30 text-red-400 p-3 rounded-lg mb-4 items-center text-center'
+                buyMessage.textContent = 'An error occurred while processing your payment. Please try again.'
+                
+                buyButton.disabled = false
+                buyButton.textContent = 'Complete Purchase'
+                buyButton.classList.remove('opacity-70', 'cursor-not-allowed')
+            };
+        
+        } else if(method === 'paypal' || method === 'PayPal'){
+            // initiate paypal payment process
+            // Disable button
+            buyButton.disabled = true;
+            buyButton.innerHTML = `
+                Redirecting...
+                <svg class="w-5 h-5 ml-2 inline-block animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+                </svg>
+            `;
+            buyAmountError.classList.add('hidden')
+            buyButton.classList.add('opacity-70', 'cursor-not-allowed')
+            
+
+            try {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRFToken': getCookie('csrftoken')
+                    },
+                    body: JSON.stringify({ amount, method  })                
+                });
+                
+                const data = await response.json();
+                console.log('is success:', data.success);
+                console.log('redirect url:', data.approval_url);
+                console.log('PayPal initiation response:', data);
+                if (data.success && data.approval_url) {
+                    // Redirect to PayPal
+                    window.location.href = data.approval_url;
+                } else {
+                    throw new Error(data.message || 'PayPal payment initiation failed.');
+                }
+                
+            } catch (error) {
+                console.error('Error processing PayPal payment:', error);
+                // showMessage('error', error.message || 'An error occurred with PayPal.');
+                
+                buyButton.disabled = false;
+                buyButton.textContent = 'Complete Purchase';
+            }
+
+            // alert('Redirecting to PayPal for payment of $' + amount);
+        } else if(method === 'card' || method === 'Credit/Debit Card'){
+            // initiate card payment process
+            alert('Processing card payment of $' + amount);
+        }   else {  
+            alert('Please select a payment method');
+            return;
+        }
+        
+    }   
+
+
+    // console.log('Processing purchase of $' + amount + ' via ' + method);
+
+    // Simulate purchase process
+   
+    // closeBuyModal();
+    
+    // Add to transaction history
+    // setTimeout(() => {
+    //     addTransaction('purchase', parseFloat(amount) / 0.30, 'Purchase via payment method');
+    // }, 2000);
+}
+
+
+// Handle Send KENA form submission
 document.getElementById('sendKenaForm').addEventListener('submit', function(e) {
     e.preventDefault();
-    
-    const formData = new FormData(this);
+    formData = new FormData(this);
     const sendButton = document.getElementById('sendButton');
     const messageContainer = document.getElementById('sendMessageContainer');
     const url = document.getElementById('dashboardUrl').value;
@@ -522,3 +682,90 @@ document.getElementById('sendKenaForm').addEventListener('submit', function(e) {
         sendButton.textContent = 'Send Transaction';
     });
 });
+
+// function to check if mpesa payment was completed
+async function checkMpesaStatus(checkoutId) {
+    const url = document.getElementById('MpesaStatusUrl').value;
+    let isTxnCompleted = false;
+    
+   const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken')
+        },
+        body: JSON.stringify({ CheckoutRequestID: checkoutId })
+    });
+    const result = await response.json();
+    return result.success === true;
+
+}
+
+// Copy wallet address to clipboard
+function copyWalletAddress(address, buttonId) {
+    const button = document.getElementById(buttonId);
+    const originalContent = button.innerHTML;
+    
+    // Create temporary textarea
+    const textArea = document.createElement('textarea');
+    textArea.value = address;
+    textArea.style.position = 'fixed';
+    textArea.style.left = '-999999px';
+    textArea.style.top = '-999999px';
+    document.body.appendChild(textArea);
+    textArea.focus();
+    textArea.select();
+    
+    try {
+        // Execute copy command
+        document.execCommand('copy');
+        
+        // Show success
+        button.innerHTML = `
+            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+            </svg>
+            <span>Copied!</span>
+        `;
+        button.disabled = true;
+        
+        // Reset after 2 seconds
+        setTimeout(function() {
+            button.innerHTML = originalContent;
+            button.disabled = false;
+        }, 2000);
+        
+    } catch (err) {
+        console.error('Copy failed:', err);
+        alert('Address: ' + address + '\n\nPlease copy manually.');
+    }
+    
+    // Clean up
+    document.body.removeChild(textArea);
+}
+
+// Helper to get CSRF token from cookie
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+
+
+// {
+//   "MerchantRequestID": "ddb8-4a08-af32-c0e1ff1c640614706",
+//   "CheckoutRequestID": "ws_CO_06122025021627503726688832",
+//   "ResponseCode": "0",
+//   "ResponseDescription": "Success. Request accepted for processing",
+//   "CustomerMessage": "Success. Request accepted for processing"
+// }
