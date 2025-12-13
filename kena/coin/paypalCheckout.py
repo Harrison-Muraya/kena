@@ -1,10 +1,12 @@
 import requests
 from django.shortcuts import render, redirect
+import os
 
 # PayPal Configuration
-PAYPAL_CLIENT_ID = 'ATVMzi2TLyhYhTmWDVzX1AKoLVTcvHjcWA_f6aoOsRv0f9aD1NsVvmWg8V3eWR9PToMDqm3nljgQLHyq'
-PAYPAL_CLIENT_SECRET = 'EHKMBozA7AsqS5JELTeGKtZwKzxa_16ZwPgrDS365062eJQSmXQfoFm2dYJN0j5RNf939aTlt7E-ugTC'
-PAYPAL_MODE = 'sandbox'  # Use 'live' for production
+PAYPAL_CLIENT_ID = os.getenv('PAYPAL_CLIENT_ID')
+PAYPAL_CLIENT_SECRET = os.getenv('PAYPAL_CLIENT_SECRET')
+PAYPAL_MODE = os.getenv('PAYPAL_MODE')  # Use 'live' for production
+
 
 # PayPal API URLs
 if PAYPAL_MODE == 'sandbox':

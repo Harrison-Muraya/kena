@@ -16,6 +16,7 @@ from django.dispatch import receiver
 from django.contrib import messages
 from dotenv import load_dotenv
 from pathlib import Path
+import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -26,7 +27,8 @@ load_dotenv(BASE_DIR / '.env')
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-$65^eb^#gtn_i)3@u9*5phpgsg@ui41y9g2&wre-9hg%*k!!&$'
+# SECRET_KEY = 'django-insecure-$65^eb^#gtn_i)3@u9*5phpgsg@ui41y9g2&wre-9hg%*k!!&$'
+SECRET_KEY = os.getenv('DJANGO_SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 # DEBUG = True
