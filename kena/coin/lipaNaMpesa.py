@@ -25,11 +25,19 @@ def getAccessToken():
     consumer_key = os.getenv('MPESA_CONSUMER_KEY')
     consumer_secret = os.getenv('MPESA_CONSUMER_SECRET')
     api_url = "https://sandbox.safaricom.co.ke/oauth/v1/generate?grant_type=client_credentials"
+
+    print("Obtaining access token...")
+    print("customer key:", consumer_key)
+    print("customer secret:", consumer_secret)
     
-    response = requests.get(api_url, auth=(consumer_key, consumer_secret))
-    token = response.json().get("access_token")
-    
-    return token
+    try:
+        response = requests.get(api_url, auth=(consumer_key, consumer_secret))
+        print("Access token response status code:", response.status_code)
+        token = response.json().get("access_token")
+        return token
+    except Exception as e:
+        print("Error obtaining access token:", e)
+        return None
 
 def lipaNaMpesaOnline(phone_number, amount):
     phone_number = format_phone_number(phone_number)  # Ensure correct phone format
