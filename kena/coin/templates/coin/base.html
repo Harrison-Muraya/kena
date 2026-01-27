@@ -1,27 +1,14 @@
 
 <!DOCTYPE html>
+{% load static tailwind_tags %}
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    {% tailwind_css %}
     {% load static %}
     <link rel="stylesheet" href="{% static 'coin/css/register.css' %}">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
-    <script src="https://cdn.tailwindcss.com"></script>
-        <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        'kena-blue': '#0066cc',
-                        'kena-dark': '#1a1a2e',
-                        'kena-purple': '#16213e',
-                        'kena-gold': '#ffd700'
-                    }
-                }
-            }
-        }
-    </script>
     <title>{% block title %} Kena {% endblock %}</title>
 </head>
 <!-- <body class="flex items-center justify-center"> -->

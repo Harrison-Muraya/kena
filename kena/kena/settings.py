@@ -56,8 +56,9 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',    
     'coin.apps.CoinConfig',
-    # 'tailwind',
-    # 'theme',  # Your Tailwind theme app
+    'tailwind',
+    'theme',
+
 ]
 
 CHANNEL_LAYERS = {
@@ -69,12 +70,13 @@ CHANNEL_LAYERS = {
 ASGI_APPLICATION = 'kena.asgi.application'
 
 
+TAILWIND_APP_NAME = 'theme'
+if DEBUG:
+    NPM_BIN_PATH = r"C:\Program Files\nodejs\npm.cmd"
 
-# TAILWIND_APP_NAME = 'theme'
-# NPM_BIN_PATH = "C:/Program Files/nodejs/npm.cmd"  # Adjust this path if necessary
-# if DEBUG:
-#     # Add django_browser_reload only in DEBUG mode
-#     INSTALLED_APPS += ['django_browser_reload']
+if DEBUG:
+    # Add django_browser_reload only in DEBUG mode
+    INSTALLED_APPS += ['django_browser_reload']
 
 
 
@@ -87,8 +89,13 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    # "django_browser_reload.middleware.BrowserReloadMiddleware",
 ]
+
+if DEBUG:
+    # Add django_browser_reload middleware only in DEBUG mode
+    MIDDLEWARE += [
+        "django_browser_reload.middleware.BrowserReloadMiddleware",
+    ]
 
 ROOT_URLCONF = 'kena.urls'
 AUTH_USER_MODEL = 'coin.CustomUser' # where custom user model is defined
