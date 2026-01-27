@@ -1,0 +1,301 @@
+{% extends 'coin/base.html' %}
+{% load static %}
+
+{% block content %}
+    {% include "partials/header.html" %}
+    
+
+    {% block header %} {% endblock %}
+    <!-- Hero Section -->
+    <div class="container mx-auto px-6 py-16">
+        <div class="text-center mb-16">
+            <h1 class="text-6xl md:text-7xl font-bold mb-6">
+                <span class="bg-gradient-to-r from-kena-gold via-yellow-400 to-kena-gold bg-clip-text text-transparent">
+                    The Future of
+                </span>
+                <br>
+                <span class="text-white">Digital Currency</span>
+            </h1>
+            <p class="text-xl text-gray-300 max-w-2xl mx-auto mb-8">
+                Experience lightning-fast transactions, secure mining, and seamless integration with traditional payment methods.
+            </p>
+            <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                <button class="px-8 py-4 bg-gradient-to-r from-kena-gold to-yellow-500 text-black rounded-lg hover:from-yellow-500 hover:to-kena-gold transition-all font-semibold text-lg">
+                    Start Mining Now
+                </button>
+                <button class="px-8 py-4 border border-white/30 text-white rounded-lg hover:bg-white/10 transition-all text-lg">
+                    View Explorer
+                </button>
+            </div>
+        </div>
+
+        <!-- Stats -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-6 mb-16">
+            <div class="bg-white/5 backdrop-blur-md rounded-xl p-6 border border-white/10 text-center">
+                <div class="text-3xl font-bold text-kena-gold" id="totalSupply">1,250,000</div>
+                <div class="text-gray-300 text-sm">Total Supply</div>
+            </div>
+            <div class="bg-white/5 backdrop-blur-md rounded-xl p-6 border border-white/10 text-center">
+                <div class="text-3xl font-bold text-green-400" id="blockHeight">15,847</div>
+                <div class="text-gray-300 text-sm">Block Height</div>
+            </div>
+            <div class="bg-white/5 backdrop-blur-md rounded-xl p-6 border border-white/10 text-center">
+                <div class="text-3xl font-bold text-blue-400" id="pendingTx">23</div>
+                <div class="text-gray-300 text-sm">Pending TX</div>
+            </div>
+            <div class="bg-white/5 backdrop-blur-md rounded-xl p-6 border border-white/10 text-center">
+                <div class="text-3xl font-bold text-purple-400" id="hashRate">2.4 TH/s</div>
+                <div class="text-gray-300 text-sm">Hash Rate</div>
+            </div>
+        </div>
+
+        <!-- Main Content Grid -->
+        <div class="grid lg:grid-cols-2 gap-8 mb-16">
+            <!-- Recent Blocks -->
+            <div class="bg-white/5 backdrop-blur-md rounded-2xl p-6 border border-white/10">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-2xl font-bold flex items-center">
+                        <span class="w-3 h-3 bg-green-400 rounded-full mr-3 animate-pulse"></span>
+                        Latest Blocks
+                    </h2>
+                    <button class="text-kena-gold hover:text-yellow-400 text-sm">View All</button>
+                </div>
+                <div class="space-y-4" id="blocksList">
+                    <div class="flex justify-between items-center p-4 bg-white/5 rounded-lg border border-white/5">
+                        <div>
+                            <div class="font-semibold text-kena-gold">#15847</div>
+                            <div class="text-sm text-gray-400">2 minutes ago</div>
+                        </div>
+                        <div class="text-right">
+                            <div class="text-sm">142 transactions</div>
+                            <div class="text-xs text-gray-400">Mined by: 0x7a9f...</div>
+                        </div>
+                    </div>
+                    <div class="flex justify-between items-center p-4 bg-white/5 rounded-lg border border-white/5">
+                        <div>
+                            <div class="font-semibold text-kena-gold">#15846</div>
+                            <div class="text-sm text-gray-400">5 minutes ago</div>
+                        </div>
+                        <div class="text-right">
+                            <div class="text-sm">89 transactions</div>
+                            <div class="text-xs text-gray-400">Mined by: 0x3b2c...</div>
+                        </div>
+                    </div>
+                    <div class="flex justify-between items-center p-4 bg-white/5 rounded-lg border border-white/5">
+                        <div>
+                            <div class="font-semibold text-kena-gold">#15845</div>
+                            <div class="text-sm text-gray-400">8 minutes ago</div>
+                        </div>
+                        <div class="text-right">
+                            <div class="text-sm">203 transactions</div>
+                            <div class="text-xs text-gray-400">Mined by: 0x9d8e...</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Unverified Transactions -->
+            <div class="bg-white/5 backdrop-blur-md rounded-2xl p-6 border border-white/10">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-2xl font-bold flex items-center">
+                        <span class="w-3 h-3 bg-yellow-400 rounded-full mr-3 animate-pulse"></span>
+                        Pending Transactions
+                    </h2>
+                    <button class="text-kena-gold hover:text-yellow-400 text-sm">View All</button>
+                </div>
+                <div class="space-y-4" id="pendingTxList">
+                    {% for txn in pendingTransaction %}
+                        <div class="p-4 bg-white/5 rounded-lg border border-white/5">
+                            <div class="flex justify-between items-start mb-2">
+                                <div class="text-sm text-gray-400">{{ txn.hash|slice:':6'}} • • • {{txn.hash|slice:'-4:'}}</div>
+                                <div class="text-kena-gold font-semibold">+125.50 KENA</div>
+                            </div>
+                            <div class="text-xs text-gray-500">Fee: 0.001 KENA • 30 seconds ago</div>
+                        </div>
+                    {% empty %}
+                        <p class="text-gray-400 text-center">No pending transactions.</p>                    
+                    {% endfor %}                    
+                </div>
+            </div>
+        </div>
+
+        <!-- Features Section -->
+        <div class="mb-16">
+            <h2 class="text-4xl font-bold text-center mb-12">Why Choose Kena?</h2>
+            <div class="grid md:grid-cols-3 gap-8">
+                <div class="bg-white/5 backdrop-blur-md rounded-2xl p-8 border border-white/10 text-center hover:bg-white/10 transition-all">
+                    <div class="w-16 h-16 bg-gradient-to-br from-kena-gold to-yellow-500 rounded-full flex items-center justify-center mx-auto mb-6">
+                        <svg class="w-8 h-8 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-bold mb-4">Lightning Fast</h3>
+                    <p class="text-gray-300">Experience near-instant transactions with our optimized blockchain technology.</p>
+                </div>
+                <div class="bg-white/5 backdrop-blur-md rounded-2xl p-8 border border-white/10 text-center hover:bg-white/10 transition-all">
+                    <div class="w-16 h-16 bg-gradient-to-br from-green-400 to-green-600 rounded-full flex items-center justify-center mx-auto mb-6">
+                        <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-bold mb-4">Secure & Private</h3>
+                    <p class="text-gray-300">Advanced cryptographic security ensures your transactions remain private and secure.</p>
+                </div>
+                <div class="bg-white/5 backdrop-blur-md rounded-2xl p-8 border border-white/10 text-center hover:bg-white/10 transition-all">
+                    <div class="w-16 h-16 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-6">
+                        <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-bold mb-4">Easy Integration</h3>
+                    <p class="text-gray-300">Seamlessly integrate with M-Pesa, PayPal, and credit cards for easy on/off ramps.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Call to Action -->
+        <div class="bg-gradient-to-r from-kena-gold/20 to-yellow-500/20 backdrop-blur-md rounded-2xl p-12 border border-kena-gold/30 text-center">
+            <h2 class="text-4xl font-bold mb-6">Ready to Join the Kena Revolution?</h2>
+            <p class="text-xl text-gray-300 mb-8 max-w-2xl mx-auto">
+                Start your journey with Kena today. Mine, trade, and transact with the next generation of cryptocurrency.
+            </p>
+            <button class="px-8 py-4 bg-gradient-to-r from-kena-gold to-yellow-500 text-black rounded-lg hover:from-yellow-500 hover:to-kena-gold transition-all font-semibold text-lg mr-4">
+                Create Wallet
+            </button>
+            <button class="px-8 py-4 border border-kena-gold text-kena-gold rounded-lg hover:bg-kena-gold hover:text-black transition-all text-lg">
+                Learn More
+            </button>
+        </div>
+    </div>
+    {% include "partials/footer.html" %}
+    {% block footer %} {% endblock %}
+
+    <script>
+        async function loadPendingTx() {
+            const response = await fetch("/api/pending_transactions/");
+            const data = await response.json();
+                console.log(data);
+            const container = document.querySelector('#pendingTxList');
+            container.innerHTML = "";
+
+            data.transactions.forEach(txn => {
+                container.innerHTML += `
+                    <div class="p-4 bg-white/5 rounded-lg border border-white/5">
+                        <div class="flex justify-between items-start mb-2">
+                            <div class="text-sm text-gray-400">${txn.hash.slice(0, 6)} • • • ${txn.hash.slice(-4)}</div>
+                            <div class="text-kena-gold font-semibold">+${txn.amount} KENA</div>
+                        </div>
+                        <div class="text-xs text-gray-500">30 seconds ago</div>
+                    </div>`;
+            });
+        }
+
+        // setInterval(loadPendingTx, 1000); // refresh every 5 seconds
+        // loadPendingTx();
+    </script>
+
+
+{% endblock %}
+
+ <div class="space-y-4" id="pendingTxList">
+                    <div class="p-4 bg-white/5 rounded-lg border border-white/5">
+                        <div class="flex justify-between items-start mb-2">
+                            <div class="text-sm text-gray-400">0x4f2a...8b9c</div>
+                            <div class="text-kena-gold font-semibold">+125.50 KENA</div>
+                        </div>
+                        <div class="text-xs text-gray-500">Fee: 0.001 KENA • 30 seconds ago</div>
+                    </div>
+                    <div class="p-4 bg-white/5 rounded-lg border border-white/5">
+                        <div class="flex justify-between items-start mb-2">
+                            <div class="text-sm text-gray-400">0x8d3e...2f1a</div>
+                            <div class="text-kena-gold font-semibold">+67.25 KENA</div>
+                        </div>
+                        <div class="text-xs text-gray-500">Fee: 0.002 KENA • 45 seconds ago</div>
+                    </div>
+                    <div class="p-4 bg-white/5 rounded-lg border border-white/5">
+                        <div class="flex justify-between items-start mb-2">
+                            <div class="text-sm text-gray-400">0x1c7b...5e8d</div>
+                            <div class="text-kena-gold font-semibold">+289.80 KENA</div>
+                        </div>
+                        <div class="text-xs text-gray-500">Fee: 0.003 KENA • 1 minute ago</div>
+                    </div>
+                    <div class="p-4 bg-white/5 rounded-lg border border-white/5">
+                        <div class="flex justify-between items-start mb-2">
+                            <div class="text-sm text-gray-400">0x6a9c...3d2f</div>
+                            <div class="text-kena-gold font-semibold">+45.12 KENA</div>
+                        </div>
+                        <div class="text-xs text-gray-500">Fee: 0.001 KENA • 2 minutes ago</div>
+                    </div>
+                </div>
+
+
+<!-- <div class="">
+         <h1>home page welcome </h1>
+        {% if block %}
+            <table>
+                    <thead>
+                        <tr>
+                            <th>height</th>
+                            <th>Nonce</th>
+                            <th>Previous Hash</th>
+                            <th>Block Hash</th>
+                            <th>Date Created</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for block in blocks %}
+                            {% if block.type != 'fee' %}                                                  
+                                <tr>
+                                    <td class="highlight">{{ block.height }}</td>
+                                    <td class="highlight">{{ block.nonce }}</td>
+                                    <td class="highlight">{{ block.previous_hash|slice:":6" }}...{{ block.previous_hash|slice:"-4:" }}</td>
+                                    <td class="highlight">{{ block.hash|slice:":6" }}...{{ block.hash|slice:"-4:" }}</td>
+                                    <td class="highlight">{{ block.timestamp}}</td>
+                                </tr>
+                            {% endif %}
+                        {% endfor %}
+                    </tbody>
+                </table>
+        {% else %}
+            <p>no transactions</p>
+        {% endif %}
+    </div> -->
+
+
+     <!-- <div class="relative grid grid-cols-6">      
+        <header class="flex bg-gray-800 col-span-1 text-white p-4 border-r-[0.5px] border-gray-100/50">                     
+            <nav class="flex flex-col items-left h-screen  ">
+                <h1 class="text-2xl font-bold mb-4">Kena.com</h1>
+                <ul>
+                    <li><a href="{% url 'home' %}">Home</a></li>
+                    <li><a href="{% url 'dashboard' %}">Dashboard</a></li>
+                    {% if user.is_authenticated %}
+                        <li>Welcome, {{ user.username }}!</li>
+                        <li><a href="">Profile</a></li>
+                        <li><a href="{% url 'logout' %}">Logout</a></li>
+                    {% else %}
+                        <li><a href="{% url 'login' %}">Login</a></li>
+                        <li><a href="{% url 'register' %}">Register</a></li>
+                    {% endif %}
+                </ul>
+            </nav>
+        </header>  
+        <main class="grid grid-rows-12 bg-gray-800 col-span-5 ">
+            <div class="row-span-1 bg-gray-900 text-white">
+                <div class="flex justify-between items-center p-6 border-b-[0.5px] border-gray-100/50">
+                    <h1 class="text-2xl font-bold">Kena Dashboard</h1>
+                    {% if user.is_authenticated %}
+                        <p class="text-white">Welcome, {{ user.username }}!</p>
+                    {% else %}
+                        <p class="text-white">Please log in to access your dashboard.</p>
+                    {% endif %}
+                </div>
+            </div>  
+            <div class="row-span-11 p-4">
+                      
+            </div>
+            
+        </main>     
+     </div>  -->
+
+ 
