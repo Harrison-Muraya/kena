@@ -1,5 +1,5 @@
 """
-my local machine in development.
+for ubuntu server deployment.
 
 Django settings for kena project.
 
@@ -27,20 +27,25 @@ load_dotenv(BASE_DIR / '.env')
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
+# SECRET_KEY = 'django-insecure-$65^eb^#gtn_i)3@u9*5phpgsg@ui41y9g2&wre-9hg%*k!!&$'
 SECRET_KEY = os.getenv('DJANGO_SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
-# DEBUG = False
+# DEBUG = True
+DEBUG = False
 
 # ALLOWED_HOSTS = ['192.168.100.24', 'localhost', '127.0.0.1',]
 ALLOWED_HOSTS = ['*']
 # ALLOWED_HOSTS = ['kena.onrender.com', 'www.kena.onrender.com']
+CSRF_TRUSTED_ORIGINS = [
+    'http://197.248.201.233:20000',
+    'https://197.248.201.233:20000',
+    'http://192.168.100.17:8000',
+    'http://127.0.0.1:8000',
+    'http://localhost:8000',
+]
 
-# CSRF_TRUSTED_ORIGINS = [
-#     'https://kena.onrender.com',
-#     'https://www.kena.onrender.com',
-# ]
+
 
 # INTERNAL_IPS = ['127.0.0.1']
 
@@ -57,45 +62,48 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',    
     'coin.apps.CoinConfig',
     'tailwind',
-    'theme',
-
+    'theme', 
 ]
+
+# CHANNEL_LAYERS = {
+#     'default': {
+#         'BACKEND': 'channels.layers.InMemoryChannelLayer',
+#     },
+# }
 
 CHANNEL_LAYERS = {
     'default': {
-        'BACKEND': 'channels.layers.InMemoryChannelLayer',
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            "hosts": [('127.0.0.1', 6379)],
+        },
     },
 }
 
 ASGI_APPLICATION = 'kena.asgi.application'
 
 
-TAILWIND_APP_NAME = 'theme'
-if DEBUG:
-    NPM_BIN_PATH = r"C:\Program Files\nodejs\npm.cmd"
 
-if DEBUG:
-    # Add django_browser_reload only in DEBUG mode
-    INSTALLED_APPS += ['django_browser_reload']
+# TAILWIND_APP_NAME = 'theme'
+# NPM_BIN_PATH = "C:/Program Files/nodejs/npm.cmd"  # Adjust this path if necessary
+# if DEBUG:
+#     # Add django_browser_reload only in DEBUG mode
+#     INSTALLED_APPS += ['django_browser_reload']
 
 
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    # 'whitenoise.middleware.WhiteNoiseMiddleware',  # for serving static files in production
+    'whitenoise.middleware.WhiteNoiseMiddleware',  # for serving static files in production
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    # "django_browser_reload.middleware.BrowserReloadMiddleware",
 ]
-
-if DEBUG:
-    # Add django_browser_reload middleware only in DEBUG mode
-    MIDDLEWARE += [
-        "django_browser_reload.middleware.BrowserReloadMiddleware",
-    ]
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 ROOT_URLCONF = 'kena.urls'
 AUTH_USER_MODEL = 'coin.CustomUser' # where custom user model is defined
@@ -183,23 +191,27 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
-STATIC_URL = 'static/'
-# STATIC_URL = '/static/'
-# STATIC_ROOT = BASE_DIR / 'staticfiles'
-# STATICFILES_DIRS = [
-#     BASE_DIR / 'coin' / 'static',
-# ]
+# STATIC_URL = 'static/'
+
+# Static files
+STATIC_URL = '/static/'
+STATIC_ROOT = '/var/www/kena/staticfiles/'
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = '/var/www/kena/media/'
 
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
-# DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-# STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
 LOGIN_REDIRECT_URL = '/dashboard'
 # LOGOUT_REDIRECT_URL = ''
+
+
+
 
 @receiver(user_logged_in)
 def on_login(sender, request, user, **kwargs):
