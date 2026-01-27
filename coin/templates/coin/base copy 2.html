@@ -1,0 +1,289 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+        <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'kena-blue': '#0066cc',
+                        'kena-dark': '#1a1a2e',
+                        'kena-purple': '#16213e',
+                        'kena-gold': '#ffd700'
+                    }
+                }
+            }
+        }
+    </script>
+    <title>{% block title %} Kena {% endblock %}</title>
+</head>
+<!-- <body class="flex items-center justify-center"> -->
+
+<body class="bg-gradient-to-br from-kena-dark via-kena-purple to-gray-900 text-white min-h-screen">
+    {% if messages %}
+        <div class="fixed top-28 right-20 space-y-2 z-50">
+            {% for message in messages %}
+            <div role="alert" 
+                class="p-4 rounded-lg shadow-lg
+                {% if message.tags == 'success' %} bg-green-600 text-white {% endif %}
+                {% if message.tags == 'error' %} bg-red-600 text-white {% endif %}
+                {% if message.tags == 'warning' %} bg-yellow-600 text-black {% endif %}
+                {% if message.tags == 'info' %} bg-blue-600 text-white {% endif %}
+                ">
+                {{ message }}
+            </div>
+            {% endfor %}
+        </div>
+    {% endif %}   
+    {% block content %} {% endblock %}
+    {% block script %}{% endblock %}
+
+    <script>
+         setTimeout(() => {
+            document.querySelectorAll('[role="alert"]').forEach(el => {
+            el.classList.add("opacity-0", "transition", "duration-900"); // fade out
+            setTimeout(() => el.remove(), 3000); // remove after fade
+            });
+        }, 4000);
+
+    // ---------------------------------------------------------------------------------------------------------------------
+        document.addEventListener('DOMContentLoaded', () => {
+
+            // Shared config
+            const wsProtocol = window.location.protocol === 'https:' ? 'wss://' : 'ws://';
+            const host = window.location.host;
+
+            function updateStatus(indicatorId, status, color) {
+                const el = document.querySelector(indicatorId);
+                if (!el) return;
+                switch (status) {
+                    case 'connected':
+                        el.className = `w-3 h-3 ${color} rounded-full mr-3 animate-pulse`;
+                        break;
+                    case 'disconnected':
+                        el.className = 'w-3 h-3 bg-gray-400 rounded-full mr-3';
+                        break;
+                    case 'error':
+                        el.className = 'w-3 h-3 bg-red-400 rounded-full mr-3 animate-pulse';
+                        break;
+                }
+            }
+
+            // Pending Transactions real-time updates
+            const txSocketUrl = wsProtocol + host + '/ws/transactions/';
+            let txSocket, txReconnect = 0;
+            const txMaxReconnect = 5, txDelay = 3000;
+
+            function connectTxSocket() {
+                txSocket = new WebSocket(txSocketUrl);
+
+                txSocket.onopen = () => {
+                    console.log('✅ Transactions WS connected');
+                    txReconnect = 0;
+                    updateStatus('#pendingStatus', 'connected', 'bg-yellow-400');
+                };
+
+                txSocket.onmessage = e => {
+                    try {
+                        const data = JSON.parse(e.data);
+                        const container = document.querySelector('#pendingTxList');
+                        if (!container) return;
+
+                        if (!data.transactions?.length) {
+                            container.innerHTML = '<p class="text-gray-400 text-center">No pending transactions</p>';
+                            return;
+                        }
+
+                        container.innerHTML = '';
+                        data.transactions.forEach(txn => {
+                            const el = document.createElement('div');
+                            el.className = 'p-4 bg-white/5 rounded-lg border border-white/5 hover:bg-white/10 transition-all';
+                            el.innerHTML = `
+                                <div class="flex justify-between items-start mb-2">
+                                    <div class="text-sm text-gray-400 font-mono">${txn.hash.slice(0, 8)}...${txn.hash.slice(-6)}</div>
+                                    <div class="text-kena-gold font-semibold">+${parseFloat(txn.amount).toFixed(2)} KENA</div>
+                                </div>
+                                <div class="text-xs text-gray-500">${txn.timestamp}</div>
+                            `;
+                            container.appendChild(el);
+                        });
+                    } catch (err) {
+                        console.error('TX parse error:', err);
+                    }
+                };
+
+                txSocket.onerror = () => updateStatus('#pendingStatus', 'error');
+                txSocket.onclose = () => {
+                    updateStatus('#pendingStatus', 'disconnected');
+                    if (txReconnect < txMaxReconnect) {
+                        txReconnect++;
+                        console.warn(`Reconnecting TX WS... (${txReconnect}/${txMaxReconnect})`);
+                        setTimeout(connectTxSocket, txDelay);
+                    } else {
+                        console.error('❌ TX WS max retries reached');
+                        const c = document.querySelector('#pendingTxList');
+                        if (c) c.innerHTML = `<p class="text-red-400 text-center">Connection lost</p>`;
+                    }
+                };
+            }
+
+            // Block WebSocket connection and handlers
+            const blockSocketUrl = wsProtocol + host + '/ws/blocks/';
+            let blockSocket, blockReconnect = 0;
+            const blockMaxReconnect = 5, blockDelay = 2000;
+
+            function connectBlockSocket() {
+                blockSocket = new WebSocket(blockSocketUrl);
+
+                blockSocket.onopen = () => {
+                    console.log('✅ Blocks WS connected');
+                    blockReconnect = 0;
+                    updateStatus('#blocksStatus', 'connected', 'bg-green-400');
+                };
+
+                blockSocket.onmessage = e => {
+                    try {
+                        const data = JSON.parse(e.data);
+                        console.log('Block data:', data);
+                        const container = document.querySelector('#blocksList');
+                        if (!container) return;
+
+                        if (!data.blocks?.length) {
+                            container.innerHTML = '<p class="text-gray-400 text-center">No recent blocks</p>';
+                            return;
+                        }
+
+                        container.innerHTML = '';
+                        data.blocks.forEach(block => {
+                            const el = document.createElement('div');
+                            el.className = 'flex justify-between items-center p-4 bg-white/5 rounded-lg border border-white/5 hover:bg-white/10 transition-all';
+                            el.innerHTML = `
+                                <div>
+                                    <div class="font-semibold text-kena-gold">#${block.height}</div>
+                                    <div class="text-sm text-gray-400">${block.timestamp}</div>
+                                </div>
+                                <div class="text-right">
+                                    <div class="text-sm">${block.transactions.length} transactions</div>
+                                    <div class="text-xs text-gray-400">Mined by: ${block.miner}</div>
+                                </div>
+                            `;
+
+                            ` <div class="flex justify-between items-center p-4 bg-white/5 rounded-lg border border-white/5">
+                                <div>
+                                    <div class="font-semibold text-kena-gold">#15847</div>
+                                    <div class="text-sm text-gray-400">2 minutes ago</div>
+                                </div>
+                                <div class="text-right">
+                                    <div class="text-sm">142 transactions</div>
+                                    <div class="text-xs text-gray-400">Mined by: 0x7a9f...</div>
+                                </div>
+                            </div>`;
+                            container.appendChild(el);
+                        });
+                    } catch (err) {
+                        console.error('Block parse error:', err);
+                    }
+                };
+
+                blockSocket.onerror = () => updateStatus('#blocksStatus', 'error');
+                blockSocket.onclose = () => {
+                    updateStatus('#blocksStatus', 'disconnected');
+                    if (blockReconnect < blockMaxReconnect) {
+                        blockReconnect++;
+                        console.warn(`Reconnecting Block WS... (${blockReconnect}/${blockMaxReconnect})`);
+                        setTimeout(connectBlockSocket, blockDelay);
+                    } else {
+                        console.error('❌ Block WS max retries reached');
+                        const c = document.querySelector('#blocksList');
+                        if (c) c.innerHTML = `<p class="text-red-400 text-center">Connection lost</p>`;
+                    }
+                };
+            }
+            connectTxSocket();
+            connectBlockSocket();
+
+            // Graceful cleanup
+            window.addEventListener('beforeunload', () => {
+                if (txSocket?.readyState === WebSocket.OPEN) txSocket.close();
+                if (blockSocket?.readyState === WebSocket.OPEN) blockSocket.close();
+            });
+
+        })
+
+    // ---------------------------------------------------------------------------------------------------------------------
+
+        //Block real-time updates
+        
+        function updateStats() {
+            const pendingTx = document.getElementById('pendingTx');
+            const blockHeight = document.getElementById('blockHeight');
+            
+            // Randomly update pending transactions
+            if (Math.random() > 0.7) {
+                const current = parseInt(pendingTx.textContent);
+                pendingTx.textContent = current + Math.floor(Math.random() * 3) - 1;
+            }
+            
+            // Occasionally add new blocks
+            if (Math.random() > 0.95) {
+                const current = parseInt(blockHeight.textContent.replace(',', ''));
+                blockHeight.textContent = (current + 1).toLocaleString();
+                addNewBlock(current + 1);
+            }
+        }
+
+        function addNewBlock(blockNumber) {
+            const blocksList = document.getElementById('blocksList');
+            const newBlock = document.createElement('div');
+            newBlock.className = 'flex justify-between items-center p-4 bg-white/5 rounded-lg border border-white/5 opacity-0';
+            newBlock.innerHTML = `
+                <div>
+                    <div class="font-semibold text-kena-gold">#${blockNumber.toLocaleString()}</div>
+                    <div class="text-sm text-gray-400">Just now</div>
+                </div>
+                <div class="text-right">
+                    <div class="text-sm">${Math.floor(Math.random() * 200) + 50} transactions</div>
+                    <div class="text-xs text-gray-400">Mined by: 0x${Math.random().toString(16).substr(2, 4)}...</div>
+                </div>
+            `;
+            
+            blocksList.insertBefore(newBlock, blocksList.firstChild);
+            
+            // Animate in
+            setTimeout(() => {
+                newBlock.style.opacity = '1';
+                newBlock.style.transition = 'opacity 0.5s ease-in-out';
+            }, 100);
+            
+            // Remove last block if more than 3
+            if (blocksList.children.length > 3) {
+                blocksList.removeChild(blocksList.lastChild);
+            }
+        }
+
+        // Update every 5 seconds
+        // setInterval(updateStats, 5000);
+
+        // Add some visual effects
+        document.addEventListener('DOMContentLoaded', function() {
+            const cards = document.querySelectorAll('.bg-white\\/5');
+            cards.forEach(card => {
+                card.addEventListener('mouseenter', function() {
+                    this.style.transform = 'translateY(-2px)';
+                    this.style.transition = 'transform 0.3s ease';
+                });
+                card.addEventListener('mouseleave', function() {
+                    this.style.transform = 'translateY(0)';
+                });
+            });
+        });
+    </script>
+
+</body>
+</html>
