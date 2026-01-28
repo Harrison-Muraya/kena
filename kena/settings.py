@@ -84,7 +84,7 @@ ASGI_APPLICATION = 'kena.asgi.application'
 
 
 
-# TAILWIND_APP_NAME = 'theme'
+TAILWIND_APP_NAME = 'theme'
 # NPM_BIN_PATH = "C:/Program Files/nodejs/npm.cmd"  # Adjust this path if necessary
 # if DEBUG:
 #     # Add django_browser_reload only in DEBUG mode
