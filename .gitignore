@@ -41,3 +41,32 @@ db.sqlite3-journal
 *.swp
 *.swo
 *~
+
+# Django stuff:
+local_settings.py
+media
+staticfiles
+# If you are using Jupyter Notebooks
+.ipynb_checkpoints
+# Celery stuff
+celerybeat-schedule
+celerybeat.pid
+# SageMathCloud files
+*.smc
+# VS Code settings
+.vscode/
+# MacOS files
+.DS_Store
+# Windows thumbnail cache files
+Thumbs.db
+ehthumbs.db
+# Folder config files
+Desktop.ini 
+# Python virtual environment
+venv/
+ENV/    
+env/
+.venv/  
+env.bak/
+venv.bak/   
+
